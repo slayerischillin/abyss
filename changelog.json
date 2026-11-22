@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 59,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed 'Sync failed: Maximum call stack size exceeded' on phones"
+   ]
+  },
+  {
    "version": 58,
    "date": "Nov 22",
    "changes": [

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="58">
+<meta name="abyss-version" content="59">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1373,15 +1373,16 @@ async function releasedCover(t){if(relCache[t.id]!==undefined)return relCache[t.
   if(!u&&s.image_url)u=s.image_url;relCache[t.id]=u;store.set('relc',relCache);return u}
 /* ---- shared fan-made covers (Supabase) ---- */
 const SUPA={url:'https://zatflznpjjketcannyih.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdGZsem5wamprZXRjYW5ueWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNDU1NjAsImV4cCI6MjExMDkyMTU2MH0.FF3GKKzok5xu3EPqG3de_NeEG4csuRGWLAhhV-VDyEA'};
+const sfetch=(...a)=>(window.CapacitorWebFetch||window.fetch)(...a);
 const supaOn=()=>!!(SUPA.url&&SUPA.key);
 const commCache={};const myPicks=store.get('myPicks',{});
 async function communityCovers(t){if(!supaOn()||!t||t.raw.local)return[];const id=String(t.id),c=commCache[id];if(c&&Date.now()-c.at<600000)return c.list;
-  try{const r=await fetch(SUPA.url+'/rest/v1/cover_picks?'+new URLSearchParams({select:'url,picks',song_id:'eq.'+id,order:'picks.desc',limit:'40'}),{headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key}});
+  try{const r=await sfetch(SUPA.url+'/rest/v1/cover_picks?'+new URLSearchParams({select:'url,picks',song_id:'eq.'+id,order:'picks.desc',limit:'40'}),{headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key}});
     if(!r.ok)throw 0;const list=(await r.json()).map(x=>x.url);commCache[id]={at:Date.now(),list};return list}catch{return c?c.list:[]}}
 function shareCover(t,u){if(!supaOn()||!t||t.raw.local||!u||!/^https:\/\//.test(u))return;
   if(u===eraCover(t)||u===t.art||/mzstatic\.com|scdn\.co/.test(u))return;  /* only fan-made picks, not era or official art */
   const k=t.id+'|'+u;if(myPicks[k])return;myPicks[k]=1;store.set('myPicks',myPicks);delete commCache[String(t.id)];
-  fetch(SUPA.url+'/rest/v1/rpc/pick_cover',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify({p_song:String(t.id),p_url:u})}).catch(()=>{})}
+  sfetch(SUPA.url+'/rest/v1/rpc/pick_cover',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify({p_song:String(t.id),p_url:u})}).catch(()=>{})}
 async function autoCover(t){if(covers[t.id]!==undefined||t.raw.local)return;
   if(t.raw.category==='released'){const u=await releasedCover(t);if(u&&cur()&&cur().id===t.id){saveCover(t,u);return}}
   if(cfg.mode==='off')return;if(cfg.mode==='era'){saveCover(t,eraCover(t));return}
@@ -1945,17 +1946,17 @@ const baseSet=store.set;try{if(store.get('acctTemp',0)&&!sessionStorage.getItem(
 let ts=store.get('syncTs',{}),acct=store.get('acct',null),applying=false,busy=false,pushT=0;
 const st=m=>{const e=$('#acSt');if(e)e.textContent=m||''};
 async function auth(path,body,qs){if(!supaOn())throw new Error('Accounts are not switched on in this build yet');
-  const r=await fetch(SUPA.url+'/auth/v1/'+path+(qs||''),{method:'POST',headers:{apikey:SUPA.key,'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  const r=await sfetch(SUPA.url+'/auth/v1/'+path+(qs||''),{method:'POST',headers:{apikey:SUPA.key,'Content-Type':'application/json'},body:JSON.stringify(body||{})});
   const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.msg||d.error_description||d.message||d.error||('HTTP '+r.status));return d}
 function setSession(d){if(!d||!d.access_token||!d.user)return false;acct={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+(d.expires_in||3600)*1000,user:{id:d.user.id,email:d.user.email}};store.set('acct',acct);return true}
 async function token(){if(!acct)return null;
   if(acct.expires_at-Date.now()<60000){try{setSession(await auth('token',{refresh_token:acct.refresh_token},'?grant_type=refresh_token'))}catch(e){if(/invalid|expired|not found|revoked|already used/i.test(e.message)){acct=null;store.set('acct',null);paint()}return null}}
   return acct&&acct.access_token}
 async function rest(method,qs,body){const t=await token();if(!t)throw new Error('Not signed in');
-  const r=await fetch(SUPA.url+'/rest/v1/user_data'+(qs||''),{method,headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:body?JSON.stringify(body):undefined});
+  const r=await sfetch(SUPA.url+'/rest/v1/user_data'+(qs||''),{method,headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:body?JSON.stringify(body):undefined});
   if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));return method==='GET'?r.json():null}
-const localVal=k=>{if(k==='cfg'){const c=store.get('cfg',{}),o={};CFGK.forEach(x=>{if(c[x]!==undefined)o[x]=c[x]});return o}return store.get(k,undefined)};
-const writeLocal=(k,v)=>{if(k==='cfg'){const c=store.get('cfg',{});baseSet('cfg',Object.assign(c,v))}else baseSet(k,v)};
+const localVal=k=>{if(k==='cfg'){const c=store.get('cfg',{}),o={};CFGK.forEach(x=>{if(c[x]!==undefined)o[x]=c[x]});return o}const v=store.get(k,undefined);if(k==='covers'&&v){const o={};Object.keys(v).forEach(id=>{const u=v[id];if(typeof u!=='string'||!u.startsWith('data:'))o[id]=u});return o}return v};
+const writeLocal=(k,v)=>{if(k==='cfg'){const c=store.get('cfg',{});baseSet('cfg',Object.assign(c,v))}else if(k==='covers'){const l=store.get('covers',{}),o={...(v||{})};Object.keys(l).forEach(id=>{if(typeof l[id]==='string'&&l[id].startsWith('data:')&&!(id in o))o[id]=l[id]});baseSet(k,o)}else baseSet(k,v)};
 function union(k,l,r){
   if(k==='pls'){const ids=new Set((l||[]).map(p=>p.id));return[...(l||[]),...(r||[]).filter(p=>!ids.has(p.id))]}
   if(k==='likes')return{...(r||{}),...(l||{})};
@@ -1990,7 +1991,7 @@ async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing
 function paint(){const inn=!!acct;$('#acOutBox').hidden=inn;$('#acInBox').hidden=!inn;
   if(inn){$('#acWho').textContent='Signed in as '+acct.user.email;const t=store.get('lastSync',0);$('#acSync').textContent=t?'Last synced '+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'Not synced yet'}
   if(!supaOn())st('Accounts need the database to be switched on first.');try{paintBtn()}catch{}}
-$('#acSignOut').onclick=async()=>{try{const t=acct&&acct.access_token;if(t&&supaOn())await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t}})}catch{}acct=null;store.set('acct',null);try{localStorage.removeItem('syncedFor')}catch{}st('Signed out. Your music stays on this device.');paint()};
+$('#acSignOut').onclick=async()=>{try{const t=acct&&acct.access_token;if(t&&supaOn())await sfetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t}})}catch{}acct=null;store.set('acct',null);try{localStorage.removeItem('syncedFor')}catch{}st('Signed out. Your music stays on this device.');paint()};
 $('#acNow').onclick=()=>sync(false);
 
 /* ================= v48: sign-in screen ================= */
@@ -2092,7 +2093,7 @@ $('#asResend').onclick=async()=>{const b=$('#asResend');setBusy(b,true);
   try{if(resendKind==='signup')await auth('resend',{type:'signup',email:lastEmail});else await auth('recover',{email:lastEmail},'?redirect_to='+encodeURIComponent(CB));toast('Sent again');startResend()}
   catch(x){toast(nice(x.message))}finally{b.classList.remove('busy')}};
 /* Google: open the browser, then pick the code up automatically */
-async function rpcCall(fn,body){const r=await fetch(SUPA.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify(body)});
+async function rpcCall(fn,body){const r=await sfetch(SUPA.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(r.status===404)throw new Error('nohandoff');if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
 function stopPoll(){clearTimeout(pollT);pollT=0}
 async function pollOnce(){if(!handoff||Date.now()>pollUntil){stopPoll();if(handoff)err('That took too long. Try Continue with Google again.','#asGErr');return}
@@ -2120,7 +2121,7 @@ $('#asCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('#asCodeGo').cl
 let prof=store.get('profile',null),pfAvatar=null,pfNameOk=false,pfT=0;
 const NAME_RE=/^[A-Za-z0-9._]{3,20}$/;
 async function db(path,opt={}){const t=await token();if(!t)throw new Error('Not signed in');
-  const r=await fetch(SUPA.url+'/rest/v1/'+path,Object.assign({},opt,{headers:Object.assign({apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},opt.headers||{})}));
+  const r=await sfetch(SUPA.url+'/rest/v1/'+path,Object.assign({},opt,{headers:Object.assign({apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},opt.headers||{})}));
   if(!r.ok){const tx=await r.text();throw new Error(/42501|permission/i.test(tx)?'Database permissions are missing (run abyss-profiles-setup.sql)':/23505|duplicate/i.test(tx)?'taken':('HTTP '+r.status))}
   return r.status===204||opt.method==='PATCH'?null:r.json().catch(()=>null)}
 async function loadProfile(){if(!acct)return null;try{const rows=await db('profiles?select=username,avatar_url&id=eq.'+acct.user.id);prof=rows&&rows[0]||null;baseSet('profile',prof);paintBtn();return prof}catch{return prof}}
@@ -2160,7 +2161,7 @@ $('#pfRm').onclick=()=>{pfAvatar={remove:true,preview:''};pfPaint();$('#pfRm').h
 $('#pfPick').addEventListener('dragleave',()=>$('#pfPick').classList.remove('drag'));
 $('#pfPick').addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();$('#pfPick').classList.remove('drag');pickFile(e.dataTransfer.files[0])});
 async function uploadAvatar(a){const t=await token(),path=acct.user.id+'/avatar-'+Date.now()+'.'+a.ext;
-  const r=await fetch(SUPA.url+'/storage/v1/object/avatars/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':a.type,'cache-control':'31536000'},body:a.blob});
+  const r=await sfetch(SUPA.url+'/storage/v1/object/avatars/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':a.type,'cache-control':'31536000'},body:a.blob});
   if(!r.ok){const tx=await r.text();throw new Error(/bucket not found|not found/i.test(tx)?'Picture storage isn\'t set up yet (run abyss-profiles-setup.sql)':/row-level|policy|unauthorized/i.test(tx)?'Picture upload isn\'t allowed yet (run abyss-profiles-setup.sql)':/payload too large|exceeded/i.test(tx)?'That picture is too big':'Upload failed ('+r.status+')')}
   return SUPA.url+'/storage/v1/object/public/avatars/'+path}
 $('#pfSave').onclick=async()=>{const n=$('#pfName').value.trim();if(!NAME_RE.test(n)||!pfNameOk)return;const b=$('#pfSave');setBusy(b,true);$('#pfPick').classList.toggle('busy',!!(pfAvatar&&pfAvatar.blob));err('','#pfErr');
@@ -2177,10 +2178,10 @@ const _finish=finish;finish=async function(d){const ok=await _finish(d);if(ok){c
 if(acct)setTimeout(loadProfile,1500);
 
 window.abyssShareUpload=async(t,canvas)=>{if(!acct||!t||t.raw.local)return;try{const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.85));const tk=await token(),path=acct.user.id+'/'+String(t.id).replace(/[^\w-]/g,'_')+'-'+Date.now()+'.jpg';
-  const r=await fetch(SUPA.url+'/storage/v1/object/covers/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+tk,'Content-Type':'image/jpeg','cache-control':'31536000'},body:blob});if(!r.ok)throw 0;
+  const r=await sfetch(SUPA.url+'/storage/v1/object/covers/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+tk,'Content-Type':'image/jpeg','cache-control':'31536000'},body:blob});if(!r.ok)throw 0;
   const u=SUPA.url+'/storage/v1/object/public/covers/'+path;saveCover(t,u);shareCover(t,u);toast('Cover saved and shared')}catch{toast('Cover saved on this device (sharing failed)')}};
 paintBtn();
-(async()=>{try{const r=await fetch(SUPA.url+'/auth/v1/settings',{headers:{apikey:SUPA.key}});if(!r.ok)return;const d=await r.json(),on=!!(d.external&&d.external.google);
+(async()=>{try{const r=await sfetch(SUPA.url+'/auth/v1/settings',{headers:{apikey:SUPA.key}});if(!r.ok)return;const d=await r.json(),on=!!(d.external&&d.external.google);
   document.querySelectorAll('.asSocial').forEach(x=>x.style.display=on?'':'none')}catch{}})();
 /* first launch: offer an account once */
 if(!acct&&supaOn()){let tries=0;const gate=()=>{if(acct)return;const L=$('#loader');if(L&&!L.classList.contains('done')&&tries++<60){setTimeout(gate,250);return}openAuth(store.get('everSignedIn',0)?'in':'up')};setTimeout(gate,400)}
