@@ -1,5 +1,5 @@
 {
- "version": 32,
+ "version": 33,
  "file": "index.html",
- "notes": "Fixes The Outsiders cover"
+ "notes": "Right-click any song for Play next, Add to queue and more. New Queue view"
 }
