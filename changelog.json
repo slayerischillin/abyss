@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 42,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed the update popup showing again after you had already updated",
+    "Includes the studio sessions button fix from version 41"
+   ]
+  },
+  {
    "version": 41,
    "date": "Nov 22",
    "changes": [
