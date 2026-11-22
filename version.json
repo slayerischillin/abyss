@@ -1,5 +1,5 @@
 {
- "version": 29,
+ "version": 30,
  "file": "index.html",
- "notes": "Liquid glass only on Settings and Shortcuts"
+ "notes": "Fixes the HTTP 404 error when searching"
 }
