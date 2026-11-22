@@ -8,27 +8,29 @@
 @keyframes s{to{transform:rotate(360deg)}}</style></head>
 <body><div id="b"><div><i></i>ABYSS</div></div>
 <script>
-/* Abyss for Android: always runs the newest player.
-   1. use the newest of: the copy saved from GitHub, or the copy built into the app
-   2. quietly check GitHub for a newer one (used on the next launch, or right away if it arrives fast) */
+/* Abyss for phones: always runs the newest player.
+   The page is kept in IndexedDB (no 5 MB limit like localStorage). On launch we ask GitHub
+   for the newest version number; if it's newer we show "Updating" and download it first. */
 (async()=>{
   const FEED='https://raw.githubusercontent.com/slayerischillin/abyss/main';
   const ver=h=>{const m=/name="abyss-version" content="([\d.]+)"/.exec(h||'');return m?+m[1]:0};
-  const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
-  const put=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
-  let saved=get('abyss.page')||'';
+  const idb=()=>new Promise((res,rej)=>{const r=indexedDB.open('abyss',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+  const iget=async k=>{try{const d=await idb();return await new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result||'');q.onerror=()=>r('')})}catch(e){return ''}};
+  const iput=async(k,v)=>{try{const d=await idb();await new Promise((r,j)=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=()=>j(t.error)})}catch(e){}};
+  let ls='';try{ls=localStorage.getItem('abyss.page')||''}catch(e){}
+  const saved=await iget('page');
   let bundled='';try{bundled=await (await fetch('abyss.html')).text()}catch(e){}
-  let page=ver(saved)>ver(bundled)?saved:bundled;
-  const check=(async()=>{try{
-      const ctl=new AbortController();setTimeout(()=>ctl.abort(),5000);
-      const v=+(await (await fetch(FEED+'/version.json?t='+Date.now(),{cache:'no-store',signal:ctl.signal})).json()).version;
-      if(v>ver(page)){const h=await (await fetch(FEED+'/index.html?t='+Date.now(),{cache:'no-store'})).text();
-        if(ver(h)===v&&h.includes('<title>')){put('abyss.page',h);return h}}
-    }catch(e){}return null})();
-  /* wait a moment for a fresh version so updates apply on this launch when the connection is quick */
-  const fresh=await Promise.race([check,new Promise(r=>setTimeout(()=>r(null),1800))]);
-  if(fresh)page=fresh;
-  if(!page){document.getElementById('b').textContent='Could not start Abyss';return}
+  let page=[saved,ls,bundled].reduce((a,b)=>ver(b)>ver(a)?b:a,'');
+  try{localStorage.removeItem('abyss.page')}catch(e){}if(ver(page)>ver(saved))iput('page',page);
+  const B=document.getElementById('b');
+  try{const ctl=new AbortController();setTimeout(()=>ctl.abort(),4000);
+    const v=+(await (await fetch(FEED+'/version.json?t='+Date.now(),{cache:'no-store',signal:ctl.signal})).json()).version;
+    if(v>ver(page)){B.innerHTML='<div><i></i>UPDATING</div>';
+      const c2=new AbortController();setTimeout(()=>c2.abort(),25000);
+      const h=await (await fetch(FEED+'/index.html?t='+Date.now(),{cache:'no-store',signal:c2.signal})).text();
+      if(ver(h)===v&&h.includes('<title>')){page=h;await iput('page',h)}}
+  }catch(e){}
+  if(!page){B.textContent='Could not start Abyss';return}
   document.open();document.write(page);document.close();
 })();
 </script></body></html>
