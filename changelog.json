@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 60,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed 'Maximum call stack size exceeded' when saving a profile or syncing on iPhone"
+   ]
+  },
+  {
    "version": 59,
    "date": "Nov 22",
    "changes": [

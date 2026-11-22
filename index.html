@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="59">
+<meta name="abyss-version" content="60">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1373,7 +1373,9 @@ async function releasedCover(t){if(relCache[t.id]!==undefined)return relCache[t.
   if(!u&&s.image_url)u=s.image_url;relCache[t.id]=u;store.set('relc',relCache);return u}
 /* ---- shared fan-made covers (Supabase) ---- */
 const SUPA={url:'https://zatflznpjjketcannyih.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdGZsem5wamprZXRjYW5ueWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNDU1NjAsImV4cCI6MjExMDkyMTU2MH0.FF3GKKzok5xu3EPqG3de_NeEG4csuRGWLAhhV-VDyEA'};
-const sfetch=(...a)=>(window.CapacitorWebFetch||window.fetch)(...a);
+/* phones: Capacitor's patched fetch can loop forever on iOS, so Supabase calls use a clean fetch from a hidden frame */
+let _cleanFetch=null;const sfetch=(...a)=>{if(window.Capacitor){if(!_cleanFetch){try{const f=document.createElement('iframe');f.style.display='none';f.src='about:blank';document.documentElement.appendChild(f);const w=f.contentWindow;_cleanFetch=w.fetch.bind(w)}catch(e){_cleanFetch=window.fetch.bind(window)}}
+  let p;try{p=_cleanFetch(...a)}catch(e){p=Promise.reject(e)}return p.catch(e=>{if(/call stack/i.test(e&&e.message||'')||e instanceof RangeError)return window.fetch(...a);throw e})}return window.fetch(...a)};
 const supaOn=()=>!!(SUPA.url&&SUPA.key);
 const commCache={};const myPicks=store.get('myPicks',{});
 async function communityCovers(t){if(!supaOn()||!t||t.raw.local)return[];const id=String(t.id),c=commCache[id];if(c&&Date.now()-c.at<600000)return c.list;
