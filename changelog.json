@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 64,
+   "date": "Nov 22",
+   "changes": [
+    "Songs you add from your device now sync to your other devices",
+    "Deleting one of your songs removes it everywhere",
+    "Fixed a message getting stuck at the top of the screen on iPhone"
+   ]
+  },
+  {
    "version": 63,
    "date": "Nov 22",
    "changes": [

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="63">
+<meta name="abyss-version" content="64">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1019,6 +1019,7 @@ img.asGi{background:none!important;object-fit:contain;padding:0}
 #relNote p{flex:1;margin:0;font-size:13px;line-height:1.35}#relNote p b{display:block;font-size:14px}
 #relNote button{border:0;border-radius:12px;padding:9px 12px;font-weight:700;font-size:13px;background:#fff;color:#000}
 #relNote .rx{background:none;color:#fff;opacity:.6;padding:6px}
+#toast{opacity:0;translate:-50% calc(-100% - env(safe-area-inset-top,0px) - 90px);transition:translate .55s cubic-bezier(.2,1.5,.4,1),opacity .3s}#toast.show{opacity:1;translate:-50% 0}
 </style>
 </head>
 <body style="--art:none">
@@ -1722,7 +1723,7 @@ async function importFiles(files){files=[...files].filter(f=>/^audio\//.test(f.t
     const id='local:'+Date.now().toString(36)+Math.random().toString(36).slice(2,7),d=await durOf(f);
     const raw={id,name:tg.TIT2||f.name.replace(/\.[a-z0-9]{2,5}$/i,''),local:true,category:'local',artist:tg.TPE1||'',era:{name:tg.TALB||'Local files'},length:d?fmt(d):'',added:Date.now()};
     const rec={id,raw,blob:f,art:tg.pic||null};try{await idb.put(rec)}catch{toast('Could not save '+f.name+' (browser storage full?)')}addLocal(rec)}
-  toast('Added '+files.length+' song'+(files.length>1?'s':''));$('#view').value='local';openPanel();load(true)}
+  toast('Added '+files.length+' song'+(files.length>1?'s':''));try{window.abyssCloud&&setTimeout(()=>abyssCloud.run(),1500)}catch{}$('#view').value='local';openPanel();load(true)}
 async function loadLocals(){try{(await idb.all()).sort((a,b)=>(a.raw.added||0)-(b.raw.added||0)).forEach(addLocal)}catch{}}
 $('#bLocal').onclick=()=>$('#lfile').click();$('#lfile').onchange=e=>{importFiles(e.target.files);e.target.value=''};
 let dragDepth=0;const isFiles=e=>[...(e.dataTransfer&&e.dataTransfer.types||[])].includes('Files');
@@ -1804,7 +1805,7 @@ $('#plMake').onclick=async()=>{const n=$('#plNew').value.trim();if(!n)return;con
 $('#plNew').onkeydown=e=>{if(e.key==='Enter')$('#plMake').click()};$('#plClose').onclick=$('#apDone').onclick=()=>$('#dPl').close();
 $('#dPl').addEventListener('click',e=>{if(e.target===$('#dPl'))$('#dPl').close()});
 $('#addPl').onclick=()=>openAddTo(cur());
-function removeRow(t,n){if($('#view').value==='local'){idb.del(t.id).catch(()=>{});URL.revokeObjectURL(localUrl[t.id]);delete localUrl[t.id];locals=locals.filter(x=>x.id!==t.id);pls.forEach(q=>q.songs=q.songs.filter(x=>x.id!==t.id));savePls();toast('Removed the local file');renderPl()}
+function removeRow(t,n){if($('#view').value==='local'){idb.del(t.id).catch(()=>{});try{window.abyssCloud&&abyssCloud.remove(t.id)}catch{}URL.revokeObjectURL(localUrl[t.id]);delete localUrl[t.id];locals=locals.filter(x=>x.id!==t.id);pls.forEach(q=>q.songs=q.songs.filter(x=>x.id!==t.id));savePls();toast('Removed the local file');renderPl()}
   load(true)}
 function movePl(a,b){const p=curPl();if(!p||a<0||a===b)return;const [x]=p.songs.splice(a,1);p.songs.splice(b,0,x);savePls();load(true)}
 const playPl=sh=>{const p=curPl();if(!p||!p.songs.length)return;queue=p.songs.map(api.toTrack).filter(t=>t.src);if(sh)for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]]}play(0)};
@@ -2026,7 +2027,7 @@ const dock=document.querySelector('.dock');if(!reduce){dock.addEventListener('po
 /* ================= v45: accounts + sync (Supabase) ================= */
 (()=>{
 const CB='https://slayerischillin.github.io/abyss/auth.html';
-const SYNC=['pls','likes','hist','plays','covers','myPicks','nm','lyroff','cfg'],CFGK=['names','auto','perf','resume','pre','mode'];
+const SYNC=['pls','likes','hist','plays','covers','myPicks','nm','lyroff','cfg','cloudSongs'],CFGK=['names','auto','perf','resume','pre','mode'];
 const raw=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
 const baseSet=store.set;try{if(store.get('acctTemp',0)&&!sessionStorage.getItem('abyssLive')){baseSet('acct',null);baseSet('acctTemp',0)}}catch{}
 let ts=store.get('syncTs',{}),acct=store.get('acct',null),applying=false,busy=false,pushT=0;
@@ -2056,7 +2057,7 @@ function liveApply(keys){try{keys.forEach(k=>{const v=store.get(k,undefined);if(
     if(k==='pls'){const id=openPl&&openPl.id;pls=v;openPl=id?pls.find(p=>p.id===id)||null:null;if(!openPl)$('#plWin').classList.remove('open')}
     else if(k==='likes')likes=v;else if(k==='hist')hist=v;else if(k==='plays')plays=v;else if(k==='covers')covers=v;else if(k==='nm')nm=v;
     else if(k==='lyroff')lyrOffs=v;else if(k==='myPicks'){Object.keys(myPicks).forEach(x=>delete myPicks[x]);Object.assign(myPicks,v)}
-    else if(k==='cfg')cfg=store.get('cfg',cfg)});
+    else if(k==='cfg')cfg=store.get('cfg',cfg);else if(k==='cloudSongs')setTimeout(()=>cloud.run(),300)});
   try{plOptions()}catch{}try{paintChips()}catch{}try{renderPl()}catch{}try{renderList()}catch{}try{if(cur()){window.paint('cover');$('#like').classList.toggle('on',!!likes[cur().id])}}catch{}
   }catch(e){}}
 async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing...');
@@ -2262,6 +2263,32 @@ $('#acEditPf').onclick=()=>{try{$('#dSet').close()}catch{}openProfile()};
 /* after signing in, ask for a profile if there isn't one yet */
 const _finish=finish;finish=async function(d){const ok=await _finish(d);if(ok){const p=await loadProfile();if(!p){setTimeout(()=>openProfile(),900)}}return ok};
 if(acct)setTimeout(loadProfile,1500);
+
+/* ================= v64: your own songs sync between devices (Supabase storage, private to you) ================= */
+const cloud=(()=>{let busy=false;const B=SUPA.url+'/storage/v1/object/songs/';
+  const pathOf=id=>acct.user.id+'/'+String(id).replace(/[^\w.-]/g,'_');
+  const req=async(method,url,body,type)=>{const t=await token();if(!t)throw new Error('Not signed in');const r=await sfetch(url,{method,headers:Object.assign({apikey:SUPA.key,Authorization:'Bearer '+t},type?{'Content-Type':type,'x-upsert':'true'}:{}),body});
+    if(!r.ok){const tx=await r.text().catch(()=>'');throw new Error(/bucket not found/i.test(tx)?'nobucket':/row-level|policy/i.test(tx)?'nopolicy':/too large|exceeded/i.test(tx)?'toobig':'HTTP '+r.status)}return r};
+  async function run(){if(!acct||!supaOn()||busy)return;busy=true;let up=0,down=0;
+    try{let list=store.get('cloudSongs',[])||[];const have=new Set(list.map(x=>x.id));let recs=[];try{recs=await idb.all()}catch{}
+      const mine=new Map(recs.map(r=>[r.id,r]));
+      for(const r of recs){if(have.has(r.id)||r.raw.cloudOff)continue;
+        try{toast('Uploading '+r.raw.name+' to your account...');await req('POST',B+pathOf(r.id),r.blob,r.blob.type||'audio/mpeg');let art=null;
+          if(r.art){try{await req('POST',B+pathOf(r.id)+'.art',r.art,r.art.type||'image/jpeg');art=pathOf(r.id)+'.art'}catch{}}
+          list=[...list,{id:r.id,raw:r.raw,path:pathOf(r.id),art,type:r.blob.type||'audio/mpeg'}];have.add(r.id);store.set('cloudSongs',list);up++}
+        catch(e){if(e.message==='nobucket'||e.message==='nopolicy'){toast('Song syncing needs the new setup file (abyss-songs-setup.sql)');return}if(e.message==='toobig')toast(r.raw.name+' is too big to sync (50 MB max)')}}
+      for(const c of list){if(c.del){if(mine.has(c.id)){try{await idb.del(c.id)}catch{}locals=locals.filter(x=>x.id!==c.id);down++}continue}if(mine.has(c.id))continue;
+        try{toast('Downloading '+c.raw.name+' from your account...');const blob=new Blob([await (await req('GET',SUPA.url+'/storage/v1/object/authenticated/songs/'+c.path)).arrayBuffer()],{type:c.type||'audio/mpeg'});
+          let art=null;if(c.art){try{art=await (await req('GET',SUPA.url+'/storage/v1/object/authenticated/songs/'+c.art)).blob()}catch{}}
+          const rec={id:c.id,raw:c.raw,blob,art};await idb.put(rec);addLocal(rec);mine.set(c.id,rec);down++}catch(e){}}
+            if(up||down){toast(down?'Synced '+down+' song'+(down>1?'s':'')+' from your account':'Your songs are backed up to your account');if($('#view').value==='local')load(true)}}
+    finally{busy=false}}
+  async function remove(id){try{const list=(store.get('cloudSongs',[])||[]);const c=list.find(x=>x.id===id);if(!c)return;store.set('cloudSongs',list.map(x=>x.id===id?{id,del:true}:x));
+    if(acct){await req('DELETE',SUPA.url+'/storage/v1/object/songs',JSON.stringify({prefixes:[c.path,c.art].filter(Boolean)}),'application/json').catch(()=>{})}}catch{}}
+  return{run,remove}})();
+window.abyssCloud=cloud;
+if(acct)setTimeout(()=>cloud.run(),6000);
+const _finish2=finish;finish=async function(d){const ok=await _finish2(d);if(ok)setTimeout(()=>cloud.run(),4000);return ok};
 
 window.abyssShareUpload=async(t,canvas)=>{if(!acct||!t||t.raw.local)return;try{const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.85));const tk=await token(),path=acct.user.id+'/'+String(t.id).replace(/[^\w-]/g,'_')+'-'+Date.now()+'.jpg';
   const r=await sfetch(SUPA.url+'/storage/v1/object/covers/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+tk,'Content-Type':'image/jpeg','cache-control':'31536000'},body:blob});if(!r.ok)throw 0;
