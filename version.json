@@ -1,5 +1,5 @@
 {
- "version": 34,
+ "version": 35,
  "file": "index.html",
- "notes": "The check-for-updates button now always answers"
+ "notes": "Fixes wrong-song lyrics. Phone and tablet layouts"
 }
