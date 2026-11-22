@@ -1,0 +1,87 @@
+{
+ "versions": [
+  {
+   "version": 36,
+   "date": "Nov 22",
+   "changes": [
+    "Patch notes: see what changed in every update",
+    "Pick a cover only shows Juice WRLD covers now, grouped into era, fan-made and official",
+    "New What's new button in Settings"
+   ]
+  },
+  {
+   "version": 35,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed lyrics sometimes showing a completely different song",
+    "New layout for phones, tuned layout for tablets"
+   ]
+  },
+  {
+   "version": 34,
+   "date": "Nov 22",
+   "changes": [
+    "The check-for-updates button always answers now"
+   ]
+  },
+  {
+   "version": 33,
+   "date": "Nov 22",
+   "changes": [
+    "Right-click any song: Play next, Add to queue, Add to playlist and more",
+    "New Queue window (Q)",
+    "The Outsiders era (OUT) now gets its own cover"
+   ]
+  },
+  {
+   "version": 32,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed The Outsiders cover not loading"
+   ]
+  },
+  {
+   "version": 31,
+   "date": "Nov 22",
+   "changes": [
+    "Check-for-updates button in the title bar"
+   ]
+  },
+  {
+   "version": 30,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed the HTTP 404 error when searching"
+   ]
+  },
+  {
+   "version": 29,
+   "date": "Nov 22",
+   "changes": [
+    "Liquid glass Settings and Shortcuts"
+   ]
+  },
+  {
+   "version": 27,
+   "date": "Nov 22",
+   "changes": [
+    "Cleaner layout and a Spotify-style player bar",
+    "Faster, snappier buttons"
+   ]
+  },
+  {
+   "version": 26,
+   "date": "Nov 22",
+   "changes": [
+    "Updates now arrive within a minute"
+   ]
+  },
+  {
+   "version": 25,
+   "date": "Nov 22",
+   "changes": [
+    "Redesigned Settings, Shortcuts and cover windows"
+   ]
+  }
+ ]
+}
