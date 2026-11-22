@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 53,
+   "date": "Nov 22",
+   "changes": [
+    "Every fan-made cover anyone picks is shared with everyone",
+    "Covers you upload from your device are shared too (when signed in)",
+    "Community picks show up to 40 covers per song, most popular first"
+   ]
+  },
+  {
    "version": 52,
    "date": "Nov 22",
    "changes": [
