@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 39,
+   "date": "Nov 22",
+   "changes": [
+    "Discord status is on: your profile shows the song, cover, era and time left while you listen",
+    "Turn it off or show the current lyric in Settings, under Discord"
+   ]
+  },
+  {
    "version": 38,
    "date": "Nov 22",
    "changes": [

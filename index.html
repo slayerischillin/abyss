@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="38">
+<meta name="abyss-version" content="39">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1471,7 +1471,7 @@ window.showPatchNotes=async(from,to)=>{const log=await changelog();const es=log.
 /* after an update lands, show what changed once */
 setTimeout(async()=>{const seen=+(store.get('seenVer',MY_VER-1)||0);if(seen&&MY_VER>seen)await showPatchNotes(seen,MY_VER);store.set('seenVer',MY_VER)},3500);
 /* ---- Discord Rich Presence (desktop app) ---- */
-const DISCORD_ID='';
+const DISCORD_ID='1574027318245064757';
 const ICONS='https://raw.githubusercontent.com/slayerischillin/abyss/main/icons/';
 let rpcT=0,rpcLast='',rpcLyricAt=0,dLyr={id:null,lines:[]};
 const clip=(x,n)=>{x=String(x||'');return x.length>n?x.slice(0,n-1)+'…':x.padEnd(2,' ')};
