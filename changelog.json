@@ -1,6 +1,17 @@
 {
  "versions": [
   {
+   "version": 63,
+   "date": "Nov 22",
+   "changes": [
+    "Drag the mini player up (or tap it) to open the full player, like Spotify",
+    "Full player shows the artists on the song, producers, engineers, studio and dates",
+    "Lyrics preview and the era card inside the full player",
+    "Drag down to close it",
+    "Your phone tells you when a new APK or IPA is posted"
+   ]
+  },
+  {
    "version": 62,
    "date": "Nov 22",
    "changes": [

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="62">
+<meta name="abyss-version" content="63">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -970,6 +970,55 @@ img.asGi{background:none!important;object-fit:contain;padding:0}
   .shf b{display:block;font-size:12.5px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .shf small{display:block;font-size:11px;opacity:.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+/* ===== v63: full player sheet + release notices ===== */
+#fp{position:fixed;inset:0;z-index:30;display:none;overflow-y:auto;overscroll-behavior:contain;color:#fff;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--glow) 55%,#120a1c) 0%,#0b0810 62%,#07060a 100%);
+  transform:translateY(100%);transition:transform .45s cubic-bezier(.2,1,.25,1);padding:calc(env(safe-area-inset-top) + 8px) 22px calc(env(safe-area-inset-bottom) + 30px)}
+#fp.show{display:block}#fp.open{transform:none}#fp.drag{transition:none}
+#fp .fh{display:flex;align-items:center;justify-content:space-between;height:52px;touch-action:none}
+#fp .fh button{width:40px;height:40px;border:0;background:none;color:#fff;display:grid;place-items:center}
+#fp .fh svg{width:24px;height:24px}
+#fp .fh div{text-align:center;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.75;line-height:1.5}
+#fp .fh div b{display:block;letter-spacing:0;text-transform:none;font-size:13px;opacity:1}
+#fp .fc{touch-action:pan-y;margin:22px auto 26px;width:min(100%,420px);aspect-ratio:1;border-radius:10px;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.8);transition:transform .35s cubic-bezier(.2,1.3,.3,1)}
+#fp.paused .fc{transform:scale(.92)}
+#fp .fc img{width:100%;height:100%;object-fit:cover;display:block}
+#fp .ft{display:flex;align-items:center;gap:12px}
+#fp .ft div{flex:1;min-width:0}
+#fp .ft h3{margin:0;font-size:23px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fp .ft p{margin:3px 0 0;font-size:15px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fp .ft button{width:44px;height:44px;border:0;background:none;color:#fff;display:grid;place-items:center}
+#fp .ft button.on svg{fill:#1ed760;stroke:#1ed760}
+#fp input[type=range]{width:100%;margin:18px 0 2px;accent-color:#fff;height:4px}
+#fp .tm{display:flex;justify-content:space-between;font-size:11.5px;opacity:.6;font-variant-numeric:tabular-nums}
+#fp .ctl2{display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px}
+#fp .ctl2 button{border:0;background:none;color:#fff;width:52px;height:52px;display:grid;place-items:center;transition:transform .12s}
+#fp .ctl2 button:active{transform:scale(.86)}
+#fp .ctl2 svg{width:30px;height:30px}
+#fp .ctl2 .pp{width:68px;height:68px;border-radius:50%;background:#fff;color:#000}
+#fp .ctl2 .act{color:#1ed760}
+#fp .ctl2 .sm svg{width:22px;height:22px}
+#fp .crd{margin-top:16px;border-radius:14px;padding:16px;background:rgba(255,255,255,.07);animation:shIn .5s cubic-bezier(.2,1.2,.3,1) backwards}
+#fp .crd h4{margin:0 0 12px;font-size:16px;font-weight:800}
+#fp .art{display:flex;align-items:center;gap:12px;padding:8px 0}
+#fp .av{width:48px;height:48px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--a1,#8f5bff),var(--a2,#ff5fb4))}
+#fp .art b{display:block;font-size:15px}#fp .art small{opacity:.6;font-size:12.5px}
+#fp .kv{display:grid;gap:12px}#fp .kv b{display:block;font-size:14.5px;white-space:pre-line}#fp .kv small{opacity:.6;font-size:12px}
+#fp .era{position:relative;overflow:hidden;min-height:150px;padding:0}
+#fp .era img{width:100%;height:170px;object-fit:cover;display:block;filter:brightness(.55)}
+#fp .era div{position:absolute;left:16px;right:16px;bottom:14px}
+#fp .era h4{margin:0 0 4px;font-size:20px}#fp .era p{margin:0;font-size:13px;opacity:.85}
+#fp .lyrc{background:color-mix(in srgb,var(--glow) 45%,#1a1024);cursor:pointer}
+#fp .lyrc p{margin:0;font-size:19px;font-weight:800;line-height:1.45;opacity:.95;white-space:pre-line;max-height:5.8em;overflow:hidden;-webkit-mask:linear-gradient(#000 60%,transparent)}
+#bar .grab{display:none}
+@media (max-width:700px){#bar .grab{display:block;position:absolute;top:4px;left:50%;width:34px;height:4px;margin-left:-17px;border-radius:2px;background:rgba(255,255,255,.22)}#bar{touch-action:pan-y}}
+#relNote{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);z-index:40;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:18px;
+  background:rgba(22,16,32,.92);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(20px);box-shadow:0 20px 50px -15px #000;transform:translateY(-140%);transition:transform .5s cubic-bezier(.2,1.3,.3,1)}
+#relNote.show{transform:none}
+#relNote .ri{width:40px;height:40px;border-radius:12px;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,var(--glow),#ff5fb4)}
+#relNote p{flex:1;margin:0;font-size:13px;line-height:1.35}#relNote p b{display:block;font-size:14px}
+#relNote button{border:0;border-radius:12px;padding:9px 12px;font-weight:700;font-size:13px;background:#fff;color:#000}
+#relNote .rx{background:none;color:#fff;opacity:.6;padding:6px}
 </style>
 </head>
 <body style="--art:none">
@@ -2292,6 +2341,81 @@ function shelves(){let w=$('#mShelves');if(!MOB()||$('#view').value!=='lib'||$('
 const _rl=renderList;renderList=function(){_rl.apply(this,arguments);try{shelves()}catch(e){}};
 addEventListener('resize',()=>{try{shelves()}catch(e){}});
 })();
+/* ================= v63: drag-up full player (Spotify style) ================= */
+(()=>{const MOB=()=>innerWidth<=700,buzz=k=>{try{window.abyssBuzz&&abyssBuzz(k)}catch(e){}};
+const I={down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  dots:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'};
+const fp=document.createElement('section');fp.id='fp';
+fp.innerHTML='<div class="fh"><button data-f="close" aria-label="Close">'+I.down+'</button><div>Playing from<b id="fpFrom"></b></div><button data-f="more" aria-label="More">'+I.dots+'</button></div>'+
+ '<div class="fc"><img id="fpCov" alt="" referrerpolicy="no-referrer"></div>'+
+ '<div class="ft"><div><h3 id="fpT"></h3><p id="fpA"></p></div><button data-f="like" id="fpLike" aria-label="Like"><svg class="ic"><use href="#i-heart"/></svg></button></div>'+
+ '<input type="range" id="fpSeek" min="0" max="1000" value="0" aria-label="Seek"><div class="tm"><span id="fpC">0:00</span><span id="fpD">0:00</span></div>'+
+ '<div class="ctl2"><button class="sm" data-f="shuf" aria-label="Shuffle"><svg class="ic"><use href="#i-shuffle"/></svg></button><button data-f="prev" aria-label="Previous"><svg class="ic"><use href="#i-prev"/></svg></button><button class="pp" data-f="pp" aria-label="Play or pause"><svg class="ic"><use href="#i-play"/></svg></button><button data-f="next" aria-label="Next"><svg class="ic"><use href="#i-next"/></svg></button><button class="sm" data-f="rep" aria-label="Repeat"><svg class="ic"><use href="#i-repeat"/></svg></button></div>'+
+ '<div id="fpCards"></div>';
+document.body.appendChild(fp);$('#bar').insertAdjacentHTML('afterbegin','<i class="grab"></i>');
+const f2=s=>{s=Math.max(0,s|0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clean2=s=>String(s||'').replace(/\r/g,'').trim();
+function splitArtists(t){const r=t.raw,set=[];const add=n=>{n=n.trim();if(n&&!set.some(x=>x.toLowerCase()===n.toLowerCase()))set.push(n)};
+  add(artistOf(t));clean2(r.credited_artists).split(/\s*(?:,|&|\band\b|\bx\b|\bfeat\.?|\bft\.?|\bwith\b|\n)\s*/i).forEach(add);return set}
+const hue=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h};
+let paintedFor=null;
+function cards(t){const r=t.raw,box=$('#fpCards');let h='';
+  const lyr=clean2(r.lyrics);if(lyr)h+='<div class="crd lyrc" data-f="lyr" style="--i:0"><h4>Lyrics</h4><p>'+esc2(lyr.split('\n').filter(Boolean).slice(0,6).join('\n'))+'</p></div>';
+  const arts=splitArtists(t);
+  h+='<div class="crd" style="--i:1"><h4>'+(arts.length>1?'Artists':'Artist')+'</h4>'+arts.map((a,i)=>{const hh=hue(a);return '<div class="art"><span class="av" style="--a1:hsl('+hh+' 70% 55%);--a2:hsl('+(hh+50)%360+' 80% 60%)">'+esc2(a[0].toUpperCase())+'</span><div><b>'+esc2(a)+'</b><small>'+(i===0?'Main artist':'Featured artist')+'</small></div></div>'}).join('')+'</div>';
+  const kv=[['Produced by',r.producers],['Engineered by',r.engineers],['Recorded at',r.recording_locations],['Dates',r.record_dates||r.dates],['Instrumental',r.instrumentals],['BPM · Key',[r.bpm,r.key].filter(Boolean).join(' · ')],['Leak',r.leak_type]].filter(x=>clean2(x[1]));
+  if(kv.length)h+='<div class="crd" style="--i:2"><h4>Credits</h4><div class="kv">'+kv.map(([k,v])=>'<div><small>'+k+'</small><b>'+esc2(clean2(v))+'</b></div>').join('')+'</div></div>';
+  const e=r.era;if(e&&(e.description||e.name))h+='<div class="crd era" style="--i:3"><img alt="" referrerpolicy="no-referrer" src="'+esc2(eraCover(t))+'"><div><h4>'+esc2(e.description||e.name)+'</h4><p>'+esc2(e.time_frame||'')+(e.play_count?' · '+Number(e.play_count).toLocaleString()+' plays':'')+'</p></div></div>';
+  if(clean2(r.additional_information))h+='<div class="crd" style="--i:4"><h4>About this song</h4><div class="kv"><b>'+esc2(clean2(r.additional_information))+'</b></div></div>';
+  box.innerHTML=h}
+function sync(){const t=cur();if(!t)return;
+  if(paintedFor!==t){paintedFor=t;const c=coverOf(t)||eraCover(t),im=$('#fpCov');im.onerror=()=>{im.onerror=null;im.src=eraCover(t)};im.src=c;
+    $('#fpT').textContent=titleOf(t);$('#fpA').textContent=splitArtists(t).join(', ');$('#fpFrom').textContent=openPl?openPl.name:subOf(t)||'Abyss';cards(t)}
+  $('#fpLike').classList.toggle('on',!!likes[t.id]);
+  const d=audio.duration||0,c=audio.currentTime||0;if(!seeking){$('#fpSeek').value=d?c/d*1000:0}$('#fpC').textContent=f2(c);$('#fpD').textContent=f2(d);
+  fp.classList.toggle('paused',!!audio.paused);fp.querySelector('.pp use').setAttribute('href',audio.paused?'#i-play':'#i-pause');
+  fp.querySelector('[data-f=shuf]').classList.toggle('act',$('#shuf').classList.contains('act'));fp.querySelector('[data-f=rep]').classList.toggle('act',$('#rep').classList.contains('act'))}
+let seeking=false,tick=0;
+$('#fpSeek').addEventListener('input',e=>{seeking=true;const d=audio.duration||0;$('#fpC').textContent=f2(e.target.value/1000*d)});
+$('#fpSeek').addEventListener('change',e=>{if(audio.duration)audio.currentTime=e.target.value/1000*audio.duration;seeking=false});
+function open(){if(!cur()||!MOB())return;fp.classList.add('show');paintedFor=null;sync();requestAnimationFrame(()=>requestAnimationFrame(()=>{fp.classList.add('open');fp.style.transform=''}));buzz('med');clearInterval(tick);tick=setInterval(sync,250);fp.scrollTop=0}
+function close(){fp.classList.remove('open');fp.style.transform='';clearInterval(tick);setTimeout(()=>{if(!fp.classList.contains('open'))fp.classList.remove('show')},460)}
+window.abyssFull={open,close};
+fp.addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;const f=b.dataset.f;buzz();
+  if(f==='close')close();else if(f==='pp')$('#pp').click();else if(f==='next')step(1);else if(f==='prev')step(-1);else if(f==='shuf')$('#shuf').click();else if(f==='rep')$('#rep').click();
+  else if(f==='like'){const t=cur();if(t)toggleLike(t)}else if(f==='lyr'){close();setTimeout(()=>$('#bLyr').click(),300)}
+  else if(f==='more'){const t=cur();if(t)openCtx({clientX:innerWidth-20,clientY:70,preventDefault(){}},t)}setTimeout(sync,60)});
+/* drag the mini player up to open; tap its title to open */
+const bar=$('#bar');let y0=null,x0=0,dy=0,vert=false;
+bar.addEventListener('touchstart',e=>{if(!MOB()||!cur()||e.target.closest('button,input'))return;y0=e.touches[0].clientY;x0=e.touches[0].clientX;dy=0;vert=false},{passive:true});
+bar.addEventListener('touchmove',e=>{if(y0===null)return;const ny=e.touches[0].clientY-y0,nx=e.touches[0].clientX-x0;
+  if(!vert){if(ny<-10&&Math.abs(ny)>Math.abs(nx)*1.2){vert=true;fp.classList.add('show','drag');sync()}else if(Math.abs(nx)>10){y0=null;return}else return}
+  dy=ny;if(e.cancelable)e.preventDefault();fp.style.transform='translateY('+Math.max(0,innerHeight+dy)+'px)'},{passive:false});
+bar.addEventListener('touchend',e=>{if(y0===null)return;y0=null;if(!vert){return}fp.classList.remove('drag');if(dy<-90)open();else{fp.style.transform='';fp.classList.remove('open');setTimeout(()=>fp.classList.remove('show'),460)}});
+$('#meta').addEventListener('click',()=>{if(MOB())open()});$('#barCov').addEventListener('click',()=>{if(MOB())open()});
+/* drag down on the header or cover to close */
+let cy=null,cd=0;const startC=e=>{if(fp.scrollTop>0)return;cy=e.touches[0].clientY;cd=0};
+const moveC=e=>{if(cy===null)return;cd=e.touches[0].clientY-cy;if(cd>0){fp.classList.add('drag');fp.style.transform='translateY('+cd+'px)';if(e.cancelable)e.preventDefault()}};
+const endC=()=>{if(cy===null)return;cy=null;fp.classList.remove('drag');if(cd>120)close();else fp.style.transform=''};
+[fp.querySelector('.fh'),fp.querySelector('.fc')].forEach(el=>{el.addEventListener('touchstart',startC,{passive:true});el.addEventListener('touchmove',moveC,{passive:false});el.addEventListener('touchend',endC)});
+addEventListener('popstate',()=>{if(fp.classList.contains('open'))close()});
+})();
+/* ================= v63: tell phones when a new APK / IPA is posted ================= */
+(()=>{const C=window.Capacitor;if(!C||!C.getPlatform)return;const plat=C.getPlatform();if(plat!=='android'&&plat!=='ios')return;
+  const tag=plat==='android'?'android':'ios',page='https://github.com/slayerischillin/abyss/releases/tag/'+tag,KEY='relSeen_'+tag;
+  const fetch2=typeof sfetch==='function'?sfetch:fetch;
+  const note=document.createElement('div');note.id='relNote';
+  note.innerHTML='<span class="ri"><svg class="ic"><use href="#i-dl"/></svg></span><p><b>New '+(plat==='ios'?'iPhone':'Android')+' build</b>There might be a new update, or that bug you just encountered might be fixed</p><button data-r="get">Get it</button><button class="rx" data-r="x" aria-label="Dismiss"><svg class="ic"><use href="#i-x"/></svg></button>';
+  document.body.appendChild(note);let stamp='';
+  note.onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;try{localStorage.setItem(KEY,stamp)}catch(x){}note.classList.remove('show');
+    if(b.dataset.r==='get'){const B=C.Plugins&&C.Plugins.Browser;if(B&&B.open)B.open({url:page}).catch(()=>window.open(page,'_blank'));else window.open(page,'_blank')}};
+  const check=async()=>{try{const r=await fetch2('https://api.github.com/repos/slayerischillin/abyss/releases/tags/'+tag,{headers:{Accept:'application/vnd.github+json'},cache:'no-store'});if(!r.ok)return;
+    const d=await r.json(),a=(d.assets||[]).find(x=>/\.(apk|ipa)$/i.test(x.name));if(!a)return;stamp=a.updated_at||a.id+'';
+    let seen=null;try{seen=localStorage.getItem(KEY)}catch(x){}
+    if(!seen){try{localStorage.setItem(KEY,stamp)}catch(x){}return}
+    if(seen!==stamp){note.classList.add('show');try{window.abyssBuzz&&abyssBuzz('ok')}catch(x){}}}catch(e){}};
+  setTimeout(check,6000);setInterval(check,30*60*1000);addEventListener('focus',()=>setTimeout(check,1000))})();
 </script>
 </body>
 </html>
