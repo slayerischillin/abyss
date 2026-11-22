@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 55,
+   "date": "Nov 22",
+   "changes": [
+    "Phone apps download updates while open and tell you when one is ready"
+   ]
+  },
+  {
    "version": 54,
    "date": "Nov 22",
    "changes": [

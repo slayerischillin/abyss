@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="54">
+<meta name="abyss-version" content="55">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1501,6 +1501,16 @@ function frame(ms){requestAnimationFrame(frame);if(cfg.perf||dlgOpen||document.h
 /* ================= v2 features ================= */
 var likes=store.get('likes',{}),hist=store.get('hist',[]),plays=store.get('plays',{}),rate=1;
 let toastT;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2200)}
+/* phone apps: download new versions while Abyss is open, so the next launch has them */
+(()=>{if(!window.Capacitor)return;const FEED='https://raw.githubusercontent.com/slayerischillin/abyss/main';
+  const mine=+((document.querySelector('meta[name=abyss-version]')||{}).content||0);
+  const save=h=>{try{localStorage.setItem('abyss.page',h);return true}catch(e){}
+    ['cands','relc','abyss.page'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});try{localStorage.setItem('abyss.page',h);return true}catch(e){return false}};
+  const run=async()=>{try{const v=+(await (await fetch(FEED+'/version.json?t='+Date.now(),{cache:'no-store'})).json()).version;if(!(v>mine))return;
+    const h=await (await fetch(FEED+'/index.html?t='+Date.now(),{cache:'no-store'})).text();
+    const hv=+((/name="abyss-version" content="([\d.]+)"/.exec(h)||[])[1]||0);if(hv!==v||!h.includes('<title>'))return;
+    if(save(h))toast('Update downloaded. Reopen Abyss to use it.')}catch(e){}};
+  setTimeout(run,4000);setInterval(run,15*60*1000)})();
 function toggleLike(t){const lb=$('#like');lb.classList.remove('pop');void lb.offsetWidth;lb.classList.add('pop');if(likes[t.id]){delete likes[t.id];toast('Removed from Liked')}else{likes[t.id]=t.raw;toast('Added to Liked')}store.set('likes',likes);if(cur()&&cur().id===t.id)$('#like').classList.toggle('on',!!likes[t.id])}
 $('#like').onclick=()=>{const t=cur();if(t)toggleLike(t)};
 const pre=new Audio();pre.preload='auto';
