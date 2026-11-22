@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="69">
+<meta name="abyss-version" content="70">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1120,6 +1120,29 @@ body.cnRemote #barCov{box-shadow:0 0 0 2px #1ed760}
 #qk .qkFoot kbd{background:none;border-color:rgba(255,255,255,.2)}
 #qk .qkSpin{display:none;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.12);border-top-color:var(--glow);animation:spin .7s linear infinite}
 #qk .qkBox.busy .qkSpin{display:block}#qk .qkBox.busy .qkIn kbd{display:none}
+/* v70: quick search in the same liquid glass as Settings */
+#qk .qkBg{background:rgba(3,2,6,.32);backdrop-filter:none}
+#qk .qkBox{padding:0;border-radius:28px;overflow:hidden;
+  background:radial-gradient(130% 70% at 18% -8%,rgba(255,255,255,.22),rgba(255,255,255,.04) 42%,transparent 60%),linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 45%,rgba(255,255,255,.06)),rgba(22,16,32,.45);
+  border:1px solid rgba(255,255,255,.22);-webkit-backdrop-filter:blur(22px) saturate(1.9) brightness(1.1);backdrop-filter:blur(22px) saturate(1.9) brightness(1.1);
+  box-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.42),inset -1px -1px 0 rgba(255,255,255,.14),inset 0 -14px 28px -18px rgba(255,255,255,.14),0 40px 120px -30px #000}
+#qk .qkBox>*{background:none!important;border-radius:0!important}
+#qk .qkIn{margin:12px;padding:14px 18px;border:1px solid rgba(255,255,255,.16);border-radius:18px!important;background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.03))!important;box-shadow:inset 1px 1px 0 rgba(255,255,255,.2)}
+#qk .qkIn svg{color:#fff;opacity:.55;filter:none}
+#qk .qkIn input{font-size:18px;font-weight:500;caret-color:#fff}
+#qk .qkIn kbd{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.07));border:0;box-shadow:inset 1px 1px 0 rgba(255,255,255,.4),0 2px 0 rgba(0,0,0,.45);opacity:.8}
+#qk .qkRes{padding:0 10px 8px}
+#qk .qkSec{font-size:12px;letter-spacing:0;font-weight:600;opacity:.5;margin:6px 10px}
+#qk .qkRes button{border-radius:14px;animation:none}
+#qk .qkRes button:hover{background:rgba(255,255,255,.06)}
+#qk .qkRes button.sel{background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.04));box-shadow:inset 1px 1px 0 rgba(255,255,255,.25),inset 0 0 0 1px rgba(255,255,255,.1)}
+#qk .qkRes button.sel::after{content:none}
+#qk .qkRes img{border-radius:8px;box-shadow:none}
+#qk .qkChips button{background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.16);box-shadow:inset 1px 1px 0 rgba(255,255,255,.28);font-weight:500}
+#qk .qkChips button:hover{background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.06));border-color:rgba(255,255,255,.24)}
+#qk .qkFoot{border-top:1px solid rgba(255,255,255,.08);opacity:.45}
+#qk .qkFoot kbd{background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.05));border:0;box-shadow:inset 1px 1px 0 rgba(255,255,255,.3)}
+#qk .qkSpin{border-top-color:#fff}
 </style>
 </head>
 <body style="--art:none">
@@ -2635,11 +2658,11 @@ addEventListener('popstate',()=>{if(fp.classList.contains('open'))close()});
 /* ================= v68: 10 desktop additions ================= */
 (()=>{const DESK=()=>innerWidth>700;
 /* 1) Ctrl+K quick search: type, arrow keys, Enter to play */
-const pal=document.createElement('div');pal.id='qk';pal.innerHTML='<div class="qkBg"></div><div class="qkBox"><div class="qkIn"><svg class="ic"><use href="#i-search"/></svg><input placeholder="What do you want to play?" spellcheck="false"><i class="qkSpin"></i><kbd>Esc</kbd></div><div class="qkRes"></div><div class="qkFoot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> play</span><span><kbd>Shift</kbd>+<kbd>Enter</kbd> play next</span></div></div>';document.body.appendChild(pal);
+const pal=document.createElement('div');pal.id='qk';pal.innerHTML='<div class="qkBg"></div><div class="qkBox"><div class="qkIn"><svg class="ic"><use href="#i-search"/></svg><input placeholder="Search songs" spellcheck="false"><i class="qkSpin"></i><kbd>Esc</kbd></div><div class="qkRes"></div><div class="qkFoot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> play</span><span><kbd>Shift</kbd>+<kbd>Enter</kbd> play next</span></div></div>';document.body.appendChild(pal);
 const qi=pal.querySelector('input'),qr=pal.querySelector('.qkRes');let qItems=[],qSel=0,qT=0,qSeq=0;
 const qEmpty=()=>{qItems=hist.slice(0,6).map(api.toTrack).filter(t=>t&&t.src);qSel=0;qPaint(true)};const qOpen=()=>{pal.classList.add('open');qi.value='';qEmpty();setTimeout(()=>qi.focus(),30)},qClose=()=>pal.classList.remove('open');
-const QS=['Lucid Dreams','Robbery','Wishing Well','All Girls Are The Same','Legends','Righteous','Bandit','Cigarettes'];
-const qPaint=(empty)=>{qr.innerHTML=(empty?(qItems.length?'<div class="qkSec">RECENTLY PLAYED</div>':''):(qItems.length?'<div class="qkSec">SONGS</div>':''))+qItems.map((t,i)=>'<button style="--i:'+i+'" class="'+(i===qSel?'sel':'')+'" data-i="'+i+'"><img alt="" referrerpolicy="no-referrer"><div><b></b><small></small></div><em></em></button>').join('')+(empty?'<div class="qkSec">TRY</div><div class="qkChips">'+QS.map((q,i)=>'<button style="--i:'+i+'" data-q="'+q+'">'+q+'</button>').join('')+'</div>':(qItems.length?'':'<p class="qkHint">No songs found for “'+esc(qi.value.trim())+'”</p>'));
+const QS=['Rental','I Lost Too Many','Tic-Tac-Toe','Betrayal (with ILOVEMAKONNEN)'];
+const qPaint=(empty)=>{qr.innerHTML=(empty?(qItems.length?'<div class="qkSec">Recently played</div>':''):(qItems.length?'<div class="qkSec">Songs</div>':''))+qItems.map((t,i)=>'<button style="--i:'+i+'" class="'+(i===qSel?'sel':'')+'" data-i="'+i+'"><img alt="" referrerpolicy="no-referrer"><div><b></b><small></small></div><em></em></button>').join('')+(empty?'<div class="qkSec">Try</div><div class="qkChips">'+QS.map((q,i)=>'<button style="--i:'+i+'" data-q="'+q+'">'+q+'</button>').join('')+'</div>':(qItems.length?'':'<p class="qkHint">No songs found for “'+esc(qi.value.trim())+'”</p>'));
   [...qr.querySelectorAll('button[data-i]')].forEach((b,i)=>{const t=qItems[i],im=b.querySelector('img');im.onerror=()=>{im.onerror=null;im.src=eraCover(t)};im.src=coverOf(t)||eraCover(t);b.querySelector('b').textContent=titleOf(t);b.querySelector('small').textContent=subOf(t);b.querySelector('em').textContent=t.raw.length||''})};
 const qGo=(i,nx)=>{const t=qItems[i];if(!t)return;qClose();if(nx){playNext(t)}else{queue=[t,...queue.slice(idx+1)];play(0)}};
 qi.addEventListener('input',()=>{clearTimeout(qT);const q=qi.value.trim();if(!q){qEmpty();return}

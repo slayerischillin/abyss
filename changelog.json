@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 70,
+   "date": "Nov 22",
+   "changes": [
+    "Quick search now uses the same liquid glass look as Settings",
+    "New suggestions: Rental, I Lost Too Many, Tic-Tac-Toe, Betrayal"
+   ]
+  },
+  {
    "version": 69,
    "date": "Nov 22",
    "changes": [
