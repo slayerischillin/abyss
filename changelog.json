@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 73,
+   "date": "Nov 22",
+   "changes": [
+    "Liquid glass on everything: player, dock, library, playlists, queue, lyrics, menus, pop-ups, device picker, stats, full player and sign-in"
+   ]
+  },
+  {
    "version": 72,
    "date": "Nov 22",
    "changes": [

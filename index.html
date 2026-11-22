@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="72">
+<meta name="abyss-version" content="73">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1144,6 +1144,34 @@ body.cnRemote #barCov{box-shadow:0 0 0 2px #1ed760}
 #qk .qkFoot kbd{background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,.05));border:0;box-shadow:inset 1px 1px 0 rgba(255,255,255,.3)}
 #qk .qkSpin{border-top-color:#fff}
 #cnStrip{bottom:calc(var(--cnB,178px))}@media (min-width:701px){#cnStrip{--cnB:182px}}
+/* ===== v73: liquid glass everywhere (same recipe as Settings) ===== */
+:root{
+  --lg-bg:radial-gradient(130% 70% at 18% -8%,rgba(255,255,255,.2),rgba(255,255,255,.04) 42%,transparent 60%),linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 45%,rgba(255,255,255,.06)),rgba(22,16,32,.42);
+  --lg-edge:1px solid rgba(255,255,255,.2);
+  --lg-blur:blur(22px) saturate(1.9) brightness(1.1);
+  --lg-shadow:inset 1.5px 1.5px 0 rgba(255,255,255,.4),inset -1px -1px 0 rgba(255,255,255,.12),inset 0 -14px 28px -18px rgba(255,255,255,.14),0 30px 90px -30px #000;
+  --lg-in:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+  --lg-in-shadow:inset 1px 1px 0 rgba(255,255,255,.24);
+}
+/* big surfaces */
+dialog,.glass,#bar,.dock,#panel,#plWin,#qWin,#lyr:not(.full),#ctx,#updPop,#cnSheet .cnCard,#qk .qkBox,#toast,#relNote,#upNext,#volHud,#authScr .asCard,#dStats,#fp{
+  background:var(--lg-bg)!important;border:var(--lg-edge)!important;
+  -webkit-backdrop-filter:var(--lg-blur)!important;backdrop-filter:var(--lg-blur)!important;box-shadow:var(--lg-shadow)!important}
+#fp{background:radial-gradient(130% 50% at 18% -4%,rgba(255,255,255,.18),transparent 55%),linear-gradient(180deg,color-mix(in srgb,var(--glow) 30%,transparent),transparent 70%),rgba(16,12,24,.55)!important}
+@media (max-width:700px){#panel,#plWin,#qWin,#lyr:not(.full){border-width:0!important;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.3)!important}#fp{border:0!important}}
+dialog::backdrop,#cnSheet .cnBg{background:rgba(3,2,6,.35)!important}
+/* things inside the glass */
+.cnCur,#fp .crd,.stN div,#qk .qkIn,#dStats .stTop li:hover,.shf img,.row:hover,.chip,#mActs button,.cnI,#ctx button:hover,#cnList button:hover,#qk .qkChips button,.sBtn:not(.main),.shX,.btn,#q,select,input[type=search],.asCard input,.asField{
+  background:var(--lg-in)!important;border:1px solid rgba(255,255,255,.15)!important;box-shadow:var(--lg-in-shadow)!important}
+.shf img{border:0!important}
+.row:not(:hover){border-color:transparent!important}.row{border:1px solid transparent!important}
+.cnCur{background:radial-gradient(120% 90% at 10% 0%,rgba(30,215,96,.22),transparent 60%),var(--lg-in)!important;border-color:rgba(30,215,96,.35)!important}
+.cnCur small,.cnCur b{color:#4ee68a}
+#fp .lyrc{background:radial-gradient(120% 90% at 10% 0%,color-mix(in srgb,var(--glow) 40%,transparent),transparent 70%),var(--lg-in)!important}
+.sBtn.main,#pp,#fp .ctl2 .pp{background:radial-gradient(120% 90% at 30% 15%,#fff,#e9e4f2 60%,#cfc6df)!important;box-shadow:inset 0 -3px 6px rgba(0,0,0,.12),inset 0 2px 0 #fff,0 8px 26px -8px var(--glow)!important;border:0!important}
+#cnStrip{background:linear-gradient(160deg,rgba(80,255,150,.55),rgba(30,215,96,.35))!important;color:#fff!important;border:1px solid rgba(160,255,200,.45)!important;-webkit-backdrop-filter:blur(16px) saturate(1.8);backdrop-filter:blur(16px) saturate(1.8);box-shadow:inset 1px 1px 0 rgba(255,255,255,.45),0 10px 30px -10px rgba(30,215,96,.6)!important;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.cnH{letter-spacing:0!important;font-size:12px!important;font-weight:600}
+#cnSheet h3{font-weight:700}
 </style>
 </head>
 <body style="--art:none">
@@ -2484,10 +2512,10 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
     wasRemote=!!r;
     if(!sheet.classList.contains('open'))return;
     const cs=a?(a.id===me?myState():a.state):null;
-    $('#cnNow').innerHTML=a&&cs&&!cs.idle?'<div class="cnCur"><img alt="" referrerpolicy="no-referrer"><div><small>CURRENT DEVICE</small><b></b><span></span></div><i class="cnEq"><s></s><s></s><s></s></i></div>':'';
+    $('#cnNow').innerHTML=a&&cs&&!cs.idle?'<div class="cnCur"><img alt="" referrerpolicy="no-referrer"><div><small>Playing on</small><b></b><span></span></div><i class="cnEq"><s></s><s></s><s></s></i></div>':'';
     if(a&&cs&&!cs.idle){const n=$('#cnNow');n.querySelector('img').src=cs.cover||'';n.querySelector('b').textContent=a.id===me?'This '+(kind==='pc'?'PC':kind==='phone'?'phone':'browser'):a.name;n.querySelector('span').textContent=(cs.title||'')+' · '+(cs.artist||'');n.querySelector('.cnEq').classList.toggle('stop',!!cs.paused)}
     const list=[...on.filter(d=>d.id!==(a&&a.id)),...(on.some(d=>d.id===me)?[]:[{id:me,name:nameOf(),platform:kind,seen:new Date().toISOString()}])].filter(d=>!(a&&d.id===a.id));
-    $('#cnList').innerHTML=(list.length?'<small class="cnH">SELECT A DEVICE</small>':'')+list.map((d,i)=>'<button data-dev="'+esc(d.id)+'" style="--i:'+i+'"><span class="cnI">'+svg(d.platform==='pc'?'pc':d.platform==='phone'?'phone':'web')+'</span><div><b>'+esc(d.id===me?d.name+' (this device)':d.name)+'</b><small>'+(d.id===me?'Play here':d.platform==='pc'?'Abyss on PC':d.platform==='phone'?'Abyss on phone':'Abyss in a browser')+'</small></div></button>').join('')+
+    $('#cnList').innerHTML=(list.length?'<small class="cnH">Other devices</small>':'')+list.map((d,i)=>'<button data-dev="'+esc(d.id)+'" style="--i:'+i+'"><span class="cnI">'+svg(d.platform==='pc'?'pc':d.platform==='phone'?'phone':'web')+'</span><div><b>'+esc(d.id===me?d.name+' (this device)':d.name)+'</b><small>'+(d.id===me?'Play here':d.platform==='pc'?'Abyss on PC':d.platform==='phone'?'Abyss on phone':'Abyss in a browser')+'</small></div></button>').join('')+
       (on.length<2?'<p class="cnTip">Open Abyss on another device with the same account and it shows up here.</p>':'')}
   /* when another device is playing, the controls here drive that device */
   const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r)return;e.stopImmediatePropagation();e.preventDefault();
