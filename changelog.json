@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 51,
+   "date": "Nov 22",
+   "changes": [
+    "Pick a username and a profile picture after signing in. Animated GIFs work",
+    "Your picture shows in the top-right corner and in Settings",
+    "Edit your profile any time from Settings, under Account",
+    "Fixed syncing failing with 'HTTP 403' (after running the new setup file)"
+   ]
+  },
+  {
    "version": 50,
    "date": "Nov 22",
    "changes": [
