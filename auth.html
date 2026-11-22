@@ -22,6 +22,20 @@ input:focus{border-color:var(--g)}
 .bar{display:flex;gap:4px;margin:10px 0 4px}.bar i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .3s}
 small{color:#b9afcc;font-size:12.5px}.err{color:#ff8aa8}
 details{margin-top:14px;text-align:left}summary{cursor:pointer;color:#b9afcc;font-size:13px}
+
+.ring{position:relative;width:96px;height:96px;margin:4px auto 12px}
+.ring svg.r{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring svg.r circle{fill:none;stroke-width:4}
+.ring .t{stroke:rgba(255,255,255,.08)}
+.ring .f{stroke:url(#gr);stroke-linecap:round;stroke-dasharray:289;stroke-dashoffset:289;animation:fill var(--dur,3.2s) linear forwards}
+@keyframes fill{to{stroke-dashoffset:0}}
+.ring .ok{position:absolute;inset:17px;margin:0;width:auto;height:auto}
+.pulse{position:absolute;inset:17px;border-radius:50%;border:2px solid var(--g);animation:pl 1.6s ease-out infinite;opacity:0}
+@keyframes pl{from{transform:scale(1);opacity:.7}to{transform:scale(1.9);opacity:0}}
+.cnt{font-variant-numeric:tabular-nums;color:#fff;font-weight:700}
+.bye main{animation:out .55s cubic-bezier(.5,0,.75,0) forwards}@keyframes out{to{opacity:0;transform:translateY(-14px) scale(.92);filter:blur(6px)}}
+.cf{position:fixed;width:8px;height:14px;border-radius:2px;top:50%;left:50%;pointer-events:none;animation:cf 1.3s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes cf{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
 </style></head><body><main id="m"><img class="l" src="icons/abyss.png" alt=""><h1>Abyss</h1><p>One moment...</p></main>
 <script>
 const SUPA={url:'https://zatflznpjjketcannyih.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdGZsem5wamprZXRjYW5ueWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNDU1NjAsImV4cCI6MjExMDkyMTU2MH0.FF3GKKzok5xu3EPqG3de_NeEG4csuRGWLAhhV-VDyEA'};
@@ -33,10 +47,20 @@ function view(html){m.innerHTML='<img class="l" src="icons/abyss.png" alt="">'+h
 function copyBox(c){const box=el('details',{},[el('summary',{textContent:'Abyss did not sign in by itself?'}),el('p',{textContent:'Copy this code, then in Abyss tap "Paste a code instead".'}),el('code',{textContent:c})]);
   const b=el('button',{textContent:'Copy code'});b.onclick=()=>navigator.clipboard.writeText(c).then(()=>b.textContent='Copied');box.appendChild(b);m.appendChild(box)}
 async function rpc(fn,body,token){const r=await fetch(SUPA.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+(token||SUPA.key),'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return r}
+function confetti(){const cols=['#a66bff','#ff5fb4','#ffb27a','#5fe08a','#fff'];for(let i=0;i<46;i++){const c=document.createElement('i');c.className='cf';const a=Math.random()*Math.PI*2,d=140+Math.random()*260;
+  c.style.cssText+='background:'+cols[i%cols.length]+';--x:'+Math.cos(a)*d+'px;--y:'+(Math.sin(a)*d-80)+'px;--r:'+(Math.random()*720-360)+'deg;animation-delay:'+Math.random()*.15+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),1600)}}
+function done(code){const N=3;
+  view('<div class="ring" style="--dur:'+N+'s"><svg class="r" viewBox="0 0 100 100"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a66bff"/><stop offset="1" stop-color="#ff5fb4"/></linearGradient></defs><circle class="t" cx="50" cy="50" r="46"/><circle class="f" cx="50" cy="50" r="46"/></svg><div class="pulse"></div>'+ok+'</div><h1>You\'re signed in</h1><p id="cl">Taking you back to Abyss in <span class="cnt">'+N+'</span>…</p>');
+  copyBox(code);confetti();try{navigator.vibrate&&navigator.vibrate([12,40,18])}catch(e){}
+  let n=N;const t=setInterval(()=>{n--;const c=m.querySelector('.cnt');if(c&&n>0)c.textContent=n;if(n<=0){clearInterval(t);
+    document.body.classList.add('bye');
+    setTimeout(()=>{try{window.close()}catch(e){}
+      setTimeout(()=>{document.body.classList.remove('bye');m.querySelector('.ring .f').style.animation='none';m.querySelector('.ring .f').style.strokeDashoffset=0;
+        const p=document.getElementById('cl');if(p)p.textContent='All set. You can close this tab, Abyss already has you signed in.'},400)},550)}},1000)}
 (async()=>{
 if(err){view('<h1>Sign in did not finish</h1><p class="err"></p><p>Go back to Abyss and try again.</p>');m.querySelector('.err').textContent=err;return}
 if(code&&h){view('<h1>Signing you in…</h1><p>Sending you back to Abyss.</p>');
-  try{await rpc('put_handoff',{p_h:h,p_code:code});view(ok+'<h1>You\'re signed in</h1><p>Go back to Abyss. It finishes by itself in a few seconds, and you can close this tab.</p>');copyBox(code);setTimeout(()=>{try{window.close()}catch(e){}},2500)}
+  try{await rpc('put_handoff',{p_h:h,p_code:code});done(code)}
   catch(e){view('<h1>Almost done</h1><p>Copy this code and paste it into Abyss.</p>');copyBox(code);m.querySelector('details').open=true}
   return}
 if(code){view('<h1>Almost done</h1><p>Copy this code and paste it into Abyss.</p>');copyBox(code);m.querySelector('details').open=true;return}

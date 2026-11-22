@@ -1,5 +1,5 @@
 {
- "version": 60,
+ "version": 61,
  "file": "index.html",
- "notes": "Fixed accounts on iPhone"
+ "notes": "Google sign-in closes itself"
 }

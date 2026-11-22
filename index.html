@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="60">
+<meta name="abyss-version" content="61">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2103,7 +2103,7 @@ async function pollOnce(){if(!handoff||Date.now()>pollUntil){stopPoll();if(hando
   catch(e){if(e.message==='nohandoff'){stopPoll();$('#asGWait').hidden=true;$('#asPasteBox').hidden=false;$('#asPasteLnk').hidden=true;$('#asGP').textContent='Sign in with Google in your browser, then copy the code it shows and paste it here.';return}}
   pollT=setTimeout(pollOnce,document.hidden?4000:1800)}
 async function exchange(code){const v=store.get('pkce',null);if(!v){err('Start again with Continue with Google.','#asGErr');return}
-  $('#asGWait').hidden=false;try{await finish(await auth('token',{auth_code:code,code_verifier:v},'?grant_type=pkce'));try{localStorage.removeItem('pkce')}catch{}handoff=''}
+  $('#asGWait').hidden=false;try{await finish(await auth('token',{auth_code:code,code_verifier:v},'?grant_type=pkce'));try{const B=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;if(B&&B.close)B.close().catch(()=>{})}catch{}try{window.abyssWin&&window.abyssWin.focus&&window.abyssWin.focus()}catch{}try{localStorage.removeItem('pkce')}catch{}handoff=''}
   catch(e){err('Google sign-in didn\'t finish ('+nice(e.message)+'). Try again.','#asGErr')}}
 addEventListener('focus',()=>{if(pollT){clearTimeout(pollT);pollOnce()}});
 $('#asGoogle').onclick=async()=>{err('');

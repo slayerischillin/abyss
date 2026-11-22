@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 61,
+   "date": "Nov 22",
+   "changes": [
+    "After Google sign-in, the browser closes by itself and drops you back into Abyss",
+    "New animated 'You're signed in' screen with a countdown"
+   ]
+  },
+  {
    "version": 60,
    "date": "Nov 22",
    "changes": [
