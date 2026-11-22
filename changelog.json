@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 56,
+   "date": "Nov 22",
+   "changes": [
+    "Updates install by themselves, no reopening needed (waits until music is paused)",
+    "Removed the repeating 'Reopen Abyss' message after syncing"
+   ]
+  },
+  {
    "version": 55,
    "date": "Nov 22",
    "changes": [

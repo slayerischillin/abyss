@@ -1,5 +1,5 @@
 {
- "version": 55,
+ "version": 56,
  "file": "index.html",
- "notes": "Phone updates download in the background"
+ "notes": "No more reopen prompts"
 }
