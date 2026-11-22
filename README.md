@@ -25,4 +25,6 @@ Abyss updates itself after that.
 - `index.html` + `version.json`: the live player. Installed copies of Abyss check these and update themselves.
 - `app/`: the desktop shell (Electron). Build with `npm i && npx electron-builder --win --x64`.
 
+Patch notes live in `changelog.json` and show up in the app when it updates.
+
 To ship an update: change `index.html`, raise the `abyss-version` number in it, and set the same number in `version.json`.

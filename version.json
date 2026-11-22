@@ -1,5 +1,5 @@
 {
- "version": 35,
+ "version": 36,
  "file": "index.html",
- "notes": "Fixes wrong-song lyrics. Phone and tablet layouts"
+ "notes": "Patch notes and a better cover picker"
 }

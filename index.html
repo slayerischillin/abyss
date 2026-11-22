@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="35">
+<meta name="abyss-version" content="36">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -735,6 +735,17 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
   #ctx{left:8px!important;right:8px;bottom:calc(10px + env(safe-area-inset-bottom));top:auto!important;min-width:0;border-radius:20px}
   #ctx button{padding:12px;font-size:15px}
 }
+
+#dCov .grid .cvH{grid-column:1/-1;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:color-mix(in srgb,var(--glow) 60%,#fff);margin:6px 2px 0}
+#dCov .grid .cvMsg{grid-column:1/-1;display:flex;gap:10px;align-items:center;justify-content:center;padding:18px;color:rgba(255,255,255,.55);font-size:13px}
+.cvSpin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.15);border-top-color:var(--glow);animation:spin .8s linear infinite}
+/* v36: patch notes */
+#upList,#wnList{margin:10px 0 14px;padding:0;list-style:none;display:grid;gap:6px;max-height:220px;overflow:auto}
+#upList li,#wnList li{display:flex;gap:9px;font-size:13px;line-height:1.4;color:rgba(255,255,255,.82)}
+#upList li::before,#wnList li::before{content:"";flex:none;width:6px;height:6px;margin-top:6px;border-radius:50%;background:var(--glow);box-shadow:0 0 8px var(--glow)}
+#wnList .wv{display:block;margin:10px 0 2px;font-size:11px;letter-spacing:.16em;color:color-mix(in srgb,var(--glow) 60%,#fff)}
+#wnList .wv::before{display:none}
+#wnBody{padding:0 22px 6px;overflow:auto}
 </style>
 </head>
 <body style="--art:none">
@@ -802,9 +813,10 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
 <div class="apFoot"><span id="apCount"></span><button id="apDone">Done</button></div></dialog>
 <div id="drop"><div><svg class="ic"><use href="#i-folder"/></svg>Drop your songs to add them<small>MP3, M4A, WAV, FLAC, OGG. They stay on this computer.</small></div></div>
 <div id="flash"></div><div id="ctx" role="menu"></div>
-<aside id="qWin" aria-label="Queue"><div class="qwh"><div><small>PLAYING FROM</small><b id="qFrom">Your queue</b></div><button class="btn ib" id="qClear" title="Clear upcoming songs"><svg class="ic"><use href="#i-trash"/></svg></button><button class="btn ib" id="qX" aria-label="Close queue"><svg class="ic"><use href="#i-x"/></svg></button></div><div id="qRes"></div></aside><div id="updPop" role="dialog" aria-label="Update available"><div class="upHead"><div class="upIco"><img id="upImg" alt=""></div><div><small>UPDATE AVAILABLE</small><b id="upTitle">Abyss</b></div></div><p id="upNotes"></p><div class="upBtns"><button id="upLater">Later</button><button id="upNow">Restart now</button></div></div><div id="dragGhost"><img alt="" referrerpolicy="no-referrer"><span></span></div><div id="dragHint" class="glass">Drop it on a playlist</div>
+<aside id="qWin" aria-label="Queue"><div class="qwh"><div><small>PLAYING FROM</small><b id="qFrom">Your queue</b></div><button class="btn ib" id="qClear" title="Clear upcoming songs"><svg class="ic"><use href="#i-trash"/></svg></button><button class="btn ib" id="qX" aria-label="Close queue"><svg class="ic"><use href="#i-x"/></svg></button></div><div id="qRes"></div></aside><div id="updPop" role="dialog" aria-label="Update available"><div class="upHead"><div class="upIco"><img id="upImg" alt=""></div><div><small>UPDATE AVAILABLE</small><b id="upTitle">Abyss</b></div></div><p id="upNotes"></p><ul id="upList"></ul><div class="upBtns"><button id="upLater">Later</button><button id="upNow">Restart now</button></div></div><div id="dragGhost"><img alt="" referrerpolicy="no-referrer"><span></span></div><div id="dragHint" class="glass">Drop it on a playlist</div>
 <input type="file" id="lfile" accept="audio/*,.mp3,.m4a,.wav,.flac,.ogg,.aac,.opus" multiple hidden>
 <input type="file" id="plImp" accept=".json,application/json" hidden>
+<dialog id="dNew" class="sheet"><div class="shHead"><div><small>WHAT'S NEW</small><h3 id="wnTitle">Abyss</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div id="wnBody"><ul id="wnList"></ul></div><div class="shFoot"><button class="sBtn main" data-close>Nice</button></div></dialog>
 <dialog id="dHelp" class="sheet"><div class="shHead"><div><small>ABYSS</small><h3>Keyboard shortcuts</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div class="kgrid"><div class="kg"><small>Playback</small><div class="kr"><span>Play or pause</span><span class="kk"><kbd>Space</kbd></span></div><div class="kr"><span>Next song</span><span class="kk"><kbd>N</kbd></span></div><div class="kr"><span>Previous song</span><span class="kk"><kbd>P</kbd></span></div><div class="kr"><span>Skip 5 seconds</span><span class="kk"><kbd>←</kbd><kbd>→</kbd></span></div><div class="kr"><span>Slower / faster</span><span class="kk"><kbd>[</kbd><kbd>]</kbd></span></div></div><div class="kg"><small>Sound</small><div class="kr"><span>Volume</span><span class="kk"><kbd>↑</kbd><kbd>↓</kbd></span></div><div class="kr"><span>Mute</span><span class="kk"><kbd>M</kbd></span></div></div><div class="kg"><small>Your music</small><div class="kr"><span>Like</span><span class="kk"><kbd>H</kbd></span></div><div class="kr"><span>Add to playlist</span><span class="kk"><kbd>A</kbd></span></div><div class="kr"><span>Shuffle</span><span class="kk"><kbd>S</kbd></span></div><div class="kr"><span>Repeat</span><span class="kk"><kbd>R</kbd></span></div><div class="kr"><span>Copy song name</span><span class="kk"><kbd>C</kbd></span></div></div><div class="kg"><small>Views</small><div class="kr"><span>Library</span><span class="kk"><kbd>L</kbd></span></div><div class="kr"><span>Lyrics</span><span class="kk"><kbd>Y</kbd></span></div><div class="kr"><span>Full screen lyrics</span><span class="kk"><kbd>J</kbd></span></div><div class="kr"><span>Studio sessions</span><span class="kk"><kbd>T</kbd></span></div><div class="kr"><span>Queue</span><span class="kk"><kbd>Q</kbd></span></div><div class="kr"><span>Song options</span><span class="kk"><kbd>Right-click</kbd></span></div><div class="kr"><span>Fullscreen</span><span class="kk"><kbd>F</kbd></span></div><div class="kr"><span>This list</span><span class="kk"><kbd>?</kbd></span></div></div></div><button id="hClose" hidden></button></dialog>
 <dialog id="dSet" class="sheet wide"><div class="shHead"><div><small>ABYSS</small><h3>Settings</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div class="shBody">
 <div class="sec"><h4>Covers</h4><label class="fl"><b>When a song plays, set its cover to</b><select class="fld" id="sMode"><option value="era">Its era cover</option><option value="fan">A fan-made cover (needs a Serper key)</option><option value="off">The original file cover</option></select></label>
@@ -812,7 +824,7 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
 <div class="sec"><h4>Playback</h4><label class="tg"><span><b>Resume where I left off</b><small>Bring back your last song when Abyss opens</small></span><input type="checkbox" id="sResume"><i></i></label><label class="tg"><span><b>Preload the next song</b><small>Next song starts instantly</small></span><input type="checkbox" id="sPre"><i></i></label><label class="tg"><span><b>Performance mode</b><small>Turn off the heavy effects if it lags</small></span><input type="checkbox" id="sPerf"><i></i></label></div>
 <div class="sec"><h4>Connection</h4><label class="fl"><b>API address</b><input class="fld" id="sBase"></label><label class="fl"><b>Account token</b><small>Optional</small><input class="fld" id="sTok" type="password"></label></div>
 <div id="updBox" class="sec"><h4>Updates</h4><small id="updVer">Version</small><label>Update link<input class="fld" id="sFeed" placeholder="https://raw.githubusercontent.com/you/abyss/main"></label><div class="shRow"><button class="sBtn" id="updChk">Check for updates</button><button class="sBtn ghost" id="updReset" title="Go back to the version that came with the app">Undo updates</button></div><small id="updSt"></small></div>
-  </div><div class="shFoot"><button class="sBtn ghost" id="sClose">Cancel</button><button class="sBtn main" id="sSave">Save</button></div></dialog>
+  </div><div class="shFoot"><button class="sBtn ghost" id="wnBtn" style="margin-right:auto">What's new</button><button class="sBtn ghost" id="sClose">Cancel</button><button class="sBtn main" id="sSave">Save</button></div></dialog>
 
 <script>
 const $=s=>document.querySelector(s);
@@ -1022,10 +1034,20 @@ function openCov(){const t=cur();if(!t){$('#ms').textContent='Play a song first'
   $('#dTitle').textContent='Pick a cover: '+titleOf(t);$('#cq').value=titleOf(t)+' Juice WRLD cover';$('#cg').innerHTML='';dCov.showModal();findCovers()}
 $('#bCov').onclick=openCov;$('#cclose').onclick=()=>dCov.close();$('#cgo').onclick=findCovers;
 $('#cq').onkeydown=e=>{if(e.key==='Enter')findCovers()};
-async function findCovers(){const t=cur(),term=$('#cq').value.trim();if(!t||!term)return;const g=$('#cg');g.textContent='Searching...';const urls=[...await serper(term)];
-  try{const r=await fetch('https://itunes.apple.com/search?'+new URLSearchParams({term:term.replace(/cover/i,'').trim(),entity:'album',limit:15}));(await r.json()).results.forEach(x=>urls.push(x.artworkUrl100.replace('100x100bb','600x600bb')))}catch{}
-  g.innerHTML='';if(!urls.length){g.textContent='No results. Paste a link or upload an image instead.';return}
-  urls.forEach(u=>{const i=document.createElement('img');i.src=u;i.alt='Cover option';i.loading='lazy';i.referrerPolicy='no-referrer';i.onerror=()=>i.remove();i.onclick=()=>{saveCover(t,u);dCov.close()};g.appendChild(i)})}
+async function findCovers(){const t=cur(),term=$('#cq').value.trim();if(!t||!term)return;const g=$('#cg');g.innerHTML='<div class="cvMsg"><i class="cvSpin"></i>Searching...</div>';
+  const jw=x=>/juice\s*wrld|juicethekidd/i.test((x.artistName||'')+' '+(x.collectionArtistName||'')),big=x=>x.artworkUrl100.replace('100x100bb','1000x1000bb');
+  const song=term.replace(/juice\s*wrld|cover( art)?|album|fan\s*made/gi,' ').replace(/\s+/g,' ').trim()||titleOf(t);
+  const it=async(q,ent)=>{try{const r=await fetch('https://itunes.apple.com/search?'+new URLSearchParams({term:q,entity:ent,limit:25}));return (await r.json()).results.filter(jw).map(big)}catch{return[]}};
+  const disco=async()=>{try{const r=await fetch('https://itunes.apple.com/lookup?id=1368733420&entity=album&limit=80');return (await r.json()).results.filter(x=>x.artworkUrl100).map(big)}catch{return[]}};
+  const [fan,songs,albums,all]=await Promise.all([cfg.skey?serper('"'+song+'" Juice WRLD cover art'):Promise.resolve([]),it('Juice WRLD '+song,'song'),it('Juice WRLD '+song,'album'),disco()]);
+  const seen=new Set(),uniq=a=>a.filter(u=>{if(!u)return false;const k=imgKey(u);if(seen.has(k))return false;seen.add(k);return true});
+  const groups=[['For this song',uniq([covers[t.id],eraCover(t),t.art].filter(Boolean))],['Fan-made',uniq(fan)],['Official matches',uniq([...songs,...albums])],['All Juice WRLD albums',uniq(all)]];
+  g.innerHTML='';let n=0;
+  groups.forEach(([lab,us])=>{if(!us.length)return;const h=document.createElement('div');h.className='cvH';h.textContent=lab;g.appendChild(h);
+    us.forEach(u=>{const i=document.createElement('img');i.src=u;i.alt='Cover option';i.loading='lazy';i.referrerPolicy='no-referrer';i.style.animationDelay=Math.min(n++,30)*25+'ms';
+      i.onerror=()=>i.remove();i.onclick=()=>{saveCover(t,u);dCov.close();toast('Cover saved')};g.appendChild(i)})});
+  if(!cfg.skey){const h=document.createElement('div');h.className='cvMsg';h.innerHTML='Want fan-made covers? Add a free Serper key in Settings, under Covers.';g.appendChild(h)}
+  if(!n)g.innerHTML='<div class="cvMsg">No covers found. Paste a link or upload an image instead.</div>'}
 $('#cuse').onclick=()=>{const u=$('#curl').value.trim(),t=cur();if(u&&t){saveCover(t,u);dCov.close()}};
 $('#cup').onclick=()=>$('#cfile').click();
 $('#cfile').onchange=e=>{const f=e.target.files[0],t=cur();if(!f||!t)return;const img=new Image(),fr=new FileReader();
@@ -1332,6 +1354,7 @@ if(window.abyssWin){document.body.classList.add('app');const W=window.abyssWin;
 document.querySelectorAll('dialog [data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
 document.querySelectorAll('dialog.sheet').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
 /* ---- automatic updates (desktop app) ---- */
+document.addEventListener('click',async e=>{if(e.target.closest('#wnBtn')){$('#dSet').close();if(!await showPatchNotes(MY_VER-5,MY_VER))toast('No patch notes yet')}});
 if(window.abyssWin&&window.abyssWin.upd){const U=window.abyssWin.upd,st=m=>$('#updSt').textContent=m;
   const refresh=async()=>{const g=await U.get();$('#updVer').textContent='You have version '+g.version+'. Abyss checks for updates when it opens and every 30 minutes.';$('#sFeed').value=g.feed||''};refresh();
   $('#bSet').addEventListener('click',refresh);
@@ -1345,7 +1368,7 @@ if(window.abyssWin&&window.abyssWin.upd){const U=window.abyssWin.upd,st=m=>$('#u
     try{const g=await U.get(),feed=(g.feed||'').replace(/\/+$/,'');if(!feed){toast('No update link set');return done()}
       const r=await fetch(feed+'/version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
       const v=+(await r.json()).version;
-      if(v>myVer&&v<=g.version){done();U.on&&0;$('#updPop').classList.remove('bye');$('#tbUpd').classList.add('show');$('#tbUpd').textContent='Update '+v+' ready · Restart';$('#upTitle').textContent='Abyss '+v+' is ready';$('#upNotes').textContent='It is already downloaded. Restarting takes a second, and your playlists and settings stay.';$('#updPop').classList.add('show');return}
+      if(v>myVer&&v<=g.version){done();U.on&&0;$('#updPop').classList.remove('bye');$('#tbUpd').classList.add('show');$('#tbUpd').textContent='Update '+v+' ready · Restart';$('#upTitle').textContent='Abyss '+v+' is ready';$('#upNotes').textContent='It is already downloaded. Restarting takes a second, and your playlists and settings stay.';$('#updPop').classList.add('show');changelog().then(l=>fillList($('#upList'),l.filter(e=>e.version>myVer&&e.version<=v).sort((a,b)=>b.version-a.version),false));return}
       if(v>g.version){toast('Downloading version '+v+'...');autoT=0;U.check();setTimeout(()=>{done();},8000);return}
       toast('You have the newest version ('+myVer+')');done()}
     catch(e){toast('Could not reach the update server ('+(e.message||e)+')');done()}};
@@ -1358,7 +1381,7 @@ if(window.abyssWin&&window.abyssWin.upd){const U=window.abyssWin.upd,st=m=>$('#u
   U.on(u=>{if(u.state!=='downloading')$('#tbChk').classList.remove('spin');if(Date.now()-autoT<20000)u.manual=false;
     if(u.state==='current'&&u.version>myVer)u={...u,state:'ready'};
     if(u.state==='ready'){$('#tbUpd').classList.add('show');$('#tbUpd').textContent='Update '+u.version+' ready · Restart';
-    if(shownFor!==u.version){shownFor=u.version;$('#upTitle').textContent='Abyss '+u.version+' is ready';$('#upNotes').textContent=(u.notes?u.notes+'. ':'')+'Restarting takes a second, and your playlists and settings stay.';pop.classList.remove('bye');pop.classList.add('show')}st('Version '+u.version+' is ready. Use the button at the top to switch.')}
+    if(shownFor!==u.version){shownFor=u.version;$('#upTitle').textContent='Abyss '+u.version+' is ready';$('#upNotes').textContent=(u.notes?u.notes+'. ':'')+'Restarting takes a second, and your playlists and settings stay.';pop.classList.remove('bye');pop.classList.add('show');changelog().then(l=>{const es=l.filter(e=>e.version>myVer&&e.version<=u.version).sort((a,b)=>b.version-a.version);fillList($('#upList'),es,false);if(es.length)$('#upNotes').textContent='Restarting takes a second. Your playlists and settings stay.'})}st('Version '+u.version+' is ready. Use the button at the top to switch.')}
     else if(u.state==='downloading')st('Downloading version '+u.version+'...');
     else if(u.state==='current'){st('You are on the newest version.');if(u.manual)toast('Abyss is up to date')}
     else if(u.state==='nofeed')st('Add an update link first.');
@@ -1419,6 +1442,17 @@ $('#queue').addEventListener('contextmenu',e=>{const b=e.target.closest('.qi');i
 $('#card').addEventListener('contextmenu',e=>{const t=cur();if(!t)return;e.preventDefault();openCtx(e,t)});
 addEventListener('contextmenu',e=>{if(!e.defaultPrevented&&!/INPUT|TEXTAREA/.test(e.target.tagName))e.preventDefault()});
 addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey||document.querySelector('dialog[open]'))return;if(e.key==='q'||e.key==='Q')toggleQ()});
+/* ---- patch notes ---- */
+const FEED_DEFAULT='https://raw.githubusercontent.com/slayerischillin/abyss/main';
+const MY_VER=+((document.querySelector('meta[name=abyss-version]')||{}).content||0);
+async function feedUrl(){try{if(window.abyssWin&&abyssWin.upd){const g=await abyssWin.upd.get();if(g.feed)return g.feed.replace(/\/+$/,'')}}catch{}return FEED_DEFAULT}
+async function changelog(){try{const r=await fetch((await feedUrl())+'/changelog.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return[];const d=await r.json();return (d.versions||d).filter(x=>x&&x.version)}catch{return[]}}
+function fillList(ul,entries,withHeads){ul.innerHTML='';entries.forEach(e=>{if(withHeads){const h=document.createElement('li');h.className='wv';h.textContent='VERSION '+e.version+(e.date?' · '+e.date:'');ul.appendChild(h)}
+  (e.changes||[]).forEach(c=>{const li=document.createElement('li');li.textContent=c;ul.appendChild(li)})})}
+window.showPatchNotes=async(from,to)=>{const log=await changelog();const es=log.filter(e=>e.version>from&&e.version<=to).sort((a,b)=>b.version-a.version);if(!es.length)return false;
+  $('#wnTitle').textContent=es.length>1?'Changes since version '+from:'Version '+es[0].version;fillList($('#wnList'),es,es.length>1);$('#dNew').showModal();return true};
+/* after an update lands, show what changed once */
+setTimeout(async()=>{const seen=+(store.get('seenVer',MY_VER-1)||0);if(seen&&MY_VER>seen)await showPatchNotes(seen,MY_VER);store.set('seenVer',MY_VER)},3500);
 /* ---- loading screen: preload everything, then reveal ---- */
 /* abyss vortex on the loading screen */
 const ldStop=(()=>{const c=$('#ldCv'),x=c.getContext('2d');let w,h,run=true,speed=1;const fitL=()=>{w=c.width=innerWidth;h=c.height=innerHeight};fitL();addEventListener('resize',fitL);
