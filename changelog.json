@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 37,
+   "date": "Nov 22",
+   "changes": [
+    "Discord status: show what you're listening to (needs the new Windows download)",
+    "Shared fan-made covers: picks from everyone show up for everyone (switching on soon)",
+    "New cover setting: community fan cover"
+   ]
+  },
+  {
    "version": 36,
    "date": "Nov 22",
    "changes": [
