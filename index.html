@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="37">
+<meta name="abyss-version" content="38">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1495,6 +1495,15 @@ audio.addEventListener('timeupdate',()=>{if(cfg.discordLyric&&Date.now()-rpcLyri
 $('#bSet').addEventListener('click',()=>{$('#sDisc').checked=cfg.discord!==false;$('#sDiscLyr').checked=!!cfg.discordLyric});
 $('#sSave').addEventListener('click',()=>{cfg.discord=$('#sDisc').checked;cfg.discordLyric=$('#sDiscLyr').checked;store.set('cfg',cfg);rpcLast='';presence(true)},true);
 setTimeout(()=>presence(true),3000);
+/* ---- Android: now-playing notification, lock screen controls, background playback ---- */
+(()=>{const M=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssMedia;if(!M)return;
+  let tm=0;const sync=()=>{clearTimeout(tm);tm=setTimeout(()=>{const t=cur();if(!t)return;const c=coverOf(t)||eraCover(t);
+    M.update({title:titleOf(t),artist:artistOf(t),art:/^https:/.test(c)?c:'',playing:!audio.paused,position:audio.currentTime||0,duration:isFinite(audio.duration)?audio.duration:0}).catch(()=>{})},250)};
+  ['play','pause','seeked','loadedmetadata','ended'].forEach(ev=>audio.addEventListener(ev,sync));
+  let lastPos=0;audio.addEventListener('timeupdate',()=>{if(Math.abs(audio.currentTime-lastPos)>15){lastPos=audio.currentTime;sync()}});
+  M.addListener('action',e=>{const a=e&&e.action;if(a==='play')audio.play();else if(a==='pause')audio.pause();else if(a==='next')step(1);else if(a==='prev')$('#prev').click();else if(a==='seek'&&e.position!=null)audio.currentTime=e.position/1000});
+  const _save=saveCover;window.__abyssSync=sync;
+})();
 /* ---- loading screen: preload everything, then reveal ---- */
 /* abyss vortex on the loading screen */
 const ldStop=(()=>{const c=$('#ldCv'),x=c.getContext('2d');let w,h,run=true,speed=1;const fitL=()=>{w=c.width=innerWidth;h=c.height=innerHeight};fitL();addEventListener('resize',fitL);
