@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 54,
+   "date": "Nov 22",
+   "changes": [
+    "Continue with Google now opens the browser on iPhone",
+    "Added a 'Browser didn't open? Tap here' link as a backup"
+   ]
+  },
+  {
    "version": 53,
    "date": "Nov 22",
    "changes": [
