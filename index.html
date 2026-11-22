@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="42">
+<meta name="abyss-version" content="43">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -856,7 +856,7 @@ const api={
     if(search)u.searchParams.set('search',search);if(category)u.searchParams.set('category',category);
     u.searchParams.set('page',pg);u.searchParams.set('page_size',50);
     const r=await fetch(u,{headers:api.headers()});if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();const all=d.results||[],items=all.filter(x=>x.path).map(api.toTrack);return{items,more:!!d.next,skipped:all.length-items.length}},
+    const d=await r.json();const all=(d.results||[]).map(x=>{if(!x.path)x.path=x.file_path||x.audio_path||x.filepath||x.file||null;return x}),items=all.filter(x=>x.path).map(api.toTrack);return{items,more:!!d.next,skipped:all.length-items.length,skippedRaw:all.filter(x=>!x.path)}},
   async eras(){const r=await fetch(cfg.base+'/eras/',{headers:api.headers()});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();return Array.isArray(d)?d:(d.results||[])},
   async random(){const r=await fetch(cfg.base+'/radio/random/',{headers:api.headers()});if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();return api.toTrack(d.song)}
@@ -941,7 +941,7 @@ addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)
 
 /* ---- library ---- */
 function closeLyr(){const L=document.getElementById('lyr');if(L&&L.classList.contains('open')){L.classList.remove('open','full');document.getElementById('bLyr').classList.remove('on')}}
-function openPanel(){closeLyr();$('#panel').classList.add('open');$('#bLib').classList.add('on');if(!list.length)load(true);$('#q').focus()}
+function openPanel(){if(typeof leaveStudio==='function'&&!$('#panel').classList.contains('open'))leaveStudio();closeLyr();$('#panel').classList.add('open');$('#bLib').classList.add('on');if(!list.length)load(true);$('#q').focus()}
 $('#bLib').onclick=openPanel;$('#x').onclick=()=>{$('#panel').classList.remove('open');$('#bLib').classList.remove('on')};
 function sortList(){const v=$('#sort').value,ln=t=>{const x=String(t.raw.length||'').split(':').map(Number);return x.length>1?x[0]*60+x[1]:+t.raw.length||0};
   if(v==='az')list.sort((a,b)=>titleOf(a).localeCompare(titleOf(b)));else if(v==='za')list.sort((a,b)=>titleOf(b).localeCompare(titleOf(a)));else if(v==='len')list.sort((a,b)=>ln(b)-ln(a))}
@@ -969,7 +969,8 @@ let shownN=0,shownKey='';function renderList(){const box=$('#res'),key=$('#view'
     b.ondragend=()=>{b.classList.remove('dragging');dragEnd()};
     b.onclick=()=>{queue=list.slice();play(n)};box.appendChild(b)});$('#moreBtn').hidden=!hasMore;sent.innerHTML=hasMore?'<i></i>':(list.length>20?'End of the list':'');box.appendChild(sent);shownN=list.length;if(keep)box.scrollTop=st}
 $('#moreBtn').onclick=()=>{page++;load(false)};
-let qt;$('#q').oninput=()=>{clearTimeout(qt);qt=setTimeout(()=>load(true),350)};$('#cat').onchange=()=>load(true);$('#era').onchange=()=>load(true);$('#view').onchange=()=>load(true);$('#sort').onchange=()=>{sortList();renderList()};
+const leaveStudio=()=>{if(studioCat){studioCat=false;$('#cat').value=''}};
+let qt;$('#q').oninput=()=>{leaveStudio();clearTimeout(qt);qt=setTimeout(()=>load(true),350)};$('#cat').onchange=()=>{studioCat=false;load(true)};$('#era').onchange=()=>load(true);$('#view').onchange=()=>load(true);$('#sort').onchange=()=>{sortList();renderList()};
 $('#names').value=cfg.names;$('#names').onchange=e=>{cfg.names=e.target.value;store.set('cfg',cfg);renderList();paintQueue();paint('cover')};
 $('#bRand').onclick=async()=>{try{const t=await api.random();queue=[t];play(0)}catch(e){$('#ms').textContent='Random song failed ('+e.message+')'}};
 
@@ -1189,6 +1190,7 @@ const perf=()=>document.body.classList.toggle('perf',!!cfg.perf);perf();
 $('#bSet').addEventListener('click',()=>{$('#sPerf').checked=!!cfg.perf;$('#sResume').checked=cfg.resume!==false;$('#sPre').checked=cfg.pre!==false});
 $('#sSave').addEventListener('click',()=>{cfg.perf=$('#sPerf').checked;cfg.resume=$('#sResume').checked;cfg.pre=$('#sPre').checked;store.set('cfg',cfg);perf()},true);
 /* ---- studio sessions / edits of the current song ---- */
+let studioCat=false;
 async function openStudio(){const t=cur();if(!t){toast('Play a song first');return}
   const base=[titleOf(t),...namesOf(t)],names=[];
   base.forEach(x=>{[x,x.split(/\s[-–—]\s|\s*[\(\[]/)[0].trim()].forEach(v=>{if(v&&v.length>1&&!names.some(y=>y.toLowerCase()===v.toLowerCase()))names.push(v)})});
@@ -1199,13 +1201,14 @@ async function openStudio(){const t=cur();if(!t){toast('Play a song first');retu
   status('Looking for studio sessions...');
   const show=(items,more,n,why)=>{$('#q').value=n;page=1;list=items;hasMore=more;sortList();renderList();status(items.length+' studio version'+(items.length>1?'s':'')+' of '+n+(why||''))};
   const isSes=x=>x.raw.category==='recording_session'||/session|studio/i.test([x.raw.name,...(x.raw.track_titles||[])].join(' '));
-  let skipped=0;
+  let skipped=0,skRaw=[];studioCat=true;
   try{
-    for(const n of names){const r=await api.songs(n,'recording_session',1,'');if(seq!==loadSeq)return;skipped+=r.skipped||0;if(r.items.length){show(r.items,r.more,n);return}}
+    for(const n of names){const r=await api.songs(n,'recording_session',1,'');if(seq!==loadSeq)return;skipped+=r.skipped||0;if(r.skippedRaw&&r.skippedRaw.length&&!skRaw.length)skRaw=r.skippedRaw;if(r.items.length){show(r.items,r.more,n);return}}
     for(const n of names){const r=await api.songs(n,'',1,'');if(seq!==loadSeq)return;const m=r.items.filter(isSes);if(m.length){$('#cat').value='';show(m,false,n,' (found by name)');return}}
   }catch(e){if(seq!==loadSeq)return;status('Could not reach the API ('+e.message+')');return}
-  $('#q').value=titleOf(t);list=[];renderList();
-  status(skipped?'Found '+skipped+' studio session'+(skipped>1?'s':'')+' for '+titleOf(t)+', but the server has no audio file for '+(skipped>1?'them':'it'):'No studio sessions or edits found for '+titleOf(t))}
+  $('#q').value='';$('#cat').value='';studioCat=false;list=[];renderList();
+  if(skipped){const k=skRaw[0]||{};status('Found '+skipped+' studio session'+(skipped>1?'s':'')+' for '+titleOf(t)+' ('+skRaw.slice(0,3).map(x=>x.name||x.id).join(', ')+'), but the server gave no audio file for '+(skipped>1?'them':'it')+'. Fields: '+Object.keys(k).join(', '))}
+  else status('No studio sessions or edits found for '+titleOf(t))}
 $('#cStudio').onclick=openStudio;
 addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey)return;if(e.key==='t'||e.key==='T')openStudio()});
 /* ---- live lyrics (LRCLIB: free, no key) ---- */

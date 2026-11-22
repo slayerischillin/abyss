@@ -1,5 +1,5 @@
 {
- "version": 42,
+ "version": 43,
  "file": "index.html",
- "notes": "Fixes the update popup repeating"
+ "notes": "Library search works again after studio sessions"
 }

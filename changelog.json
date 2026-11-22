@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 43,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed library search finding nothing after using the studio sessions button",
+    "When a studio session has no audio file on the server, Abyss now says which ones it found"
+   ]
+  },
+  {
    "version": 42,
    "date": "Nov 22",
    "changes": [
