@@ -5,8 +5,6 @@
 --    (the row-level rules already stop anyone from seeing anyone else's).
 grant select, insert, update, delete on public.user_data to authenticated;
 
--- Shared fan covers: let the app read the list
-grant select on public.cover_picks to anon, authenticated;
 
 -- 2) Profiles: a username and a picture for each account
 create table if not exists public.profiles (
