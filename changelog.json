@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 74,
+   "date": "Nov 22",
+   "changes": [
+    "Phones are much more responsive: lighter glass effects and a smoother background animation",
+    "Taps respond instantly instead of waiting"
+   ]
+  },
+  {
    "version": 73,
    "date": "Nov 22",
    "changes": [
