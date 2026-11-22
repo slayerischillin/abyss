@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 41,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed the studio sessions button not showing results: it now clears the era filter and open side panels, tries shorter song names, and says so when the server lists a session with no audio file"
+   ]
+  },
+  {
    "version": 40,
    "date": "Nov 22",
    "changes": [
