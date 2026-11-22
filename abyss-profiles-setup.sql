@@ -41,3 +41,6 @@ create policy "avatar update own folder" on storage.objects for update to authen
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "avatar delete own folder" on storage.objects for delete to authenticated
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "avatar read own folder" on storage.objects;
+create policy "avatar read own folder" on storage.objects for select to authenticated
+  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);

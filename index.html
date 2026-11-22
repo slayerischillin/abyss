@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="51">
+<meta name="abyss-version" content="52">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2136,7 +2136,7 @@ $('#pfRm').onclick=()=>{pfAvatar={remove:true,preview:''};pfPaint();$('#pfRm').h
 $('#pfPick').addEventListener('dragleave',()=>$('#pfPick').classList.remove('drag'));
 $('#pfPick').addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();$('#pfPick').classList.remove('drag');pickFile(e.dataTransfer.files[0])});
 async function uploadAvatar(a){const t=await token(),path=acct.user.id+'/avatar-'+Date.now()+'.'+a.ext;
-  const r=await fetch(SUPA.url+'/storage/v1/object/avatars/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':a.type,'x-upsert':'true','cache-control':'31536000'},body:a.blob});
+  const r=await fetch(SUPA.url+'/storage/v1/object/avatars/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':a.type,'cache-control':'31536000'},body:a.blob});
   if(!r.ok){const tx=await r.text();throw new Error(/bucket not found|not found/i.test(tx)?'Picture storage isn\'t set up yet (run abyss-profiles-setup.sql)':/row-level|policy|unauthorized/i.test(tx)?'Picture upload isn\'t allowed yet (run abyss-profiles-setup.sql)':/payload too large|exceeded/i.test(tx)?'That picture is too big':'Upload failed ('+r.status+')')}
   return SUPA.url+'/storage/v1/object/public/avatars/'+path}
 $('#pfSave').onclick=async()=>{const n=$('#pfName').value.trim();if(!NAME_RE.test(n)||!pfNameOk)return;const b=$('#pfSave');setBusy(b,true);$('#pfPick').classList.toggle('busy',!!(pfAvatar&&pfAvatar.blob));err('','#pfErr');
