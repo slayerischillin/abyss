@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 58,
+   "date": "Nov 22",
+   "changes": [
+    "Syncing is automatic: changes save to your account within a couple of seconds",
+    "Changes from your other devices show up within about 20 seconds, without restarting",
+    "Switching back to Abyss syncs right away"
+   ]
+  },
+  {
    "version": 57,
    "date": "Nov 22",
    "changes": [

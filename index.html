@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="57">
+<meta name="abyss-version" content="58">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1963,7 +1963,15 @@ function union(k,l,r){
   if(k==='plays'){const o={...(r||{})};Object.keys(l||{}).forEach(id=>{o[id]=(o[id]&&o[id].n>l[id].n)?o[id]:l[id]});return o}
   return undefined}
 store.set=function(k,v){baseSet(k,v);if(!applying&&SYNC.includes(k)){ts[k]=Date.now();raw('syncTs',ts);queue()}};
-function queue(){if(!acct||!supaOn())return;clearTimeout(pushT);pushT=setTimeout(()=>sync(true),4000)}
+function queue(){if(!acct||!supaOn())return;clearTimeout(pushT);pushT=setTimeout(()=>sync(true),1500)}
+/* put changes from your other devices on screen right away, without restarting */
+function liveApply(keys){try{keys.forEach(k=>{const v=store.get(k,undefined);if(v===undefined)return;
+    if(k==='pls'){const id=openPl&&openPl.id;pls=v;openPl=id?pls.find(p=>p.id===id)||null:null;if(!openPl)$('#plWin').classList.remove('open')}
+    else if(k==='likes')likes=v;else if(k==='hist')hist=v;else if(k==='plays')plays=v;else if(k==='covers')covers=v;else if(k==='nm')nm=v;
+    else if(k==='lyroff')lyrOffs=v;else if(k==='myPicks'){Object.keys(myPicks).forEach(x=>delete myPicks[x]);Object.assign(myPicks,v)}
+    else if(k==='cfg')cfg=store.get('cfg',cfg)});
+  try{plOptions()}catch{}try{paintChips()}catch{}try{renderPl()}catch{}try{renderList()}catch{}try{if(cur()){window.paint('cover');$('#like').classList.toggle('on',!!likes[cur().id])}}catch{}
+  }catch(e){}}
 async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing...');
   try{const rows=await rest('GET','?select=data&user_id=eq.'+acct.user.id),remote=(rows[0]&&rows[0].data)||{},first=store.get('syncedFor',null)!==acct.user.id,changed=[];let needPush=!rows.length;
     applying=true;
@@ -1977,7 +1985,7 @@ async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing
     raw('syncTs',ts);raw('syncedFor',acct.user.id);store.set('lastSync',Date.now());
     const real=changed.filter(k=>!(k==='cfg'&&!soft&&false));
     st('');paint();
-    if(real.length){if(!soft&&!(typeof audio!=='undefined'&&audio&&!audio.paused))location.reload();}
+    if(real.length)liveApply(real);
   }catch(e){applying=false;st('Sync failed: '+e.message)}finally{busy=false}}
 function paint(){const inn=!!acct;$('#acOutBox').hidden=inn;$('#acInBox').hidden=!inn;
   if(inn){$('#acWho').textContent='Signed in as '+acct.user.email;const t=store.get('lastSync',0);$('#acSync').textContent=t?'Last synced '+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'Not synced yet'}
@@ -2177,7 +2185,7 @@ paintBtn();
 /* first launch: offer an account once */
 if(!acct&&supaOn()){let tries=0;const gate=()=>{if(acct)return;const L=$('#loader');if(L&&!L.classList.contains('done')&&tries++<60){setTimeout(gate,250);return}openAuth(store.get('everSignedIn',0)?'in':'up')};setTimeout(gate,400)}
 $('#bSet').addEventListener('click',paint);paint();
-if(acct){setTimeout(()=>sync(false),2500);setInterval(()=>sync(true),300000);addEventListener('focus',()=>{if(Date.now()-store.get('lastSync',0)>60000)sync(true)})}
+if(acct){setTimeout(()=>sync(false),1500);setInterval(()=>{if(!document.hidden)sync(true)},20000);const wake=()=>{if(!document.hidden&&Date.now()-store.get('lastSync',0)>5000)sync(true)};addEventListener('focus',wake);document.addEventListener('visibilitychange',wake)}
 })();
 </script>
 </body>
