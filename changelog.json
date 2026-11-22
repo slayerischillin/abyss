@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 65,
+   "date": "Nov 22",
+   "changes": [
+    "New sparkle button in the dock shows the latest patch notes",
+    "A pink dot shows when there are notes you haven't read"
+   ]
+  },
+  {
    "version": 64,
    "date": "Nov 22",
    "changes": [

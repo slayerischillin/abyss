@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="64">
+<meta name="abyss-version" content="65">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1020,6 +1020,7 @@ img.asGi{background:none!important;object-fit:contain;padding:0}
 #relNote button{border:0;border-radius:12px;padding:9px 12px;font-weight:700;font-size:13px;background:#fff;color:#000}
 #relNote .rx{background:none;color:#fff;opacity:.6;padding:6px}
 #toast{opacity:0;translate:-50% calc(-100% - env(safe-area-inset-top,0px) - 90px);transition:translate .55s cubic-bezier(.2,1.5,.4,1),opacity .3s}#toast.show{opacity:1;translate:-50% 0}
+#bNews{position:relative}#bNews .nDot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:#ff5fb4;box-shadow:0 0 8px #ff5fb4;display:none}#bNews.new .nDot{display:block}
 </style>
 </head>
 <body style="--art:none">
@@ -1054,7 +1055,7 @@ img.asGi{background:none!important;object-fit:contain;padding:0}
   <button id="bLib" data-tip="Library (L)" aria-label="Library and search"><svg class="ic"><use href="#i-list"/></svg></button>
   <button id="bLyr" data-tip="Lyrics (Y)" aria-label="Lyrics"><svg class="ic"><use href="#i-lyr"/></svg></button><button id="bPls" data-tip="Playlists" aria-label="Playlists"><svg class="ic"><use href="#i-lplus"/></svg></button><button id="bLocal" data-tip="Add your own files" aria-label="Add local files"><svg class="ic"><use href="#i-folder"/></svg></button><button id="bRand" data-tip="Random song" aria-label="Random song"><svg class="ic"><use href="#i-radio"/></svg></button>
   <button id="bCov" data-tip="Pick a cover" aria-label="Pick a cover by hand"><svg class="ic"><use href="#i-edit"/></svg></button>
-  <button id="bQueue" data-tip="Queue (Q)" aria-label="Queue"><svg class="ic"><use href="#i-queue"/></svg></button><button id="bSleep" data-tip="Sleep timer" aria-label="Sleep timer"><svg class="ic"><use href="#i-moon"/></svg></button><button id="bFull" data-tip="Fullscreen (F)" aria-label="Fullscreen"><svg class="ic"><use href="#i-full"/></svg></button><button id="bHelp" data-tip="Shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="ic"><use href="#i-help"/></svg></button><button id="bSet" data-tip="Settings" aria-label="Settings"><svg class="ic"><use href="#i-sliders"/></svg></button>
+  <button id="bQueue" data-tip="Queue (Q)" aria-label="Queue"><svg class="ic"><use href="#i-queue"/></svg></button><button id="bSleep" data-tip="Sleep timer" aria-label="Sleep timer"><svg class="ic"><use href="#i-moon"/></svg></button><button id="bFull" data-tip="Fullscreen (F)" aria-label="Fullscreen"><svg class="ic"><use href="#i-full"/></svg></button><button id="bHelp" data-tip="Shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="ic"><use href="#i-help"/></svg></button><button id="bNews" data-tip="Patch notes" aria-label="Latest patch notes"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><i class="nDot"></i></button><button id="bSet" data-tip="Settings" aria-label="Settings"><svg class="ic"><use href="#i-sliders"/></svg></button>
 </div>
 
 <aside id="panel" aria-label="Library">
@@ -2443,6 +2444,13 @@ addEventListener('popstate',()=>{if(fp.classList.contains('open'))close()});
     if(!seen){try{localStorage.setItem(KEY,stamp)}catch(x){}return}
     if(seen!==stamp){note.classList.add('show');try{window.abyssBuzz&&abyssBuzz('ok')}catch(x){}}}catch(e){}};
   setTimeout(check,6000);setInterval(check,30*60*1000);addEventListener('focus',()=>setTimeout(check,1000))})();
+
+/* v65: patch notes button (pink dot when there are notes you haven't opened) */
+(()=>{const b=$('#bNews');if(!b)return;const seenKey='notesOpened';
+  const top=async()=>{const l=await changelog();return l.length?Math.max(...l.map(e=>e.version)):0};
+  const mark=async()=>{const t=await top();b.classList.toggle('new',t>(+store.get(seenKey,0)||0))};
+  b.onclick=async()=>{const t=await top();if(!t){toast('Could not load patch notes');return}if(!await showPatchNotes(t-6,t))toast('No patch notes yet');store.set(seenKey,t);b.classList.remove('new')};
+  setTimeout(mark,3000);setInterval(mark,30*60*1000)})();
 </script>
 </body>
 </html>
