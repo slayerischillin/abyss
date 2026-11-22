@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="44">
+<meta name="abyss-version" content="45">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -825,6 +825,16 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
 <dialog id="dNew" class="sheet"><div class="shHead"><div><small>WHAT'S NEW</small><h3 id="wnTitle">Abyss</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div id="wnBody"><ul id="wnList"></ul></div><div class="shFoot"><button class="sBtn main" data-close>Nice</button></div></dialog>
 <dialog id="dHelp" class="sheet"><div class="shHead"><div><small>ABYSS</small><h3>Keyboard shortcuts</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div class="kgrid"><div class="kg"><small>Playback</small><div class="kr"><span>Play or pause</span><span class="kk"><kbd>Space</kbd></span></div><div class="kr"><span>Next song</span><span class="kk"><kbd>N</kbd></span></div><div class="kr"><span>Previous song</span><span class="kk"><kbd>P</kbd></span></div><div class="kr"><span>Skip 5 seconds</span><span class="kk"><kbd>←</kbd><kbd>→</kbd></span></div><div class="kr"><span>Slower / faster</span><span class="kk"><kbd>[</kbd><kbd>]</kbd></span></div></div><div class="kg"><small>Sound</small><div class="kr"><span>Volume</span><span class="kk"><kbd>↑</kbd><kbd>↓</kbd></span></div><div class="kr"><span>Mute</span><span class="kk"><kbd>M</kbd></span></div></div><div class="kg"><small>Your music</small><div class="kr"><span>Like</span><span class="kk"><kbd>H</kbd></span></div><div class="kr"><span>Add to playlist</span><span class="kk"><kbd>A</kbd></span></div><div class="kr"><span>Shuffle</span><span class="kk"><kbd>S</kbd></span></div><div class="kr"><span>Repeat</span><span class="kk"><kbd>R</kbd></span></div><div class="kr"><span>Copy song name</span><span class="kk"><kbd>C</kbd></span></div></div><div class="kg"><small>Views</small><div class="kr"><span>Library</span><span class="kk"><kbd>L</kbd></span></div><div class="kr"><span>Lyrics</span><span class="kk"><kbd>Y</kbd></span></div><div class="kr"><span>Full screen lyrics</span><span class="kk"><kbd>J</kbd></span></div><div class="kr"><span>Studio sessions</span><span class="kk"><kbd>T</kbd></span></div><div class="kr"><span>Queue</span><span class="kk"><kbd>Q</kbd></span></div><div class="kr"><span>Song options</span><span class="kk"><kbd>Right-click</kbd></span></div><div class="kr"><span>Fullscreen</span><span class="kk"><kbd>F</kbd></span></div><div class="kr"><span>This list</span><span class="kk"><kbd>?</kbd></span></div></div></div><button id="hClose" hidden></button></dialog>
 <dialog id="dSet" class="sheet wide"><div class="shHead"><div><small>ABYSS</small><h3>Settings</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div class="shBody">
+<div class="sec" id="acSec"><h4>Account</h4>
+<div id="acOutBox"><small>Sign in to keep your playlists, likes, history and settings on every device.</small>
+<label class="fl"><b>Email</b><input class="fld" id="acEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+<label class="fl"><b>Password</b><input class="fld" id="acPw" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
+<div class="shRow"><button class="sBtn main" id="acSignIn">Sign in</button><button class="sBtn" id="acSignUp">Create account</button><button class="sBtn ghost" id="acForgot">Forgot password</button></div>
+<div class="shRow"><button class="sBtn" id="acGoogle">Continue with Google</button></div>
+<div id="acCodeRow" hidden><label class="fl"><b>Code from your browser</b><small>Finish signing in with Google in the browser that opened, then copy the code it shows and paste it here.</small><input class="fld" id="acCode" placeholder="Paste the code"></label><div class="shRow"><button class="sBtn main" id="acFinish">Finish sign in</button></div></div></div>
+<div id="acInBox" hidden><b id="acWho"></b><small id="acSync"></small><div class="shRow"><button class="sBtn" id="acNow">Sync now</button><button class="sBtn ghost" id="acSignOut">Sign out</button></div></div>
+<small id="acSt"></small></div>
+
 <div class="sec"><h4>Covers</h4><label class="fl"><b>When a song plays, set its cover to</b><select class="fld" id="sMode"><option value="community">A community fan cover (falls back to the era cover)</option><option value="era">Its era cover</option><option value="fan">A fan-made cover (needs a Serper key)</option><option value="off">The original file cover</option></select></label>
 <label class="fl"><b>Serper key</b><small>For fan-made covers. Free 2,500 searches at serper.dev</small><input class="fld" id="sKey" type="password" placeholder="Paste your key"></label></div>
 <div class="sec"><h4>Playback</h4><label class="tg"><span><b>Resume where I left off</b><small>Bring back your last song when Abyss opens</small></span><input type="checkbox" id="sResume"><i></i></label><label class="tg"><span><b>Preload the next song</b><small>Next song starts instantly</small></span><input type="checkbox" id="sPre"><i></i></label><label class="tg"><span><b>Performance mode</b><small>Turn off the heavy effects if it lags</small></span><input type="checkbox" id="sPerf"><i></i></label></div>
@@ -1583,6 +1593,71 @@ boot();
 if(!reduce){document.body.classList.add('fx');requestAnimationFrame(frame)}
 
 const dock=document.querySelector('.dock');if(!reduce){dock.addEventListener('pointermove',e=>dock.querySelectorAll('button').forEach(b=>{const r=b.getBoundingClientRect(),d=e.clientX-(r.left+r.width/2);b.style.setProperty('--s',(1+.5*Math.exp(-(d*d)/(2*55*55))).toFixed(3))}));dock.addEventListener('pointerleave',()=>dock.querySelectorAll('button').forEach(b=>b.style.setProperty('--s',1)))}
+
+/* ================= v45: accounts + sync (Supabase) ================= */
+(()=>{
+const CB='https://slayerischillin.github.io/abyss/auth.html';
+const SYNC=['pls','likes','hist','plays','covers','myPicks','nm','lyroff','cfg'],CFGK=['names','auto','perf','resume','pre','mode'];
+const raw=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const baseSet=store.set;let ts=store.get('syncTs',{}),acct=store.get('acct',null),applying=false,busy=false,pushT=0;
+const st=m=>{const e=$('#acSt');if(e)e.textContent=m||''};
+async function auth(path,body,qs){if(!supaOn())throw new Error('Accounts are not switched on in this build yet');
+  const r=await fetch(SUPA.url+'/auth/v1/'+path+(qs||''),{method:'POST',headers:{apikey:SUPA.key,'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.msg||d.error_description||d.message||d.error||('HTTP '+r.status));return d}
+function setSession(d){if(!d||!d.access_token||!d.user)return false;acct={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+(d.expires_in||3600)*1000,user:{id:d.user.id,email:d.user.email}};store.set('acct',acct);return true}
+async function token(){if(!acct)return null;
+  if(acct.expires_at-Date.now()<60000){try{setSession(await auth('token',{refresh_token:acct.refresh_token},'?grant_type=refresh_token'))}catch(e){if(/invalid|expired|not found|revoked|already used/i.test(e.message)){acct=null;store.set('acct',null);paint()}return null}}
+  return acct&&acct.access_token}
+async function rest(method,qs,body){const t=await token();if(!t)throw new Error('Not signed in');
+  const r=await fetch(SUPA.url+'/rest/v1/user_data'+(qs||''),{method,headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:body?JSON.stringify(body):undefined});
+  if(!r.ok)throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,120));return method==='GET'?r.json():null}
+const localVal=k=>{if(k==='cfg'){const c=store.get('cfg',{}),o={};CFGK.forEach(x=>{if(c[x]!==undefined)o[x]=c[x]});return o}return store.get(k,undefined)};
+const writeLocal=(k,v)=>{if(k==='cfg'){const c=store.get('cfg',{});baseSet('cfg',Object.assign(c,v))}else baseSet(k,v)};
+function union(k,l,r){
+  if(k==='pls'){const ids=new Set((l||[]).map(p=>p.id));return[...(l||[]),...(r||[]).filter(p=>!ids.has(p.id))]}
+  if(k==='likes')return{...(r||{}),...(l||{})};
+  if(k==='hist'){const seen=new Set(),out=[];[...(l||[]),...(r||[])].forEach(x=>{const id=x&&x.id;if(id==null||seen.has(id))return;seen.add(id);out.push(x)});return out.slice(0,300)}
+  if(k==='plays'){const o={...(r||{})};Object.keys(l||{}).forEach(id=>{o[id]=(o[id]&&o[id].n>l[id].n)?o[id]:l[id]});return o}
+  return undefined}
+store.set=function(k,v){baseSet(k,v);if(!applying&&SYNC.includes(k)){ts[k]=Date.now();raw('syncTs',ts);queue()}};
+function queue(){if(!acct||!supaOn())return;clearTimeout(pushT);pushT=setTimeout(()=>sync(true),4000)}
+async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing...');
+  try{const rows=await rest('GET','?select=data&user_id=eq.'+acct.user.id),remote=(rows[0]&&rows[0].data)||{},first=store.get('syncedFor',null)!==acct.user.id,changed=[];let needPush=!rows.length;
+    applying=true;
+    SYNC.forEach(k=>{const r=remote[k],lv=localVal(k),lt=ts[k]||0;
+      if(first&&r&&lv!==undefined){const m=union(k,lv,r.v);if(m!==undefined){writeLocal(k,m);ts[k]=Date.now();changed.push(k);needPush=true;return}}
+      if(r&&r.t>lt){writeLocal(k,r.v);ts[k]=r.t;changed.push(k)}
+      else if(lv!==undefined&&(!r||lt>r.t))needPush=true});
+    applying=false;
+    if(needPush){const snap={};SYNC.forEach(k=>{const v=localVal(k);if(v!==undefined){if(!ts[k])ts[k]=Date.now();snap[k]={v,t:ts[k]}}});
+      await rest('POST','',{user_id:acct.user.id,data:snap,updated_at:new Date().toISOString()})}
+    raw('syncTs',ts);raw('syncedFor',acct.user.id);store.set('lastSync',Date.now());
+    const real=changed.filter(k=>!(k==='cfg'&&!soft&&false));
+    st('');paint();
+    if(real.length){if(!soft&&!(typeof audio!=='undefined'&&audio&&!audio.paused))location.reload();else toast('Synced from your account. Reopen Abyss to see the changes')}
+  }catch(e){applying=false;st('Sync failed: '+e.message)}finally{busy=false}}
+function paint(){const inn=!!acct;$('#acOutBox').hidden=inn;$('#acInBox').hidden=!inn;
+  if(inn){$('#acWho').textContent='Signed in as '+acct.user.email;const t=store.get('lastSync',0);$('#acSync').textContent=t?'Last synced '+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'Not synced yet'}
+  if(!supaOn())st('Accounts need the database to be switched on first.')}
+const creds=()=>{const e=$('#acEmail').value.trim(),p=$('#acPw').value;if(!e||!p){st('Enter your email and password');return null}return{email:e,password:p}};
+async function enter(d,msg){if(setSession(d)){$('#acPw').value='';st('');paint();await sync(false)}else st(msg||'Check your email to confirm your account, then sign in.')}
+$('#acSignIn').onclick=async()=>{const c=creds();if(!c)return;st('Signing in...');try{await enter(await auth('token',c,'?grant_type=password'))}catch(e){st(/invalid login/i.test(e.message)?'Wrong email or password':e.message)}};
+$('#acSignUp').onclick=async()=>{const c=creds();if(!c)return;if(c.password.length<6){st('Use at least 6 characters');return}st('Creating account...');try{await enter(await auth('signup',c),'Account created. Check your email to confirm it, then sign in.')}catch(e){st(e.message)}};
+$('#acForgot').onclick=async()=>{const e=$('#acEmail').value.trim();if(!e){st('Enter your email first');return}try{await auth('recover',{email:e},'?redirect_to='+encodeURIComponent(CB));st('Password reset email sent. Check your inbox.')}catch(x){st(x.message)}};
+$('#acPw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#acSignIn').click()});
+$('#acSignOut').onclick=async()=>{try{const t=acct&&acct.access_token;if(t&&supaOn())await fetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t}})}catch{}acct=null;store.set('acct',null);try{localStorage.removeItem('syncedFor')}catch{}st('Signed out. Your music stays on this device.');paint()};
+$('#acNow').onclick=()=>sync(false);
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const openExt=u=>{const B=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;if(B&&B.open)B.open({url:u});else window.open(u,'_blank')};
+$('#acGoogle').onclick=async()=>{if(!supaOn()){st('Accounts need the database to be switched on first.');return}
+  try{const v=b64(crypto.getRandomValues(new Uint8Array(48))),ch=b64(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)));raw('pkce',v);
+    openExt(SUPA.url+'/auth/v1/authorize?'+new URLSearchParams({provider:'google',redirect_to:CB,code_challenge:ch,code_challenge_method:'s256'}));
+    $('#acCodeRow').hidden=false;st('Finish in the browser that just opened, then paste the code here.')}catch(e){st('Could not start Google sign-in ('+e.message+')')}};
+$('#acFinish').onclick=async()=>{const code=$('#acCode').value.trim(),v=store.get('pkce',null);if(!code||!v){st('Paste the code first');return}st('Signing in...');
+  try{await enter(await auth('token',{auth_code:code,code_verifier:v},'?grant_type=pkce'));$('#acCode').value='';$('#acCodeRow').hidden=true;try{localStorage.removeItem('pkce')}catch{}}catch(e){st('That code did not work ('+e.message+'). Try Continue with Google again.')}};
+$('#bSet').addEventListener('click',paint);paint();
+if(acct){setTimeout(()=>sync(false),2500);setInterval(()=>sync(true),300000);addEventListener('focus',()=>{if(Date.now()-store.get('lastSync',0)>60000)sync(true)})}
+})();
 </script>
 </body>
 </html>

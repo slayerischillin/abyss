@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Abyss sign in</title>
+<style>
+:root{color-scheme:dark}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#020104;color:#f3eefc;font-family:system-ui,Segoe UI,Roboto,sans-serif}
+main{width:min(420px,calc(100% - 32px));padding:28px;border-radius:20px;background:#0d0a14;border:1px solid #2a2338;text-align:center}
+h1{font-size:20px;margin:0 0 8px}p{color:#b9afcc;line-height:1.5;margin:8px 0}
+code{display:block;word-break:break-all;background:#07050c;border:1px solid #2a2338;border-radius:12px;padding:14px;margin:16px 0;font-size:14px;user-select:all;color:#fff}
+button{border:0;border-radius:999px;padding:12px 22px;font-size:15px;font-weight:600;background:#fff;color:#000;cursor:pointer}
+</style></head><body><main id="m"><h1>Abyss</h1><p>One moment...</p></main>
+<script>
+const m=document.getElementById('m'),q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));
+const code=q.get('code'),err=q.get('error_description')||h.get('error_description')||q.get('error'),type=h.get('type');
+const set=(t,p,c)=>{m.innerHTML='';const a=document.createElement('h1');a.textContent=t;m.appendChild(a);const b=document.createElement('p');b.textContent=p;m.appendChild(b);if(c){const e=document.createElement('code');e.textContent=c;m.appendChild(e);const bt=document.createElement('button');bt.textContent='Copy code';bt.onclick=()=>{navigator.clipboard.writeText(c).then(()=>bt.textContent='Copied')};m.appendChild(bt);const p2=document.createElement('p');p2.textContent='Paste it into Abyss under Settings, then Account, then Finish sign in.';m.appendChild(p2)}};
+if(err)set('Sign in did not finish',err);
+else if(code)set('Almost done','Copy this code and go back to Abyss.',code);
+else if(type==='signup'||type==='email')set('Email confirmed','You can close this page, then sign in on Abyss.');
+else if(type==='recovery')set('Reset your password','Password resets are not built into Abyss yet. Ask for help and it will be added.');
+else set('Abyss','Nothing to do here. Go back to the app.');
+</script></body></html>

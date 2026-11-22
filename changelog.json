@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 45,
+   "date": "Nov 22",
+   "changes": [
+    "Accounts: sign in with email or Google in Settings",
+    "Your playlists, likes, history, covers and settings sync between your devices"
+   ]
+  },
+  {
    "version": 44,
    "date": "Nov 22",
    "changes": [
