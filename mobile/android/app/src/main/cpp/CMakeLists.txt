@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.18.1)
+project(abyssdiscord CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(discord_partner_sdk REQUIRED CONFIG)
+add_library(abyssdiscord SHARED abyss_discord.cpp)
+target_link_libraries(abyssdiscord discord_partner_sdk::discord_partner_sdk log)

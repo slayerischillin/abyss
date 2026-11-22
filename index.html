@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="39">
+<meta name="abyss-version" content="40">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -747,7 +747,11 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
 #wnList .wv::before{display:none}
 #wnBody{padding:0 22px 6px;overflow:auto}
 
-.dcSec{display:none!important}body.app .dcSec{display:grid!important}
+.dcSec{display:none!important}body.app .dcSec,body.android .dcSec{display:grid!important}.dcAnd{display:none!important}body.android .dcAnd{display:flex!important}
+
+.dcSt{display:flex;gap:8px;align-items:center;font-size:12.5px!important;color:rgba(255,255,255,.7)!important}
+.dcSt::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,#777);box-shadow:0 0 8px var(--c,#777);flex:none}
+.dcSt a{color:#c9a6ff}
 </style>
 </head>
 <body style="--art:none">
@@ -824,7 +828,7 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
 <div class="sec"><h4>Covers</h4><label class="fl"><b>When a song plays, set its cover to</b><select class="fld" id="sMode"><option value="community">A community fan cover (falls back to the era cover)</option><option value="era">Its era cover</option><option value="fan">A fan-made cover (needs a Serper key)</option><option value="off">The original file cover</option></select></label>
 <label class="fl"><b>Serper key</b><small>For fan-made covers. Free 2,500 searches at serper.dev</small><input class="fld" id="sKey" type="password" placeholder="Paste your key"></label></div>
 <div class="sec"><h4>Playback</h4><label class="tg"><span><b>Resume where I left off</b><small>Bring back your last song when Abyss opens</small></span><input type="checkbox" id="sResume"><i></i></label><label class="tg"><span><b>Preload the next song</b><small>Next song starts instantly</small></span><input type="checkbox" id="sPre"><i></i></label><label class="tg"><span><b>Performance mode</b><small>Turn off the heavy effects if it lags</small></span><input type="checkbox" id="sPerf"><i></i></label></div>
-<div class="sec dcSec"><h4>Discord</h4><label class="tg"><span><b>Show what I'm listening to</b><small>Your Discord status shows the song, cover and time left</small></span><input type="checkbox" id="sDisc"><i></i></label><label class="tg"><span><b>Show the lyric I'm on</b><small>The line being sung appears under the song name</small></span><input type="checkbox" id="sDiscLyr"><i></i></label></div>
+<div class="sec dcSec"><h4>Discord</h4><label class="tg"><span><b>Show what I'm listening to</b><small>Your Discord status shows the song, cover and time left</small></span><input type="checkbox" id="sDisc"><i></i></label><label class="tg"><span><b>Show the lyric I'm on</b><small>The line being sung appears under the song name</small></span><input type="checkbox" id="sDiscLyr"><i></i></label><small id="dcSt" class="dcSt"></small><div class="shRow dcAnd"><button class="sBtn" id="dcConnect">Connect Discord</button><button class="sBtn ghost" id="dcDisc">Disconnect</button></div></div>
 <div class="sec"><h4>Connection</h4><label class="fl"><b>API address</b><input class="fld" id="sBase"></label><label class="fl"><b>Account token</b><small>Optional</small><input class="fld" id="sTok" type="password"></label></div>
 <div id="updBox" class="sec"><h4>Updates</h4><small id="updVer">Version</small><label>Update link<input class="fld" id="sFeed" placeholder="https://raw.githubusercontent.com/you/abyss/main"></label><div class="shRow"><button class="sBtn" id="updChk">Check for updates</button><button class="sBtn ghost" id="updReset" title="Go back to the version that came with the app">Undo updates</button></div><small id="updSt"></small></div>
   </div><div class="shFoot"><button class="sBtn ghost" id="wnBtn" style="margin-right:auto">What's new</button><button class="sBtn ghost" id="sClose">Cancel</button><button class="sBtn main" id="sSave">Save</button></div></dialog>
@@ -1475,8 +1479,10 @@ const DISCORD_ID='1574027318245064757';
 const ICONS='https://raw.githubusercontent.com/slayerischillin/abyss/main/icons/';
 let rpcT=0,rpcLast='',rpcLyricAt=0,dLyr={id:null,lines:[]};
 const clip=(x,n)=>{x=String(x||'');return x.length>n?x.slice(0,n-1)+'…':x.padEnd(2,' ')};
-function presence(now){if(!window.abyssWin||!abyssWin.rpc)return;clearTimeout(rpcT);rpcT=setTimeout(sendPresence,now?0:400)}
-function sendPresence(){const R=abyssWin.rpc;
+function presence(now){if(!AD&&(!window.abyssWin||!abyssWin.rpc))return;clearTimeout(rpcT);rpcT=setTimeout(sendPresence,now?0:400)}
+const AD=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssDiscord;
+if(AD)document.body.classList.add('android');
+function sendPresence(){if(AD&&!window.abyssWin)return sendPresenceAndroid();const R=abyssWin.rpc;
   if(!DISCORD_ID||cfg.discord===false){R({clientId:DISCORD_ID||undefined,off:true});rpcLast='';return}
   const t=cur();if(!t||!audio.src){R({clientId:DISCORD_ID,activity:null});rpcLast='';return}
   const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
@@ -1495,6 +1501,34 @@ audio.addEventListener('timeupdate',()=>{if(cfg.discordLyric&&Date.now()-rpcLyri
 $('#bSet').addEventListener('click',()=>{$('#sDisc').checked=cfg.discord!==false;$('#sDiscLyr').checked=!!cfg.discordLyric});
 $('#sSave').addEventListener('click',()=>{cfg.discord=$('#sDisc').checked;cfg.discordLyric=$('#sDiscLyr').checked;store.set('cfg',cfg);rpcLast='';presence(true)},true);
 setTimeout(()=>presence(true),3000);
+function sendPresenceAndroid(){
+  if(!DISCORD_ID||cfg.discord===false){AD.clear().catch(()=>{});rpcLast='';return}
+  const t=cur();if(!t||!audio.src){AD.clear().catch(()=>{});rpcLast='';return}
+  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
+  const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
+  let state=art+(era&&era!==art?' · '+era:'');if(audio.paused)state='Paused · '+state;
+  const o={appId:DISCORD_ID,details:clip(titleOf(t),128),state:clip(state,128),largeImage:big,largeText:clip(era||'Abyss',128),
+    smallImage:ICONS+(audio.paused?'paused.png':'playing.png'),smallText:audio.paused?'Paused':'Playing on Abyss',buttonLabel:'Listen on Abyss',buttonUrl:'https://github.com/slayerischillin/abyss',start:0,end:0};
+  if(!audio.paused&&isFinite(audio.duration)&&audio.duration>0){const rate=audio.playbackRate||1,st=Date.now()-audio.currentTime*1000/rate;o.start=Math.round(st);o.end=Math.round(st+audio.duration*1000/rate)}
+  const key=JSON.stringify({...o,start:Math.round(o.start/2000),end:0});if(key===rpcLast)return;rpcLast=key;AD.setActivity(o).catch(()=>{})}
+const AD_TXT={off:['#777','Play a song to show it on Discord'],connected:['#4ade80','Connected to Discord'],linked:['#4ade80','Discord account connected'],
+  showing:['#4ade80','Showing on your Discord profile (through the Discord app)'],'showing-linked':['#4ade80','Showing on your Discord profile'],error:['#f87171','Discord said: ']};
+function paintAD(st){const el=$('#dcSt');if(!el)return;if(st&&st.available===false){el.style.setProperty('--c','#f87171');el.textContent='This copy of the app was built without Discord support. Get the newest APK.';return}
+  const d=AD_TXT[st.status]||AD_TXT.off;el.style.setProperty('--c',d[0]);el.textContent=st.status==='error'?d[1]+st.error+'. If you don\'t have the Discord app, tap Connect Discord.':d[1]}
+if(AD){AD.addListener('status',paintAD);$('#bSet').addEventListener('click',async()=>{try{paintAD(await AD.info())}catch{}});
+  $('#dcConnect').onclick=()=>{AD.connect({appId:DISCORD_ID}).then(()=>toast('Opening Discord to connect…')).catch(e=>toast(String(e.message||e)))};
+  $('#dcDisc').onclick=()=>{AD.disconnect().then(()=>{toast('Disconnected from Discord');paintAD({status:'off'})})}}
+/* Discord connection status, shown in Settings */
+const DC_TXT={off:['#777','Not connected yet. Play a song.'],handshake:['#f5c542','Connecting to Discord…'],connected:['#4ade80','Connected to Discord. Play a song to show it.'],
+  showing:['#4ade80','Showing on your Discord profile'],nodiscord:['#f87171','Discord isn\'t open. Start the Discord desktop app (the browser version won\'t work).'],error:['#f87171','Discord said: ']};
+function paintDc(st){const el=$('#dcSt');if(!el)return;
+  if(!window.abyssWin){el.style.display='none';return}
+  if(!abyssWin.rpc){el.style.setProperty('--c','#f87171');el.innerHTML='Your Abyss app is too old for Discord status. <a href="https://github.com/slayerischillin/abyss" target="_blank">Get the new Windows download</a>, then replace your Abyss folder.';return}
+  if(!abyssWin.rpcState){el.style.display='none';return}
+  const d=DC_TXT[st.state]||DC_TXT.off;el.style.setProperty('--c',d[0]);el.textContent=(st.state==='error'?d[1]+st.error:d[1])+(st.error&&st.state!=='error'&&st.state!=='nodiscord'?' ('+st.error+')':'')}
+if(window.abyssWin){if(abyssWin.onRpcState)abyssWin.onRpcState(paintDc);
+  $('#bSet').addEventListener('click',async()=>paintDc(abyssWin.rpcState?await abyssWin.rpcState():{state:'off'}));
+  if(!abyssWin.rpc&&!store.get('dcOldWarned',0))setTimeout(()=>{toast('Discord status needs the new Windows download (see Settings)');store.set('dcOldWarned',1)},6000)}
 /* ---- Android: now-playing notification, lock screen controls, background playback ---- */
 (()=>{const M=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssMedia;if(!M)return;
   let tm=0;const sync=()=>{clearTimeout(tm);tm=setTimeout(()=>{const t=cur();if(!t)return;const c=coverOf(t)||eraCover(t);
