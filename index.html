@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="70">
+<meta name="abyss-version" content="71">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2177,6 +2177,7 @@ function union(k,l,r){
   if(k==='pls'){const ids=new Set((l||[]).map(p=>p.id));return[...(l||[]),...(r||[]).filter(p=>!ids.has(p.id))]}
   if(k==='likes')return{...(r||{}),...(l||{})};
   if(k==='hist'){const seen=new Set(),out=[];[...(l||[]),...(r||[])].forEach(x=>{const id=x&&x.id;if(id==null||seen.has(id))return;seen.add(id);out.push(x)});return out.slice(0,300)}
+  if(k==='cloudSongs'){const m=new Map();[...(r||[]),...(l||[])].forEach(x=>{if(!x||!x.id)return;const p=m.get(x.id);m.set(x.id,p&&p.del?p:x)});return[...m.values()]}
   if(k==='plays'){const o={...(r||{})};Object.keys(l||{}).forEach(id=>{o[id]=(o[id]&&o[id].n>l[id].n)?o[id]:l[id]});return o}
   return undefined}
 store.set=function(k,v){baseSet(k,v);if(!applying&&SYNC.includes(k)){ts[k]=Date.now();raw('syncTs',ts);queue()}};
@@ -2194,7 +2195,8 @@ async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing
     applying=true;
     SYNC.forEach(k=>{const r=remote[k],lv=localVal(k),lt=ts[k]||0;
       if(first&&r&&lv!==undefined){const m=union(k,lv,r.v);if(m!==undefined){writeLocal(k,m);ts[k]=Date.now();changed.push(k);needPush=true;return}}
-      if(r&&r.t>lt){const same=JSON.stringify(r.v)===JSON.stringify(lv);writeLocal(k,r.v);ts[k]=r.t;if(!same)changed.push(k)}
+      if(k==='cloudSongs'&&r&&lv!==undefined&&JSON.stringify(r.v)!==JSON.stringify(lv)){const m=union(k,lv,r.v);writeLocal(k,m);ts[k]=Date.now();changed.push(k);needPush=true}
+      else if(r&&r.t>lt){const same=JSON.stringify(r.v)===JSON.stringify(lv);writeLocal(k,r.v);ts[k]=r.t;if(!same)changed.push(k)}
       else if(lv!==undefined&&(!r||lt>r.t))needPush=true});
     applying=false;
     if(needPush){const snap={};SYNC.forEach(k=>{const v=localVal(k);if(v!==undefined){if(!ts[k])ts[k]=Date.now();snap[k]={v,t:ts[k]}}});
@@ -2208,7 +2210,7 @@ function paint(){const inn=!!acct;$('#acOutBox').hidden=inn;$('#acInBox').hidden
   if(inn){$('#acWho').textContent='Signed in as '+acct.user.email;const t=store.get('lastSync',0);$('#acSync').textContent=t?'Last synced '+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'Not synced yet'}
   if(!supaOn())st('Accounts need the database to be switched on first.');try{paintBtn()}catch{}}
 $('#acSignOut').onclick=async()=>{try{const t=acct&&acct.access_token;if(t&&supaOn())await sfetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t}})}catch{}acct=null;store.set('acct',null);try{localStorage.removeItem('syncedFor')}catch{}st('Signed out. Your music stays on this device.');paint()};
-$('#acNow').onclick=()=>sync(false);
+$('#acNow').onclick=async()=>{await sync(false);try{await cloud.run(true)}catch(e){}};
 
 /* ================= v48: sign-in screen ================= */
 const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -2398,18 +2400,19 @@ const cloud=(()=>{let busy=false;const B=SUPA.url+'/storage/v1/object/songs/';
   const pathOf=id=>acct.user.id+'/'+String(id).replace(/[^\w.-]/g,'_');
   const req=async(method,url,body,type)=>{const t=await token();if(!t)throw new Error('Not signed in');const r=await sfetch(url,{method,headers:Object.assign({apikey:SUPA.key,Authorization:'Bearer '+t},type?{'Content-Type':type,'x-upsert':'true'}:{}),body});
     if(!r.ok){const tx=await r.text().catch(()=>'');throw new Error(/bucket not found/i.test(tx)?'nobucket':/row-level|policy/i.test(tx)?'nopolicy':/too large|exceeded/i.test(tx)?'toobig':'HTTP '+r.status)}return r};
-  async function run(){if(!acct||!supaOn()||busy)return;busy=true;let up=0,down=0;
+  async function run(manual){if(!acct||!supaOn()||busy)return;busy=true;let up=0,down=0,fails=0;
     try{let list=store.get('cloudSongs',[])||[];const have=new Set(list.map(x=>x.id));let recs=[];try{recs=await idb.all()}catch{}
       const mine=new Map(recs.map(r=>[r.id,r]));
       for(const r of recs){if(have.has(r.id)||r.raw.cloudOff)continue;
         try{toast('Uploading '+r.raw.name+' to your account...');await req('POST',B+pathOf(r.id),r.blob,r.blob.type||'audio/mpeg');let art=null;
           if(r.art){try{await req('POST',B+pathOf(r.id)+'.art',r.art,r.art.type||'image/jpeg');art=pathOf(r.id)+'.art'}catch{}}
           list=[...list,{id:r.id,raw:r.raw,path:pathOf(r.id),art,type:r.blob.type||'audio/mpeg'}];have.add(r.id);store.set('cloudSongs',list);up++}
-        catch(e){if(e.message==='nobucket'||e.message==='nopolicy'){toast('Song syncing needs the new setup file (abyss-songs-setup.sql)');return}if(e.message==='toobig')toast(r.raw.name+' is too big to sync (50 MB max)')}}
+        catch(e){if(e.message==='nobucket'||e.message==='nopolicy'){toast('Song syncing needs the new setup file (abyss-songs-setup.sql)');return}if(e.message==='toobig')toast(r.raw.name+' is too big to sync (50 MB max)');else{toast('Could not upload '+r.raw.name+' ('+e.message+')');fails++}}}
       for(const c of list){if(c.del){if(mine.has(c.id)){try{await idb.del(c.id)}catch{}locals=locals.filter(x=>x.id!==c.id);down++}continue}if(mine.has(c.id))continue;
         try{toast('Downloading '+c.raw.name+' from your account...');const blob=new Blob([await (await req('GET',SUPA.url+'/storage/v1/object/authenticated/songs/'+c.path)).arrayBuffer()],{type:c.type||'audio/mpeg'});
           let art=null;if(c.art){try{art=await (await req('GET',SUPA.url+'/storage/v1/object/authenticated/songs/'+c.art)).blob()}catch{}}
-          const rec={id:c.id,raw:c.raw,blob,art};await idb.put(rec);addLocal(rec);mine.set(c.id,rec);down++}catch(e){}}
+          const rec={id:c.id,raw:c.raw,blob,art};await idb.put(rec);addLocal(rec);mine.set(c.id,rec);down++}catch(e){toast('Could not download '+c.raw.name+' ('+e.message+')');fails++}}
+            if(manual&&!up&&!down&&!fails)toast(list.filter(x=>!x.del).length?'Your songs are already in sync ('+list.filter(x=>!x.del).length+')':'No songs of your own yet. Add some with the folder button.');
             if(up||down){toast(down?'Synced '+down+' song'+(down>1?'s':'')+' from your account':'Your songs are backed up to your account');if($('#view').value==='local')load(true)}}
     finally{busy=false}}
   async function remove(id){try{const list=(store.get('cloudSongs',[])||[]);const c=list.find(x=>x.id===id);if(!c)return;store.set('cloudSongs',list.map(x=>x.id===id?{id,del:true}:x));

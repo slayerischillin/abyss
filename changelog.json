@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 71,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed song syncing when two devices add songs around the same time",
+    "Sync now also syncs your songs and tells you what happened",
+    "Song upload and download errors are shown instead of failing silently"
+   ]
+  },
+  {
    "version": 70,
    "date": "Nov 22",
    "changes": [
