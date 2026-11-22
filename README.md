@@ -12,6 +12,14 @@ An unofficial fan-made music player. Not affiliated with Juice WRLD, his estate 
 
 Abyss updates itself after that.
 
+## Download (Android phones and tablets)
+
+**[Download Abyss.apk](https://github.com/slayerischillin/abyss/releases/download/android/Abyss.apk)**
+
+1. Open the link on your phone or tablet and download **Abyss.apk**.
+2. Open the file. If Android asks, allow installing apps from your browser or file manager.
+3. Tap **Install**.
+
 ## What's in this repo
 
 - `index.html` + `version.json`: the live player. Installed copies of Abyss check these and update themselves.
