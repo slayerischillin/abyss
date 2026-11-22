@@ -1,0 +1,8 @@
+{
+  "appId": "com.slayer.abyss",
+  "appName": "Abyss",
+  "webDir": "www",
+  "backgroundColor": "#020104",
+  "android": { "allowMixedContent": true, "backgroundColor": "#020104" },
+  "plugins": { "CapacitorHttp": { "enabled": true } }
+}

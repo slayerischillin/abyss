@@ -1,0 +1,74 @@
+name: Build Android app
+
+on:
+  push:
+    branches: [main]
+    paths: ["mobile/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Capacitor
+        working-directory: mobile
+        run: npm install --no-audit --no-fund
+
+      - name: Copy the player into the app
+        working-directory: mobile
+        run: |
+          cp ../index.html www/abyss.html
+          npx cap sync android
+
+      - name: Load the signing key
+        env:
+          KEY_B64: ${{ secrets.ABYSS_KEYSTORE_B64 }}
+          KEY_PW: ${{ secrets.ABYSS_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEY_B64" ]; then
+            echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/abyss.keystore"
+            echo "ABYSS_KEY_PASSWORD=$KEY_PW" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No signing key secret set. Using a one-off key, so installing a later build will need an uninstall first."
+            PW=temp$RANDOM$RANDOM
+            keytool -genkeypair -keystore "$RUNNER_TEMP/abyss.keystore" -storepass "$PW" -keypass "$PW" -alias abyss -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Abyss"
+            echo "ABYSS_KEY_PASSWORD=$PW" >> "$GITHUB_ENV"
+          fi
+          echo "ABYSS_KEYSTORE=$RUNNER_TEMP/abyss.keystore" >> "$GITHUB_ENV"
+
+      - name: Build the APK
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk ../../Abyss.apk
+
+      - name: Publish the download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android
+          name: Abyss for Android
+          body: |
+            Abyss for Android phones and tablets.
+
+            1. Download **Abyss.apk** below on your phone or tablet.
+            2. Open it. If Android asks, allow installing apps from your browser or file manager.
+            3. Tap Install.
+
+            Abyss updates itself after that, the same way the Windows app does.
+          files: Abyss.apk
+          make_latest: false
