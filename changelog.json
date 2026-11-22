@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 38,
+   "date": "Nov 22",
+   "changes": [
+    "Android: music keeps playing in the background and with the screen off (needs the new APK)",
+    "Android: now-playing notification with play, pause and skip, plus lock screen controls"
+   ]
+  },
+  {
    "version": 37,
    "date": "Nov 22",
    "changes": [
