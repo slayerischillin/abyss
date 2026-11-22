@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('abyssWin', {
   max: () => ipcRenderer.send('win', 'max'),
   close: () => ipcRenderer.send('win', 'close'),
   onState: fn => ipcRenderer.on('win-state', (_, s) => fn(s)),
+  rpc: msg => ipcRenderer.send('rpc', msg),
   upd: {
     get: () => ipcRenderer.invoke('upd-get'),
     set: f => ipcRenderer.invoke('upd-set', f),

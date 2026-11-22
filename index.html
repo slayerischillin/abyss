@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="36">
+<meta name="abyss-version" content="37">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -746,6 +746,8 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
 #wnList .wv{display:block;margin:10px 0 2px;font-size:11px;letter-spacing:.16em;color:color-mix(in srgb,var(--glow) 60%,#fff)}
 #wnList .wv::before{display:none}
 #wnBody{padding:0 22px 6px;overflow:auto}
+
+.dcSec{display:none!important}body.app .dcSec{display:grid!important}
 </style>
 </head>
 <body style="--art:none">
@@ -819,9 +821,10 @@ body.app #qWin{top:32px;height:calc(100% - 32px)}
 <dialog id="dNew" class="sheet"><div class="shHead"><div><small>WHAT'S NEW</small><h3 id="wnTitle">Abyss</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div id="wnBody"><ul id="wnList"></ul></div><div class="shFoot"><button class="sBtn main" data-close>Nice</button></div></dialog>
 <dialog id="dHelp" class="sheet"><div class="shHead"><div><small>ABYSS</small><h3>Keyboard shortcuts</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div class="kgrid"><div class="kg"><small>Playback</small><div class="kr"><span>Play or pause</span><span class="kk"><kbd>Space</kbd></span></div><div class="kr"><span>Next song</span><span class="kk"><kbd>N</kbd></span></div><div class="kr"><span>Previous song</span><span class="kk"><kbd>P</kbd></span></div><div class="kr"><span>Skip 5 seconds</span><span class="kk"><kbd>←</kbd><kbd>→</kbd></span></div><div class="kr"><span>Slower / faster</span><span class="kk"><kbd>[</kbd><kbd>]</kbd></span></div></div><div class="kg"><small>Sound</small><div class="kr"><span>Volume</span><span class="kk"><kbd>↑</kbd><kbd>↓</kbd></span></div><div class="kr"><span>Mute</span><span class="kk"><kbd>M</kbd></span></div></div><div class="kg"><small>Your music</small><div class="kr"><span>Like</span><span class="kk"><kbd>H</kbd></span></div><div class="kr"><span>Add to playlist</span><span class="kk"><kbd>A</kbd></span></div><div class="kr"><span>Shuffle</span><span class="kk"><kbd>S</kbd></span></div><div class="kr"><span>Repeat</span><span class="kk"><kbd>R</kbd></span></div><div class="kr"><span>Copy song name</span><span class="kk"><kbd>C</kbd></span></div></div><div class="kg"><small>Views</small><div class="kr"><span>Library</span><span class="kk"><kbd>L</kbd></span></div><div class="kr"><span>Lyrics</span><span class="kk"><kbd>Y</kbd></span></div><div class="kr"><span>Full screen lyrics</span><span class="kk"><kbd>J</kbd></span></div><div class="kr"><span>Studio sessions</span><span class="kk"><kbd>T</kbd></span></div><div class="kr"><span>Queue</span><span class="kk"><kbd>Q</kbd></span></div><div class="kr"><span>Song options</span><span class="kk"><kbd>Right-click</kbd></span></div><div class="kr"><span>Fullscreen</span><span class="kk"><kbd>F</kbd></span></div><div class="kr"><span>This list</span><span class="kk"><kbd>?</kbd></span></div></div></div><button id="hClose" hidden></button></dialog>
 <dialog id="dSet" class="sheet wide"><div class="shHead"><div><small>ABYSS</small><h3>Settings</h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div><div class="shBody">
-<div class="sec"><h4>Covers</h4><label class="fl"><b>When a song plays, set its cover to</b><select class="fld" id="sMode"><option value="era">Its era cover</option><option value="fan">A fan-made cover (needs a Serper key)</option><option value="off">The original file cover</option></select></label>
+<div class="sec"><h4>Covers</h4><label class="fl"><b>When a song plays, set its cover to</b><select class="fld" id="sMode"><option value="community">A community fan cover (falls back to the era cover)</option><option value="era">Its era cover</option><option value="fan">A fan-made cover (needs a Serper key)</option><option value="off">The original file cover</option></select></label>
 <label class="fl"><b>Serper key</b><small>For fan-made covers. Free 2,500 searches at serper.dev</small><input class="fld" id="sKey" type="password" placeholder="Paste your key"></label></div>
 <div class="sec"><h4>Playback</h4><label class="tg"><span><b>Resume where I left off</b><small>Bring back your last song when Abyss opens</small></span><input type="checkbox" id="sResume"><i></i></label><label class="tg"><span><b>Preload the next song</b><small>Next song starts instantly</small></span><input type="checkbox" id="sPre"><i></i></label><label class="tg"><span><b>Performance mode</b><small>Turn off the heavy effects if it lags</small></span><input type="checkbox" id="sPerf"><i></i></label></div>
+<div class="sec dcSec"><h4>Discord</h4><label class="tg"><span><b>Show what I'm listening to</b><small>Your Discord status shows the song, cover and time left</small></span><input type="checkbox" id="sDisc"><i></i></label><label class="tg"><span><b>Show the lyric I'm on</b><small>The line being sung appears under the song name</small></span><input type="checkbox" id="sDiscLyr"><i></i></label></div>
 <div class="sec"><h4>Connection</h4><label class="fl"><b>API address</b><input class="fld" id="sBase"></label><label class="fl"><b>Account token</b><small>Optional</small><input class="fld" id="sTok" type="password"></label></div>
 <div id="updBox" class="sec"><h4>Updates</h4><small id="updVer">Version</small><label>Update link<input class="fld" id="sFeed" placeholder="https://raw.githubusercontent.com/you/abyss/main"></label><div class="shRow"><button class="sBtn" id="updChk">Check for updates</button><button class="sBtn ghost" id="updReset" title="Go back to the version that came with the app">Undo updates</button></div><small id="updSt"></small></div>
   </div><div class="shFoot"><button class="sBtn ghost" id="wnBtn" style="margin-right:auto">What's new</button><button class="sBtn ghost" id="sClose">Cancel</button><button class="sBtn main" id="sSave">Save</button></div></dialog>
@@ -831,7 +834,7 @@ const $=s=>document.querySelector(s);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 let cfg=Object.assign({base:'https://juicewrldapi.com/juicewrld',token:'',skey:'',names:'orig',auto:true},store.get('cfg',{}));
 if(cfg.v!==2){cfg.names='orig';cfg.v=2}
-if(!cfg.mode)cfg.mode=cfg.auto===false?'off':'era';
+if(!cfg.mode)cfg.mode=cfg.auto===false?'off':(store.get('covers',null)?'era':'community');
 let covers=store.get('covers',{});
 {let ch=0;for(const k in covers)if(covers[k]==='https://i.redd.it/iuntgb7w2ch41.jpg'){covers[k]='https://preview.redd.it/outsiders-cover-art-v0-iuntgb7w2ch41.jpg?width=1080&crop=smart&auto=webp&s=a029928e73a2f5bb71eea388a3a71f7f3452ffc9';ch=1}if(ch)store.set('covers',covers)}
 let list=[],queue=[],idx=-1,page=1,hasMore=false,shuffle=false,repeat=false;
@@ -1000,16 +1003,16 @@ async function serper(q){if(!cfg.skey)return[];
     const items=(d.images||[]).filter(x=>{const w=x.imageWidth,h=x.imageHeight;return!w||!h||(w>=300&&w/h>.8&&w/h<1.25)}).slice(0,10);
     return(await Promise.all(items.map(async x=>(await probe(x.imageUrl))?x.imageUrl:(x.thumbnailUrl||'')))).filter(Boolean)}
   catch(e){serperFail=true;$('#ms').textContent='Fan cover search failed ('+(e.message||'blocked')+'). If the browser blocked it, run this page inside Electron.';return[]}}
-async function getCands(t){const ck=t.id+(cfg.skey?'p':'i');if(cand[ck])return cand[ck];serperFail=false;
+async function getCands(t){const ck=t.id+(cfg.skey?'p':'i')+(supaOn()?'c':'');if(cand[ck])return cand[ck];serperFail=false;
   const r0=t.raw,era=(r0.era&&r0.era.name)||'';
   const names=[...new Set([titleOf(t),r0.name,...(r0.track_titles||[]),fileName(t.path)].filter(Boolean))].slice(0,3);
   const jw=x=>/juice/i.test(x.artistName||''),big=x=>x.artworkUrl100.replace('100x100bb','600x600bb');
   const it=async(term,ent)=>{try{const r=await fetch('https://itunes.apple.com/search?'+new URLSearchParams({term,entity:ent,limit:10}));return(await r.json()).results.filter(jw).map(big)}catch{return[]}};
   const disco=async()=>{try{const r=await fetch('https://itunes.apple.com/lookup?id=1368733420&entity=album&limit=60');return(await r.json()).results.filter(x=>x.artworkUrl100).map(big)}catch{return[]}};
-  const jobs=[popularFans(t),...names.map(n=>it('Juice WRLD '+n,'song')),era?it('Juice WRLD '+era,'album'):Promise.resolve([]),disco()];
+  const jobs=[communityCovers(t),popularFans(t),...names.map(n=>it('Juice WRLD '+n,'song')),era?it('Juice WRLD '+era,'album'):Promise.resolve([]),disco()];
   const seen=new Set(),u=[];(await Promise.all(jobs)).flat().forEach(x=>{const k=imgKey(x);if(!seen.has(k)){seen.add(k);u.push(x)}});
   const ec=eraCover(t);const out=[...u.filter(x=>x!==ec),ec,''];cand[ck]=out;if(!serperFail&&cfg.skey)store.set('cands',cand);return out}
-function saveCover(t,u){covers[t.id]=u;store.set('covers',covers);if(cur()&&cur().id===t.id)paint('cover');renderList()}
+function saveCover(t,u){setTimeout(()=>presence(),50);covers[t.id]=u;store.set('covers',covers);if(cur()&&cur().id===t.id)paint('cover');renderList()}
 /* released songs: official cover from iTunes (matched by title), then the API's image_url */
 const relCache=store.get('relc',{});
 async function releasedCover(t){if(relCache[t.id]!==undefined)return relCache[t.id];const s=t.raw,want=[s.name,titleOf(t)].map(x=>clean(x||'').toLowerCase());
@@ -1019,9 +1022,23 @@ async function releasedCover(t){if(relCache[t.id]!==undefined)return relCache[t.
     const hit=res.find(x=>want.includes(norm(x.trackName)))||res.find(x=>want.some(w=>w&&norm(x.trackName).startsWith(w)));
     if(hit)u=hit.artworkUrl100.replace('100x100bb','1000x1000bb')}catch{}
   if(!u&&s.image_url)u=s.image_url;relCache[t.id]=u;store.set('relc',relCache);return u}
+/* ---- shared fan-made covers (Supabase) ---- */
+const SUPA={url:'',key:''};
+const supaOn=()=>!!(SUPA.url&&SUPA.key);
+const commCache={};const myPicks=store.get('myPicks',{});
+async function communityCovers(t){if(!supaOn()||!t||t.raw.local)return[];const id=String(t.id),c=commCache[id];if(c&&Date.now()-c.at<600000)return c.list;
+  try{const r=await fetch(SUPA.url+'/rest/v1/cover_picks?'+new URLSearchParams({select:'url,picks',song_id:'eq.'+id,order:'picks.desc',limit:'12'}),{headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key}});
+    if(!r.ok)throw 0;const list=(await r.json()).map(x=>x.url);commCache[id]={at:Date.now(),list};return list}catch{return c?c.list:[]}}
+function shareCover(t,u){if(!supaOn()||!t||t.raw.local||!u||!/^https:\/\//.test(u))return;
+  if(u===eraCover(t)||u===t.art||/mzstatic\.com|scdn\.co/.test(u))return;  /* only fan-made picks, not era or official art */
+  const k=t.id+'|'+u;if(myPicks[k])return;myPicks[k]=1;store.set('myPicks',myPicks);delete commCache[String(t.id)];
+  fetch(SUPA.url+'/rest/v1/rpc/pick_cover',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify({p_song:String(t.id),p_url:u})}).catch(()=>{})}
 async function autoCover(t){if(covers[t.id]!==undefined||t.raw.local)return;
   if(t.raw.category==='released'){const u=await releasedCover(t);if(u&&cur()&&cur().id===t.id){saveCover(t,u);return}}
-  if(cfg.mode==='off')return;if(cfg.mode==='era'){saveCover(t,eraCover(t));return}const c=await getCands(t);if(c[0]&&cur()&&cur().id===t.id)saveCover(t,c[0])}
+  if(cfg.mode==='off')return;if(cfg.mode==='era'){saveCover(t,eraCover(t));return}
+  {const cc=await communityCovers(t);if(cc[0]&&cur()&&cur().id===t.id){saveCover(t,cc[0]);return}}
+  if(cfg.mode==='community'){if(cur()&&cur().id===t.id)saveCover(t,eraCover(t));return}
+  const c=await getCands(t);if(c[0]&&cur()&&cur().id===t.id)saveCover(t,c[0])}
 async function cycle(d){const t=cur();if(!t)return;$('#cNext').classList.add('busy');const c=await getCands(t);const now=covers[t.id]!==undefined?covers[t.id]:'';
   let p=c.indexOf(now);if(p<0)p=c.length-1;p=(p+d+c.length)%c.length;saveCover(t,c[p]);
   $('#cNext').classList.remove('busy');$('#cNext').title='Another cover ('+(p+1)+' of '+c.length+')';toast('Cover '+(p+1)+' of '+c.length);
@@ -1039,16 +1056,16 @@ async function findCovers(){const t=cur(),term=$('#cq').value.trim();if(!t||!ter
   const song=term.replace(/juice\s*wrld|cover( art)?|album|fan\s*made/gi,' ').replace(/\s+/g,' ').trim()||titleOf(t);
   const it=async(q,ent)=>{try{const r=await fetch('https://itunes.apple.com/search?'+new URLSearchParams({term:q,entity:ent,limit:25}));return (await r.json()).results.filter(jw).map(big)}catch{return[]}};
   const disco=async()=>{try{const r=await fetch('https://itunes.apple.com/lookup?id=1368733420&entity=album&limit=80');return (await r.json()).results.filter(x=>x.artworkUrl100).map(big)}catch{return[]}};
-  const [fan,songs,albums,all]=await Promise.all([cfg.skey?serper('"'+song+'" Juice WRLD cover art'):Promise.resolve([]),it('Juice WRLD '+song,'song'),it('Juice WRLD '+song,'album'),disco()]);
+  const [comm,fan,songs,albums,all]=await Promise.all([communityCovers(t),cfg.skey?serper('"'+song+'" Juice WRLD cover art'):Promise.resolve([]),it('Juice WRLD '+song,'song'),it('Juice WRLD '+song,'album'),disco()]);
   const seen=new Set(),uniq=a=>a.filter(u=>{if(!u)return false;const k=imgKey(u);if(seen.has(k))return false;seen.add(k);return true});
-  const groups=[['For this song',uniq([covers[t.id],eraCover(t),t.art].filter(Boolean))],['Fan-made',uniq(fan)],['Official matches',uniq([...songs,...albums])],['All Juice WRLD albums',uniq(all)]];
+  const groups=[['For this song',uniq([covers[t.id],eraCover(t),t.art].filter(Boolean))],['Community picks',uniq(comm)],['Fan-made',uniq(fan)],['Official matches',uniq([...songs,...albums])],['All Juice WRLD albums',uniq(all)]];
   g.innerHTML='';let n=0;
   groups.forEach(([lab,us])=>{if(!us.length)return;const h=document.createElement('div');h.className='cvH';h.textContent=lab;g.appendChild(h);
     us.forEach(u=>{const i=document.createElement('img');i.src=u;i.alt='Cover option';i.loading='lazy';i.referrerPolicy='no-referrer';i.style.animationDelay=Math.min(n++,30)*25+'ms';
-      i.onerror=()=>i.remove();i.onclick=()=>{saveCover(t,u);dCov.close();toast('Cover saved')};g.appendChild(i)})});
+      i.onerror=()=>i.remove();i.onclick=()=>{saveCover(t,u);shareCover(t,u);dCov.close();toast(supaOn()&&lab!=='For this song'&&lab!=='Official matches'&&lab!=='All Juice WRLD albums'?'Cover saved and shared':'Cover saved')};g.appendChild(i)})});
   if(!cfg.skey){const h=document.createElement('div');h.className='cvMsg';h.innerHTML='Want fan-made covers? Add a free Serper key in Settings, under Covers.';g.appendChild(h)}
   if(!n)g.innerHTML='<div class="cvMsg">No covers found. Paste a link or upload an image instead.</div>'}
-$('#cuse').onclick=()=>{const u=$('#curl').value.trim(),t=cur();if(u&&t){saveCover(t,u);dCov.close()}};
+$('#cuse').onclick=()=>{const u=$('#curl').value.trim(),t=cur();if(u&&t){saveCover(t,u);shareCover(t,u);dCov.close()}};
 $('#cup').onclick=()=>$('#cfile').click();
 $('#cfile').onchange=e=>{const f=e.target.files[0],t=cur();if(!f||!t)return;const img=new Image(),fr=new FileReader();
   fr.onload=()=>{img.onload=()=>{const c=document.createElement('canvas');c.width=c.height=600;const x=c.getContext('2d'),s=Math.min(img.width,img.height);
@@ -1453,6 +1470,31 @@ window.showPatchNotes=async(from,to)=>{const log=await changelog();const es=log.
   $('#wnTitle').textContent=es.length>1?'Changes since version '+from:'Version '+es[0].version;fillList($('#wnList'),es,es.length>1);$('#dNew').showModal();return true};
 /* after an update lands, show what changed once */
 setTimeout(async()=>{const seen=+(store.get('seenVer',MY_VER-1)||0);if(seen&&MY_VER>seen)await showPatchNotes(seen,MY_VER);store.set('seenVer',MY_VER)},3500);
+/* ---- Discord Rich Presence (desktop app) ---- */
+const DISCORD_ID='';
+const ICONS='https://raw.githubusercontent.com/slayerischillin/abyss/main/icons/';
+let rpcT=0,rpcLast='',rpcLyricAt=0,dLyr={id:null,lines:[]};
+const clip=(x,n)=>{x=String(x||'');return x.length>n?x.slice(0,n-1)+'…':x.padEnd(2,' ')};
+function presence(now){if(!window.abyssWin||!abyssWin.rpc)return;clearTimeout(rpcT);rpcT=setTimeout(sendPresence,now?0:400)}
+function sendPresence(){const R=abyssWin.rpc;
+  if(!DISCORD_ID||cfg.discord===false){R({clientId:DISCORD_ID||undefined,off:true});rpcLast='';return}
+  const t=cur();if(!t||!audio.src){R({clientId:DISCORD_ID,activity:null});rpcLast='';return}
+  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
+  const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
+  let state=art+(era&&era!==art?' · '+era:'');
+  if(cfg.discordLyric&&!audio.paused){if(dLyr.id!==t.id){dLyr={id:t.id,lines:[]};fetchLyrics(t).then(v=>{if(dLyr.id===t.id){dLyr.lines=v.synced||[];presence()}})}
+    else if(dLyr.lines.length){const ct=audio.currentTime+(lyrOffs[t.id]||0);let ln=null;for(const l of dLyr.lines){if(l.t<=ct)ln=l;else break}if(ln&&ln.txt&&ln.txt!=='♪')state='♪ '+ln.txt}}
+  const a={type:2,status_display_type:2,details:clip(titleOf(t),128),state:clip(audio.paused?'Paused · '+state:state,128),
+    assets:{large_image:big,large_text:clip(era||'Abyss',128),small_image:ICONS+(audio.paused?'paused.png':'playing.png'),small_text:audio.paused?'Paused':'Playing on Abyss'},
+    buttons:[{label:'Listen on Abyss',url:'https://github.com/slayerischillin/abyss'}]};
+  if(!audio.paused&&isFinite(audio.duration)&&audio.duration>0){const rate=audio.playbackRate||1,st=Date.now()-audio.currentTime*1000/rate;a.timestamps={start:Math.round(st),end:Math.round(st+audio.duration*1000/rate)}}
+  const key=JSON.stringify({...a,timestamps:a.timestamps&&{s:Math.round(a.timestamps.start/2000)}});if(key===rpcLast)return;rpcLast=key;
+  R({clientId:DISCORD_ID,activity:a})}
+['play','pause','seeked','ratechange','loadedmetadata','ended'].forEach(ev=>audio.addEventListener(ev,()=>presence()));
+audio.addEventListener('timeupdate',()=>{if(cfg.discordLyric&&Date.now()-rpcLyricAt>15000){rpcLyricAt=Date.now();presence()}});
+$('#bSet').addEventListener('click',()=>{$('#sDisc').checked=cfg.discord!==false;$('#sDiscLyr').checked=!!cfg.discordLyric});
+$('#sSave').addEventListener('click',()=>{cfg.discord=$('#sDisc').checked;cfg.discordLyric=$('#sDiscLyr').checked;store.set('cfg',cfg);rpcLast='';presence(true)},true);
+setTimeout(()=>presence(true),3000);
 /* ---- loading screen: preload everything, then reveal ---- */
 /* abyss vortex on the loading screen */
 const ldStop=(()=>{const c=$('#ldCv'),x=c.getContext('2d');let w,h,run=true,speed=1;const fitL=()=>{w=c.width=innerWidth;h=c.height=innerHeight};fitL();addEventListener('resize',fitL);

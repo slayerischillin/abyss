@@ -75,6 +75,51 @@ ipcMain.on('upd-check', e => checkUpdate(BrowserWindow.fromWebContents(e.sender)
 ipcMain.on('upd-apply', e => { const w = BrowserWindow.fromWebContents(e.sender); if (w) w.loadFile(pagePath()); });
 ipcMain.on('upd-reset', e => { try { fs.rmSync(LIVE()); } catch {} const w = BrowserWindow.fromWebContents(e.sender); if (w) w.loadFile(pagePath()); });
 
+
+/* ---------- Discord Rich Presence (talks to the Discord app on this PC) ----------
+   The page sends { clientId, activity } and we pass it to Discord over its local pipe.
+   Keeping the details in the page means they update along with the player. */
+const netMod = require('net');
+const rpc = { sock: null, ready: false, clientId: '', pending: null, buf: Buffer.alloc(0), retry: null, nonce: 0 };
+function rpcSend(op, obj) {
+  if (!rpc.sock) return;
+  const body = Buffer.from(JSON.stringify(obj), 'utf8'), head = Buffer.alloc(8);
+  head.writeInt32LE(op, 0); head.writeInt32LE(body.length, 4);
+  try { rpc.sock.write(Buffer.concat([head, body])); } catch {}
+}
+function rpcClose() { if (rpc.sock) { try { rpc.sock.destroy(); } catch {} } rpc.sock = null; rpc.ready = false; }
+function rpcConnect(i = 0) {
+  if (!rpc.clientId || rpc.sock) return;
+  const pipe = process.platform === 'win32' ? '\\\\?\\pipe\\discord-ipc-' + i
+    : path.join(process.env.XDG_RUNTIME_DIR || process.env.TMPDIR || '/tmp', 'discord-ipc-' + i);
+  const s = netMod.createConnection(pipe);
+  s.once('connect', () => { rpc.sock = s; rpc.buf = Buffer.alloc(0); rpcSend(0, { v: 1, client_id: rpc.clientId }); });
+  s.on('data', d => {
+    rpc.buf = Buffer.concat([rpc.buf, d]);
+    while (rpc.buf.length >= 8) {
+      const len = rpc.buf.readInt32LE(4); if (rpc.buf.length < 8 + len) break;
+      let msg = {}; try { msg = JSON.parse(rpc.buf.slice(8, 8 + len).toString('utf8')); } catch {}
+      rpc.buf = rpc.buf.slice(8 + len);
+      if (msg.evt === 'READY') { rpc.ready = true; if (rpc.pending) rpcActivity(rpc.pending); }
+    }
+  });
+  s.on('error', () => { s.destroy(); if (!rpc.sock && i < 9) rpcConnect(i + 1); else scheduleRetry(); });
+  s.on('close', () => { if (rpc.sock === s) { rpcClose(); scheduleRetry(); } });
+}
+function scheduleRetry() { clearTimeout(rpc.retry); rpc.retry = setTimeout(() => rpcConnect(0), 15000); }
+function rpcActivity(activity) {
+  rpc.pending = activity;
+  if (!rpc.ready) return;
+  rpcSend(1, { cmd: 'SET_ACTIVITY', args: { pid: process.pid, activity: activity || undefined }, nonce: String(++rpc.nonce) });
+}
+ipcMain.on('rpc', (e, msg) => {
+  if (!msg) return;
+  if (msg.clientId && msg.clientId !== rpc.clientId) { rpcClose(); rpc.clientId = String(msg.clientId); rpcConnect(0); }
+  if (msg.off) { rpcActivity(null); return; }
+  if ('activity' in msg) rpcActivity(msg.activity);
+});
+app.on('before-quit', () => { try { rpcActivity(null); } catch {} rpcClose(); });
+
 app.setAppUserModelId('com.abyss.player');
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
