@@ -1,5 +1,5 @@
 {
- "version": 48,
+ "version": 49,
  "file": "index.html",
- "notes": "New sign-in screen"
+ "notes": "Hide Google sign-in until it's set up"
 }

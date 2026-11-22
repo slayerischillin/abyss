@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="48">
+<meta name="abyss-version" content="49">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2049,10 +2049,13 @@ $('#asGoogle').onclick=async()=>{err('');
     openExt(SUPA.url+'/auth/v1/authorize?'+new URLSearchParams({provider:'google',redirect_to:CB+'?h='+handoff,code_challenge:ch,code_challenge_method:'s256'}));
     stopPoll();pollT=setTimeout(pollOnce,2500)}
   catch(e){err('Couldn\'t start Google sign-in ('+e.message+')')}};
+/* (Google is hidden above when it isn't switched on in Supabase) */
 $('#asPasteLnk').onclick=()=>{$('#asPasteBox').hidden=false;$('#asPasteLnk').hidden=true;setTimeout(()=>$('#asCode').focus(),50)};
 $('#asCodeGo').onclick=async()=>{const c=$('#asCode').value.trim();if(!c){err('Paste the code first.','#asGErr');return}const b=$('#asCodeGo');setBusy(b,true);stopPoll();await exchange(c);setBusy(b,false)};
 $('#asCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('#asCodeGo').click()});
 paintBtn();
+(async()=>{try{const r=await fetch(SUPA.url+'/auth/v1/settings',{headers:{apikey:SUPA.key}});if(!r.ok)return;const d=await r.json(),on=!!(d.external&&d.external.google);
+  document.querySelectorAll('.asSocial').forEach(x=>x.style.display=on?'':'none')}catch{}})();
 /* first launch: offer an account once */
 if(!acct&&supaOn()){let tries=0;const gate=()=>{if(acct)return;const L=$('#loader');if(L&&!L.classList.contains('done')&&tries++<60){setTimeout(gate,250);return}openAuth(store.get('everSignedIn',0)?'in':'up')};setTimeout(gate,400)}
 $('#bSet').addEventListener('click',paint);paint();
