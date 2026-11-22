@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="68">
+<meta name="abyss-version" content="69">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1094,6 +1094,32 @@ body.cnRemote #barCov{box-shadow:0 0 0 2px #1ed760}
 .shf img{width:116px;height:116px;border-radius:12px;object-fit:cover;box-shadow:0 10px 24px -10px #000;transition:transform .2s}.shf button:hover img{transform:scale(1.04)}
 .shf b{display:block;font-size:12.5px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.shf small{display:block;font-size:11px;opacity:.55;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #mShelves{display:block}
+/* v69: quick search redesign */
+#qk .qkBg{background:radial-gradient(ellipse at 50% 20%,color-mix(in srgb,var(--glow) 18%,transparent),rgba(0,0,0,.6) 60%);backdrop-filter:blur(10px) saturate(1.2)}
+#qk .qkBox{top:12vh;width:min(660px,calc(100% - 24px));border-radius:26px;padding:1px;background:linear-gradient(140deg,color-mix(in srgb,var(--glow) 70%,#fff 10%),rgba(255,255,255,.06) 35%,rgba(255,255,255,.04) 65%,#ff5fb4aa);border:0;box-shadow:0 50px 120px -30px #000,0 0 80px -30px var(--glow)}
+#qk .qkBox>*{background:#0e0b14}
+#qk .qkBox>:first-child{border-radius:25px 25px 0 0}#qk .qkBox>:last-child{border-radius:0 0 25px 25px}
+#qk .qkIn{padding:22px 24px;gap:16px;border-bottom:1px solid rgba(255,255,255,.06)}
+#qk .qkIn svg{width:22px;height:22px;opacity:1;color:var(--glow);filter:drop-shadow(0 0 8px var(--glow))}
+#qk .qkIn input{font-size:21px;font-weight:600;letter-spacing:-.01em;caret-color:var(--glow)}
+#qk .qkIn input::placeholder{color:rgba(255,255,255,.3);font-weight:500}
+#qk .qkIn kbd{opacity:.5}
+#qk .qkRes{padding:10px;max-height:56vh}
+#qk .qkSec{font-size:10.5px;letter-spacing:.18em;font-weight:700;opacity:.45;margin:8px 12px 6px}
+#qk .qkRes button{padding:9px 12px;gap:14px;border-radius:14px;transition:background .15s;animation:qkRow .35s cubic-bezier(.2,1.2,.3,1) backwards;animation-delay:calc(var(--i,0)*30ms)}
+@keyframes qkRow{from{opacity:0;transform:translateY(6px)}}
+#qk .qkRes button.sel{background:linear-gradient(90deg,color-mix(in srgb,var(--glow) 28%,transparent),color-mix(in srgb,var(--glow) 6%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--glow) 40%,transparent)}
+#qk .qkRes button.sel::after{content:"↵";font-size:14px;opacity:.7;margin-left:6px}
+#qk .qkRes img{width:46px;height:46px;border-radius:10px;box-shadow:0 6px 16px -6px #000}
+#qk .qkRes b{font-size:15px;font-weight:700}
+#qk .qkChips{display:flex;flex-wrap:wrap;gap:8px;padding:4px 10px 10px}
+#qk .qkChips button{width:auto;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:13px;font-weight:600}
+#qk .qkChips button:hover{background:color-mix(in srgb,var(--glow) 25%,transparent);border-color:color-mix(in srgb,var(--glow) 60%,transparent)}
+#qk .qkHint{padding:28px;opacity:.4}
+#qk .qkFoot{gap:22px;padding:12px;font-size:11px;opacity:.4;border-top:1px solid rgba(255,255,255,.06)}
+#qk .qkFoot kbd{background:none;border-color:rgba(255,255,255,.2)}
+#qk .qkSpin{display:none;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.12);border-top-color:var(--glow);animation:spin .7s linear infinite}
+#qk .qkBox.busy .qkSpin{display:block}#qk .qkBox.busy .qkIn kbd{display:none}
 </style>
 </head>
 <body style="--art:none">
@@ -2609,16 +2635,17 @@ addEventListener('popstate',()=>{if(fp.classList.contains('open'))close()});
 /* ================= v68: 10 desktop additions ================= */
 (()=>{const DESK=()=>innerWidth>700;
 /* 1) Ctrl+K quick search: type, arrow keys, Enter to play */
-const pal=document.createElement('div');pal.id='qk';pal.innerHTML='<div class="qkBg"></div><div class="qkBox"><div class="qkIn"><svg class="ic"><use href="#i-search"/></svg><input placeholder="Search any Juice WRLD song…" spellcheck="false"><kbd>Esc</kbd></div><div class="qkRes"></div><div class="qkFoot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> play</span><span><kbd>Shift</kbd>+<kbd>Enter</kbd> play next</span></div></div>';document.body.appendChild(pal);
+const pal=document.createElement('div');pal.id='qk';pal.innerHTML='<div class="qkBg"></div><div class="qkBox"><div class="qkIn"><svg class="ic"><use href="#i-search"/></svg><input placeholder="What do you want to play?" spellcheck="false"><i class="qkSpin"></i><kbd>Esc</kbd></div><div class="qkRes"></div><div class="qkFoot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> play</span><span><kbd>Shift</kbd>+<kbd>Enter</kbd> play next</span></div></div>';document.body.appendChild(pal);
 const qi=pal.querySelector('input'),qr=pal.querySelector('.qkRes');let qItems=[],qSel=0,qT=0,qSeq=0;
-const qOpen=()=>{pal.classList.add('open');qi.value='';qItems=[];qr.innerHTML='<p class="qkHint">Start typing to search</p>';setTimeout(()=>qi.focus(),30)},qClose=()=>pal.classList.remove('open');
-const qPaint=()=>{qr.innerHTML=qItems.map((t,i)=>'<button class="'+(i===qSel?'sel':'')+'" data-i="'+i+'"><img alt="" referrerpolicy="no-referrer"><div><b></b><small></small></div><em></em></button>').join('')||'<p class="qkHint">No songs found</p>';
-  [...qr.querySelectorAll('button')].forEach((b,i)=>{const t=qItems[i],im=b.querySelector('img');im.onerror=()=>{im.onerror=null;im.src=eraCover(t)};im.src=coverOf(t)||eraCover(t);b.querySelector('b').textContent=titleOf(t);b.querySelector('small').textContent=subOf(t);b.querySelector('em').textContent=t.raw.length||''})};
+const qEmpty=()=>{qItems=hist.slice(0,6).map(api.toTrack).filter(t=>t&&t.src);qSel=0;qPaint(true)};const qOpen=()=>{pal.classList.add('open');qi.value='';qEmpty();setTimeout(()=>qi.focus(),30)},qClose=()=>pal.classList.remove('open');
+const QS=['Lucid Dreams','Robbery','Wishing Well','All Girls Are The Same','Legends','Righteous','Bandit','Cigarettes'];
+const qPaint=(empty)=>{qr.innerHTML=(empty?(qItems.length?'<div class="qkSec">RECENTLY PLAYED</div>':''):(qItems.length?'<div class="qkSec">SONGS</div>':''))+qItems.map((t,i)=>'<button style="--i:'+i+'" class="'+(i===qSel?'sel':'')+'" data-i="'+i+'"><img alt="" referrerpolicy="no-referrer"><div><b></b><small></small></div><em></em></button>').join('')+(empty?'<div class="qkSec">TRY</div><div class="qkChips">'+QS.map((q,i)=>'<button style="--i:'+i+'" data-q="'+q+'">'+q+'</button>').join('')+'</div>':(qItems.length?'':'<p class="qkHint">No songs found for “'+esc(qi.value.trim())+'”</p>'));
+  [...qr.querySelectorAll('button[data-i]')].forEach((b,i)=>{const t=qItems[i],im=b.querySelector('img');im.onerror=()=>{im.onerror=null;im.src=eraCover(t)};im.src=coverOf(t)||eraCover(t);b.querySelector('b').textContent=titleOf(t);b.querySelector('small').textContent=subOf(t);b.querySelector('em').textContent=t.raw.length||''})};
 const qGo=(i,nx)=>{const t=qItems[i];if(!t)return;qClose();if(nx){playNext(t)}else{queue=[t,...queue.slice(idx+1)];play(0)}};
-qi.addEventListener('input',()=>{clearTimeout(qT);const q=qi.value.trim();if(!q){qItems=[];qr.innerHTML='<p class="qkHint">Start typing to search</p>';return}
-  qT=setTimeout(async()=>{const s=++qSeq;qr.classList.add('busy');try{const loc=locals.map(api.toTrack).filter(t=>titleOf(t).toLowerCase().includes(q.toLowerCase()));const r=await api.songs(q,'',1,'');if(s!==qSeq)return;qItems=[...loc,...r.items].slice(0,9);qSel=0;qPaint()}catch(e){qr.innerHTML='<p class="qkHint">Search failed</p>'}finally{qr.classList.remove('busy')}},220)});
-qi.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();qSel=(qSel+(e.key==='ArrowDown'?1:-1)+qItems.length)%Math.max(1,qItems.length);qPaint()}else if(e.key==='Enter'){qGo(qSel,e.shiftKey)}else if(e.key==='Escape')qClose()});
-qr.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)qGo(+b.dataset.i,e.shiftKey)});pal.querySelector('.qkBg').onclick=qClose;
+qi.addEventListener('input',()=>{clearTimeout(qT);const q=qi.value.trim();if(!q){qEmpty();return}
+  qT=setTimeout(async()=>{const s=++qSeq;pal.querySelector('.qkBox').classList.add('busy');try{const loc=locals.map(api.toTrack).filter(t=>titleOf(t).toLowerCase().includes(q.toLowerCase()));const r=await api.songs(q,'',1,'');if(s!==qSeq)return;qItems=[...loc,...r.items].slice(0,9);qSel=0;qPaint()}catch(e){qr.innerHTML='<p class="qkHint">Search failed</p>'}finally{pal.querySelector('.qkBox').classList.remove('busy')}},220)});
+qi.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();qSel=(qSel+(e.key==='ArrowDown'?1:-1)+qItems.length)%Math.max(1,qItems.length);qPaint(!qi.value.trim())}else if(e.key==='Enter'){qGo(qSel,e.shiftKey)}else if(e.key==='Escape')qClose()});
+qr.addEventListener('click',e=>{const c=e.target.closest('[data-q]');if(c){qi.value=c.dataset.q;qi.dispatchEvent(new Event('input'));qi.focus();return}const b=e.target.closest('[data-i]');if(b)qGo(+b.dataset.i,e.shiftKey)});pal.querySelector('.qkBg').onclick=qClose;
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();pal.classList.contains('open')?qClose():qOpen()}});
 /* 2) the full "now playing" view (artists, credits, lyrics) opens on PC too, as a side panel: click the song name */
 $('#meta').addEventListener('click',()=>{if(DESK()&&window.abyssFull)abyssFull.open(true)});

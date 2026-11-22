@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 69,
+   "date": "Nov 22",
+   "changes": [
+    "Redesigned Ctrl+K quick search: glowing border, recently played and suggestions before you type"
+   ]
+  },
+  {
    "version": 68,
    "date": "Nov 22",
    "changes": [
