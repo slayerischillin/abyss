@@ -1,6 +1,17 @@
 {
  "versions": [
   {
+   "version": 48,
+   "date": "Nov 22",
+   "changes": [
+    "New sign-in screen when you open Abyss: email first, then password, or Continue with Google",
+    "Sign up checks your password strength as you type and makes sure both passwords match",
+    "Forgot password now works: the email link lets you pick a new password",
+    "Continue with Google finishes by itself when you come back to Abyss (once set up)",
+    "New account button in the top-right corner"
+   ]
+  },
+  {
    "version": 47,
    "date": "Nov 22",
    "changes": [

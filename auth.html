@@ -1,19 +1,59 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Abyss sign in</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Abyss</title>
+<link rel="icon" href="icons/abyss.png">
 <style>
-:root{color-scheme:dark}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#020104;color:#f3eefc;font-family:system-ui,Segoe UI,Roboto,sans-serif}
-main{width:min(420px,calc(100% - 32px));padding:28px;border-radius:20px;background:#0d0a14;border:1px solid #2a2338;text-align:center}
-h1{font-size:20px;margin:0 0 8px}p{color:#b9afcc;line-height:1.5;margin:8px 0}
-code{display:block;word-break:break-all;background:#07050c;border:1px solid #2a2338;border-radius:12px;padding:14px;margin:16px 0;font-size:14px;user-select:all;color:#fff}
-button{border:0;border-radius:999px;padding:12px 22px;font-size:15px;font-weight:600;background:#fff;color:#000;cursor:pointer}
-</style></head><body><main id="m"><h1>Abyss</h1><p>One moment...</p></main>
+:root{color-scheme:dark;--g:#a66bff;--p:#ff5fb4}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#020104;color:#f3eefc;font-family:system-ui,Segoe UI,Roboto,sans-serif;overflow:hidden}
+body::before{content:"";position:fixed;inset:-30%;background:radial-gradient(circle at 30% 30%,#4b1f8a,transparent 45%),radial-gradient(circle at 70% 70%,#7a1f5c,transparent 45%);filter:blur(60px);opacity:.55;animation:d 18s ease-in-out infinite alternate}
+@keyframes d{to{transform:rotate(12deg) scale(1.1)}}
+main{position:relative;width:min(420px,calc(100% - 32px));padding:30px 28px;border-radius:26px;background:rgba(16,11,24,.78);border:1px solid rgba(255,255,255,.14);box-shadow:inset 1px 1px 0 rgba(255,255,255,.2),0 40px 100px -30px #000;backdrop-filter:blur(20px);text-align:center;animation:in .6s cubic-bezier(.2,1.3,.3,1)}
+@keyframes in{from{opacity:0;transform:translateY(20px) scale(.95)}}
+img.l{width:64px;height:64px;border-radius:18px;margin-bottom:10px;box-shadow:0 0 40px -6px var(--g)}
+h1{font-size:22px;margin:0 0 6px}p{color:#b9afcc;line-height:1.5;margin:8px 0;font-size:14.5px}
+.ok{width:62px;height:62px;margin:6px auto 10px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--p));display:grid;place-items:center;box-shadow:0 0 40px -6px var(--g);animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(0)}}
+.ok svg{width:30px;height:30px;stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:30;stroke-dashoffset:30;animation:ck .5s .3s forwards}@keyframes ck{to{stroke-dashoffset:0}}
+code{display:block;word-break:break-all;background:#07050c;border:1px solid #2a2338;border-radius:12px;padding:12px;margin:14px 0;font-size:13px;user-select:all;color:#fff}
+button{border:0;border-radius:14px;padding:12px 20px;font-size:15px;font-weight:600;background:#fff;color:#000;cursor:pointer;width:100%;margin-top:8px}
+button:disabled{opacity:.5}
+input{width:100%;padding:13px 14px;margin-top:10px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font-size:15px;outline:0}
+input:focus{border-color:var(--g)}
+.bar{display:flex;gap:4px;margin:10px 0 4px}.bar i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .3s}
+small{color:#b9afcc;font-size:12.5px}.err{color:#ff8aa8}
+details{margin-top:14px;text-align:left}summary{cursor:pointer;color:#b9afcc;font-size:13px}
+</style></head><body><main id="m"><img class="l" src="icons/abyss.png" alt=""><h1>Abyss</h1><p>One moment...</p></main>
 <script>
-const m=document.getElementById('m'),q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));
-const code=q.get('code'),err=q.get('error_description')||h.get('error_description')||q.get('error'),type=h.get('type');
-const set=(t,p,c)=>{m.innerHTML='';const a=document.createElement('h1');a.textContent=t;m.appendChild(a);const b=document.createElement('p');b.textContent=p;m.appendChild(b);if(c){const e=document.createElement('code');e.textContent=c;m.appendChild(e);const bt=document.createElement('button');bt.textContent='Copy code';bt.onclick=()=>{navigator.clipboard.writeText(c).then(()=>bt.textContent='Copied')};m.appendChild(bt);const p2=document.createElement('p');p2.textContent='Paste it into Abyss under Settings, then Account, then Finish sign in.';m.appendChild(p2)}};
-if(err)set('Sign in did not finish',err);
-else if(code)set('Almost done','Copy this code and go back to Abyss.',code);
-else if(type==='signup'||type==='email')set('Email confirmed','You can close this page, then sign in on Abyss.');
-else if(type==='recovery')set('Reset your password','Password resets are not built into Abyss yet. Ask for help and it will be added.');
-else set('Abyss','Nothing to do here. Go back to the app.');
+const SUPA={url:'https://zatflznpjjketcannyih.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdGZsem5wamprZXRjYW5ueWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNDU1NjAsImV4cCI6MjExMDkyMTU2MH0.FF3GKKzok5xu3EPqG3de_NeEG4csuRGWLAhhV-VDyEA'};
+const m=document.getElementById('m'),q=new URLSearchParams(location.search),hs=new URLSearchParams(location.hash.slice(1));
+const code=q.get('code'),h=q.get('h'),err=q.get('error_description')||hs.get('error_description')||q.get('error'),type=hs.get('type')||q.get('type');
+const el=(t,a,x)=>{const e=document.createElement(t);if(a)Object.assign(e,a);if(x)x.forEach(c=>e.appendChild(c));return e};
+const ok='<div class="ok"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>';
+function view(html){m.innerHTML='<img class="l" src="icons/abyss.png" alt="">'+html}
+function copyBox(c){const box=el('details',{},[el('summary',{textContent:'Abyss did not sign in by itself?'}),el('p',{textContent:'Copy this code, then in Abyss tap "Paste a code instead".'}),el('code',{textContent:c})]);
+  const b=el('button',{textContent:'Copy code'});b.onclick=()=>navigator.clipboard.writeText(c).then(()=>b.textContent='Copied');box.appendChild(b);m.appendChild(box)}
+async function rpc(fn,body,token){const r=await fetch(SUPA.url+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+(token||SUPA.key),'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok)throw new Error('HTTP '+r.status);return r}
+(async()=>{
+if(err){view('<h1>Sign in did not finish</h1><p class="err"></p><p>Go back to Abyss and try again.</p>');m.querySelector('.err').textContent=err;return}
+if(code&&h){view('<h1>Signing you in…</h1><p>Sending you back to Abyss.</p>');
+  try{await rpc('put_handoff',{p_h:h,p_code:code});view(ok+'<h1>You\'re signed in</h1><p>Go back to Abyss. It finishes by itself in a few seconds, and you can close this tab.</p>');copyBox(code);setTimeout(()=>{try{window.close()}catch(e){}},2500)}
+  catch(e){view('<h1>Almost done</h1><p>Copy this code and paste it into Abyss.</p>');copyBox(code);m.querySelector('details').open=true}
+  return}
+if(code){view('<h1>Almost done</h1><p>Copy this code and paste it into Abyss.</p>');copyBox(code);m.querySelector('details').open=true;return}
+if(type==='recovery'){const at=hs.get('access_token');if(!at){view('<h1>Link expired</h1><p>Ask Abyss for a new password reset email.</p>');return}
+  view('<h1>Choose a new password</h1><p>At least 8 characters.</p>');
+  const p1=el('input',{type:'password',placeholder:'New password',autocomplete:'new-password'}),p2=el('input',{type:'password',placeholder:'Type it again',autocomplete:'new-password'});
+  const bar=el('div',{className:'bar'},[el('i'),el('i'),el('i'),el('i')]),msg=el('small'),b=el('button',{textContent:'Save new password'});
+  const score=v=>(v.length>=8)+(/[a-z]/.test(v)&&/[A-Z]/.test(v))+(/\d/.test(v))+(/[^\w\s]/.test(v))+(v.length>=14)-1;
+  p1.oninput=()=>{const sc=Math.max(0,score(p1.value)),cols=['#ff5f7e','#ffb35f','#f5e05f','#5fe08a'];[...bar.children].forEach((i,k)=>i.style.background=k<sc?cols[Math.min(sc,4)-1]:'')};
+  b.onclick=async()=>{msg.className='';if(p1.value.length<8){msg.textContent='Use at least 8 characters';msg.className='err';return}if(p1.value!==p2.value){msg.textContent='The two passwords don\'t match';msg.className='err';return}
+    b.disabled=true;b.textContent='Saving…';
+    try{const r=await fetch(SUPA.url+'/auth/v1/user',{method:'PUT',headers:{apikey:SUPA.key,Authorization:'Bearer '+at,'Content-Type':'application/json'},body:JSON.stringify({password:p1.value})});
+      const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.msg||d.error_description||d.message||('HTTP '+r.status));
+      view(ok+'<h1>Password changed</h1><p>Go back to Abyss and sign in with your new password.</p>')}
+    catch(e){b.disabled=false;b.textContent='Save new password';msg.textContent=e.message;msg.className='err'}};
+  [p1,p2,bar,msg,b].forEach(x=>m.appendChild(x));p1.focus();return}
+if(type==='signup'||type==='email'||type==='magiclink'){view(ok+'<h1>Email confirmed</h1><p>Go back to Abyss and sign in. You can close this tab.</p>');return}
+view('<h1>Abyss</h1><p>Nothing to do here. Go back to the app.</p>');
+})();
 </script></body></html>
