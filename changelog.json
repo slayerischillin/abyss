@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 76,
+   "date": "Nov 22",
+   "changes": [
+    "Fresh start: everyone begins from a clean Abyss",
+    "Switching speakers now moves the song you're actually listening to"
+   ]
+  },
+  {
    "version": 75,
    "date": "Nov 22",
    "changes": [

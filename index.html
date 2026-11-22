@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="75">
+<meta name="abyss-version" content="76">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1363,6 +1363,13 @@ dialog::backdrop,#cnSheet .cnBg{background:rgba(3,2,6,.35)!important}
   </div><div class="shFoot"><button class="sBtn ghost" id="wnBtn" style="margin-right:auto">What's new</button><button class="sBtn ghost" id="sClose">Cancel</button><button class="sBtn main" id="sSave">Save</button></div></dialog>
 
 <script>
+/* v76: one-time fresh start for everyone: clears accounts, library, settings and your own files on this device */
+(()=>{const RESET='fresh-2026-11-22';try{if(localStorage.getItem('abyssReset')===RESET)return;
+  const keep={'abyss.page':localStorage.getItem('abyss.page')};localStorage.clear();try{sessionStorage.clear()}catch(e){}
+  Object.entries(keep).forEach(([k,v])=>{if(v)localStorage.setItem(k,v)});localStorage.setItem('abyssReset',RESET);
+  try{indexedDB.deleteDatabase('wrld')}catch(e){}}catch(e){}})();
+</script>
+<script>
 const $=s=>document.querySelector(s);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 let cfg=Object.assign({base:'https://juicewrldapi.com/juicewrld',token:'',skey:'',names:'orig',auto:true},store.get('cfg',{}));
@@ -2487,7 +2494,7 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
     if(t!=='take'&&!audio.paused)claim()}
   async function beat(){if(!acct||!supaOn()||broken)return;
     try{const playing=!!cur()&&!audio.paused;
-      if(playing&&!wasPlaying&&(Date.now()-gesture<4000||document.hidden)){const a=activeDev();if(!a||a.id!==me)await claim()}
+      if(playing){const a=activeDev();if((!a||a.id!==me)&&(!wasPlaying||Date.now()-myClaim>8000))await claim()}
       wasPlaying=playing;const m=devs.find(d=>d.id===me);
       const body={id:me,user_id:acct.user.id,name:nameOf(),platform:kind,seen:new Date().toISOString(),state:myState()};
       await sfetch(T+'?on_conflict=id',{method:'POST',headers:await hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(body)});
@@ -2507,10 +2514,10 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
   btn.onclick=open;strip.onclick=open;sheet.querySelector('.cnBg').onclick=close;
   sheet.querySelector('.cnRen').onclick=async()=>{const n=await ask('Name this device',{value:nameOf(),ok:'Save'});if(n&&n.trim()){localStorage.setItem('devName',n.trim().slice(0,30));beat()}};
   sheet.addEventListener('click',async e=>{const b=e.target.closest('[data-dev]');if(!b)return;const id=b.dataset.dev,a=activeDev();try{window.abyssBuzz&&abyssBuzz('med')}catch(x){}
-    const src=a&&a.id!==me?a.state:myState();
-    if(id===me){if(a&&a.id!==me&&src&&src.raw){await run({id:'x'+Date.now(),type:'take',raw:src.raw,pos:src.pos+(src.paused?0:(Date.now()-src.at)/1000),paused:false});send(a.id,{type:'pause'})}else claim()}
+    const rm=remote(),src=rm&&!(cur()&&!audio.paused)?rm.state:myState();
+    if(id===me){if(rm&&src&&src.raw){await run({id:'x'+Date.now(),type:'take',raw:src.raw,pos:src.pos+(src.paused?0:(Date.now()-src.at)/1000),paused:false});send(a.id,{type:'pause'})}else claim()}
     else{if(!src||!src.raw){toast(cur()&&cur().raw.local?'Your own files can only play on this device':'Play a song first');return}
-      send(id,{type:'take',raw:src.raw,pos:src.pos+(src.paused?0:(Date.now()-src.at)/1000),paused:false});if(a&&a.id!==me&&a.id!==id)send(a.id,{type:'pause'});if(!a||a.id===me){audio.pause();myClaim=0}
+      send(id,{type:'take',raw:src.raw,pos:src.pos+(src.paused?0:(Date.now()-src.at)/1000),paused:false});if(rm&&rm.id!==id)send(rm.id,{type:'pause'});if(!rm){audio.pause();myClaim=0}
       const d=devs.find(x=>x.id===id);if(d){d.active_at=new Date(Date.now()+1000).toISOString();d.state=Object.assign({},src,{paused:false,at:Date.now()})}toast('Switching to '+(d?d.name:'device')+'...')}
     paint();setTimeout(close,350)});
   function paint(){const a=activeDev(),r=remote(),on=devs.filter(online);
