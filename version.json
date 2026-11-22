@@ -1,5 +1,5 @@
 {
- "version": 30,
+ "version": 31,
  "file": "index.html",
- "notes": "Fixes the HTTP 404 error when searching"
+ "notes": "Check-for-updates button in the title bar"
 }
