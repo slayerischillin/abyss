@@ -1,5 +1,5 @@
 {
- "version": 33,
+ "version": 34,
  "file": "index.html",
- "notes": "Right-click any song for Play next, Add to queue and more. New Queue view"
+ "notes": "The check-for-updates button now always answers"
 }
