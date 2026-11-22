@@ -1,6 +1,24 @@
 {
  "versions": [
   {
+   "version": 68,
+   "date": "Nov 22",
+   "changes": [
+    "Abyss Connect: see 'Listening on PC' on your phone and control it from there",
+    "Tap the speaker button to move playback between your devices",
+    "PC: Ctrl+K quick search from anywhere",
+    "PC: click the song name for the full now-playing panel with artists and credits",
+    "PC: double-click the cover to like, with a heart burst",
+    "PC: scroll over the cover to change the volume",
+    "PC: right-click a song > Start radio",
+    "PC: song change notifications (Settings)",
+    "PC: Jump back in and On repeat shelves in the library",
+    "PC: Your stats (Settings, or press I)",
+    "PC: right-click the moon to pause at the end of the song",
+    "PC: 'Up next' preview before a song ends, and Shift+arrows to jump 10 seconds"
+   ]
+  },
+  {
    "version": 67,
    "date": "Nov 22",
    "changes": [
