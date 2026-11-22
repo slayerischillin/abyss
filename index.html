@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="43">
+<meta name="abyss-version" content="44">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -852,11 +852,13 @@ const api={
   toTrack(s){if(s.local)return{id:s.id,raw:s,path:null,src:localUrl[s.id]||null,art:localArt[s.id]||''};const p=s.path;return{id:s.id,raw:s,path:p,
     src:p?cfg.base+'/files/download/?path='+encodeURIComponent(p):null,
     art:p?cfg.base+'/files/cover-art/?path='+encodeURIComponent(p)+'&size=512':''}},
+  pickAudio(x){const aud=/\.(mp3|m4a|wav|flac|ogg|aac|opus|wma)$/i;let f=x.file_names;if(typeof f==='string'){try{f=JSON.parse(f)}catch{f=f.split(/\s*[,;\n]\s*/)}}
+    const a=(Array.isArray(f)?f:f&&typeof f==='object'?Object.values(f):[]).flat().filter(v=>typeof v==='string'&&aud.test(v));return a.find(v=>v.includes('/'))||null},
   async songs(search,category,pg,era){const u=new URL(cfg.base+'/songs/');if(era)u.searchParams.set('era',era);
     if(search)u.searchParams.set('search',search);if(category)u.searchParams.set('category',category);
     u.searchParams.set('page',pg);u.searchParams.set('page_size',50);
     const r=await fetch(u,{headers:api.headers()});if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();const all=(d.results||[]).map(x=>{if(!x.path)x.path=x.file_path||x.audio_path||x.filepath||x.file||null;return x}),items=all.filter(x=>x.path).map(api.toTrack);return{items,more:!!d.next,skipped:all.length-items.length,skippedRaw:all.filter(x=>!x.path)}},
+    const d=await r.json();const all=(d.results||[]).map(x=>{if(!x.path)x.path=x.file_path||x.audio_path||x.filepath||x.file||api.pickAudio(x)||null;return x}),items=all.filter(x=>x.path).map(api.toTrack);return{items,more:!!d.next,skipped:all.length-items.length,skippedRaw:all.filter(x=>!x.path)}},
   async eras(){const r=await fetch(cfg.base+'/eras/',{headers:api.headers()});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();return Array.isArray(d)?d:(d.results||[])},
   async random(){const r=await fetch(cfg.base+'/radio/random/',{headers:api.headers()});if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();return api.toTrack(d.song)}
@@ -1207,7 +1209,7 @@ async function openStudio(){const t=cur();if(!t){toast('Play a song first');retu
     for(const n of names){const r=await api.songs(n,'',1,'');if(seq!==loadSeq)return;const m=r.items.filter(isSes);if(m.length){$('#cat').value='';show(m,false,n,' (found by name)');return}}
   }catch(e){if(seq!==loadSeq)return;status('Could not reach the API ('+e.message+')');return}
   $('#q').value='';$('#cat').value='';studioCat=false;list=[];renderList();
-  if(skipped){const k=skRaw[0]||{};status('Found '+skipped+' studio session'+(skipped>1?'s':'')+' for '+titleOf(t)+' ('+skRaw.slice(0,3).map(x=>x.name||x.id).join(', ')+'), but the server gave no audio file for '+(skipped>1?'them':'it')+'. Fields: '+Object.keys(k).join(', '))}
+  if(skipped){const k=skRaw[0]||{};status('Found '+skipped+' studio session'+(skipped>1?'s':'')+' for '+titleOf(t)+' ('+skRaw.slice(0,3).map(x=>x.name||x.id).join(', ')+'), but the server gave no audio file for '+(skipped>1?'them':'it')+'. Values: '+JSON.stringify({path:k.path,file_names:k.file_names,session_titles:k.session_titles,session_tracking:k.session_tracking}).slice(0,600))}
   else status('No studio sessions or edits found for '+titleOf(t))}
 $('#cStudio').onclick=openStudio;
 addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey)return;if(e.key==='t'||e.key==='T')openStudio()});

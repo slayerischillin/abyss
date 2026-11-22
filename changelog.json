@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 44,
+   "date": "Nov 22",
+   "changes": [
+    "Studio sessions: Abyss now looks for the audio in the session's file list, and shows the server's details if it still can't find it"
+   ]
+  },
+  {
    "version": 43,
    "date": "Nov 22",
    "changes": [
