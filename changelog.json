@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 75,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed the cover animation playing twice after swiping to skip",
+    "Syncing in the background no longer replays the cover animation"
+   ]
+  },
+  {
    "version": 74,
    "date": "Nov 22",
    "changes": [

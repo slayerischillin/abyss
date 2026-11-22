@@ -1,5 +1,5 @@
 {
- "version": 74,
+ "version": 75,
  "file": "index.html",
- "notes": "Much faster on phones"
+ "notes": "No more double animation"
 }

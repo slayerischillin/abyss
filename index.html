@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="74">
+<meta name="abyss-version" content="75">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1490,7 +1490,7 @@ function paint(mode){const t=cur();if(!t)return;const c=coverOf(t);
   const swap=()=>{triedCov.clear();coverEl.crossOrigin='anonymous';if(c)coverEl.src=c;else coverEl.src=eraCover(t);$('#ct').textContent=titleOf(t);$('#cs').textContent=subOf(t);const a=akaOf(t);$('#ca').textContent=a?'Also: '+a:'';
     {const bc=document.getElementById('barCov');if(bc)bc.src=c||eraCover(t)}document.body.style.setProperty('--art',c?'url("'+c.replace(/"/g,'%22')+'")':'none')};
   $('#mt').textContent=titleOf(t);$('#ms').textContent=subOf(t);document.title=titleOf(t)+' · Abyss';
-  if(reduce)swap();else{
+  if(reduce||window.__noFlip){window.__noFlip=false;swap()}else{
     const a=coverEl.animate([{transform:'rotateY(0)'},{transform:'rotateY(90deg)'}],{duration:170,easing:'ease-in',fill:'forwards'});
     a.onfinish=()=>{swap();a.cancel();coverEl.animate([{transform:'rotateY(-90deg) scale(.9)'},{transform:'rotateY(0)'}],{duration:420,easing:'cubic-bezier(.2,.9,.3,1.25)'})};
     if(mode==='new'){const w=$('#coverWrap');w.classList.remove('shine');void w.offsetWidth;w.classList.add('shine')}
@@ -2228,7 +2228,7 @@ function liveApply(keys){try{keys.forEach(k=>{const v=store.get(k,undefined);if(
     else if(k==='likes')likes=v;else if(k==='hist')hist=v;else if(k==='plays')plays=v;else if(k==='covers')covers=v;else if(k==='nm')nm=v;
     else if(k==='lyroff')lyrOffs=v;else if(k==='myPicks'){Object.keys(myPicks).forEach(x=>delete myPicks[x]);Object.assign(myPicks,v)}
     else if(k==='cfg')cfg=store.get('cfg',cfg);else if(k==='cloudSongs')setTimeout(()=>cloud.run(),300)});
-  try{plOptions()}catch{}try{paintChips()}catch{}try{renderPl()}catch{}try{renderList()}catch{}try{if(cur()){window.paint('cover');$('#like').classList.toggle('on',!!likes[cur().id])}}catch{}
+  try{plOptions()}catch{}try{paintChips()}catch{}try{renderPl()}catch{}try{renderList()}catch{}try{if(cur()){window.__noFlip=true;window.paint('cover');$('#like').classList.toggle('on',!!likes[cur().id])}}catch{}
   }catch(e){}}
 async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing...');
   try{const rows=await rest('GET','?select=data&user_id=eq.'+acct.user.id),remote=(rows[0]&&rows[0].data)||{},first=store.get('syncedFor',null)!==acct.user.id,changed=[];let needPush=!rows.length;
@@ -2519,7 +2519,7 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
       $('#mt').textContent=s.title||'';$('#ms').textContent=r.name+' · '+(s.artist||'');if(s.cover)$('#barCov').src=s.cover;
       if(mirrorKey!==s.title+'|'+s.cover){mirrorKey=s.title+'|'+s.cover;try{coverEl.crossOrigin='anonymous';coverEl.src=s.cover||'';$('#ct').textContent=s.title||'';$('#cs').textContent=s.sub||s.artist||'';$('#ca').textContent='Playing on '+r.name;document.title=(s.title||'Abyss')+' · '+r.name}catch(e){}}
       $('#pp').innerHTML=ico(s.paused?'play':'pause');const pos=s.pos+(s.paused?0:(Date.now()-s.at)/1000);if(s.dur){const v=Math.min(1000,pos/s.dur*1000);$('#seek').value=v;$('#seek').style.setProperty('--p',v/10+'%')}}
-    else{strip.classList.remove('show');if(wasRemote){mirrorKey='';try{if(cur())window.paint();else{$('#ct').textContent='Nothing playing';$('#cs').textContent='Open the library to pick a song';$('#ca').textContent=''}}catch(e){}const t=cur();$('#pp').innerHTML=ico(audio.paused?'play':'pause');if(t){$('#mt').textContent=titleOf(t);$('#ms').textContent=subOf(t);$('#barCov').src=coverOf(t)||eraCover(t)}else{$('#mt').textContent='Abyss';$('#ms').textContent='Ready'}}}
+    else{strip.classList.remove('show');if(wasRemote){mirrorKey='';try{if(cur()){window.__noFlip=true;window.paint()}else{$('#ct').textContent='Nothing playing';$('#cs').textContent='Open the library to pick a song';$('#ca').textContent=''}}catch(e){}const t=cur();$('#pp').innerHTML=ico(audio.paused?'play':'pause');if(t){$('#mt').textContent=titleOf(t);$('#ms').textContent=subOf(t);$('#barCov').src=coverOf(t)||eraCover(t)}else{$('#mt').textContent='Abyss';$('#ms').textContent='Ready'}}}
     wasRemote=!!r;
     if(!sheet.classList.contains('open'))return;
     const cs=a?(a.id===me?myState():a.state):null;
@@ -2569,7 +2569,7 @@ function swipe(el,{move,end,tap}){let x0,y0,dx=0,on=false,lock=0;
 const cw=$('#coverWrap');
 swipe(cw,{move:d=>{cw.classList.add('drag');cw.style.transform='translateX('+d+'px) rotate('+d/25+'deg)';cw.style.opacity=1-Math.min(Math.abs(d)/400,.5)},
   end:d=>{cw.classList.remove('drag');if(Math.abs(d)>80&&cur()){const s=d<0?1:-1;buzz('med');cw.style.transform='translateX('+(-s*120)+'vw) rotate('+(-s*12)+'deg)';cw.style.opacity=0;
-      setTimeout(()=>{step(s);cw.classList.add('drag');cw.style.transform='translateX('+(s*60)+'vw)';requestAnimationFrame(()=>requestAnimationFrame(()=>{cw.classList.remove('drag');cw.style.transform='';cw.style.opacity=''}))},260)}
+      setTimeout(()=>{window.__noFlip=true;step(s);cw.classList.add('drag');cw.style.transform='translateX('+(s*60)+'vw)';requestAnimationFrame(()=>requestAnimationFrame(()=>{cw.classList.remove('drag');cw.style.transform='';cw.style.opacity=''}))},260)}
     else{cw.style.transform='';cw.style.opacity=''}}});
 /* 3) double-tap the cover to like, with a heart burst */
 let lastTap=0,tapXY=null;cw.addEventListener('touchend',e=>{if(!MOB())return;const n=Date.now(),tt=e.changedTouches&&e.changedTouches[0],rc=cw.getBoundingClientRect();tapXY=tt?[tt.clientX-rc.left,tt.clientY-rc.top]:null;if(n-lastTap<350){const t=cur();if(t){if(!likes[t.id])toggleLike(t);buzz('ok');
