@@ -1,6 +1,9 @@
 name: Build iOS app
 
 on:
+  push:
+    branches: [main]
+    paths: ["mobile/**", ".github/workflows/ios.yml"]
   workflow_dispatch:
 
 permissions:
@@ -31,6 +34,16 @@ jobs:
           PLIST=ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" "$PLIST" || true
           /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string audio" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName Abyss" "$PLIST" || /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string Abyss" "$PLIST"
+          # Tell iOS this is a music app, so sound keeps playing on the home screen and with the screen locked
+          AD=ios/App/App/AppDelegate.swift
+          perl -0pi -e 's/import UIKit/import UIKit\nimport AVFoundation/' "$AD"
+          perl -0pi -e 's/(didFinishLaunchingWithOptions[^{]*\{)/$1\n        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])\n        try? AVAudioSession.sharedInstance().setActive(true)/' "$AD"
+          grep -n "AVAudioSession" "$AD"
+          # Abyss icon instead of the default one
+          ICONS=ios/App/App/Assets.xcassets/AppIcon.appiconset
+          for f in "$ICONS"/*.png; do cp assets/ios-icon-1024.png "$f"; done
+          ls "$ICONS"
 
       - name: Build (unsigned)
         working-directory: mobile/ios/App

@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 47,
+   "date": "Nov 22",
+   "changes": [
+    "Android: music now plays through the phone's own media player. It keeps going on the home screen and with the screen off, and pause works properly (needs the new APK)",
+    "Android: the next song starts by itself even while Abyss is in the background",
+    "iPhone: music keeps playing on the home screen and lock screen (needs the new IPA)",
+    "iPhone: the app now has the Abyss icon"
+   ]
+  },
+  {
    "version": 46,
    "date": "Nov 22",
    "changes": [

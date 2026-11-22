@@ -1,5 +1,5 @@
 {
- "version": 46,
+ "version": 47,
  "file": "index.html",
- "notes": "Accounts switched on"
+ "notes": "Background playback fixes for Android and iPhone"
 }
