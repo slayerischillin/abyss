@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 72,
+   "date": "Nov 22",
+   "changes": [
+    "Abyss Connect: every device now shows the same song, cover and colors as the one playing",
+    "A device that stopped playing no longer stays 'Listening on' forever",
+    "The 'Listening on' pill no longer covers the play button on PC",
+    "If the other device is paused, pressing play here picks the song up on this device at the same spot"
+   ]
+  },
+  {
    "version": 71,
    "date": "Nov 22",
    "changes": [
