@@ -1,7 +1,7 @@
 {
   "name": "abyss",
   "productName": "Abyss",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Abyss music player",
   "main": "main.js",
   "author": "Abyss",
@@ -10,6 +10,7 @@
     "productName": "Abyss",
     "files": [
       "main.js",
+      "preload.js",
       "index.html",
       "icon.png"
     ],
