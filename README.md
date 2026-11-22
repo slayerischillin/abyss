@@ -8,7 +8,7 @@ An unofficial fan-made music player. Not affiliated with Juice WRLD, his estate 
 
 1. Right-click the file and choose **Extract All** (Windows 11), or open it with 7-Zip.
 2. Open the **Abyss** folder and run **Abyss.exe**.
-3. If Windows says "Windows protected your PC", click **More info**, then **Run anyway**. (NOT A VIRUS)
+3. If Windows says "Windows protected your PC", click **More info**, then **Run anyway**. **(NOT A VIRUS)**
 
 Abyss updates itself after that.
 
