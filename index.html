@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="65">
+<meta name="abyss-version" content="66">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -943,7 +943,7 @@ img.asGi{background:none!important;object-fit:contain;padding:0}
   #coverWrap .mHint{position:absolute;top:50%;width:46px;height:46px;margin-top:-23px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);opacity:0;transition:opacity .2s}
   #coverWrap{position:relative}
   .mHeart{display:block;position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;pointer-events:none;z-index:3;fill:#ff4f8b;filter:drop-shadow(0 6px 30px rgba(255,79,139,.8));animation:mh .9s cubic-bezier(.2,1.6,.4,1) forwards}
-  @keyframes mh{0%{transform:scale(0) rotate(-15deg);opacity:0}25%{transform:scale(1.15) rotate(5deg);opacity:1}55%{transform:scale(1)}100%{transform:scale(1.5) translateY(-40px);opacity:0}}
+  @keyframes mh{0%{transform:scale(0) rotate(var(--rot,-15deg));opacity:0}25%{transform:scale(1.2) rotate(var(--rot,5deg));opacity:1}55%{transform:scale(1) rotate(var(--rot,0deg))}100%{transform:scale(1.6) translateY(-70px) rotate(var(--rot,0deg));opacity:0}}
   #bar .bl{touch-action:pan-y;transition:transform .3s cubic-bezier(.2,1.2,.3,1)}#bar .bl.drag{transition:none}
   #mActs{display:flex;justify-content:center;gap:10px;margin-top:14px}
   #mActs button{position:relative;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;transition:transform .15s,background .2s}
@@ -1021,6 +1021,7 @@ img.asGi{background:none!important;object-fit:contain;padding:0}
 #relNote .rx{background:none;color:#fff;opacity:.6;padding:6px}
 #toast{opacity:0;translate:-50% calc(-100% - env(safe-area-inset-top,0px) - 90px);transition:translate .55s cubic-bezier(.2,1.5,.4,1),opacity .3s}#toast.show{opacity:1;translate:-50% 0}
 #bNews{position:relative}#bNews .nDot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:#ff5fb4;box-shadow:0 0 8px #ff5fb4;display:none}#bNews.new .nDot{display:block}
+.mSpark{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#ff4f8b;box-shadow:0 0 10px #ff4f8b;pointer-events:none;z-index:3;opacity:0;animation:msp .7s cubic-bezier(.2,.8,.3,1) forwards}@keyframes msp{0%{opacity:1;transform:scale(.4)}100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1)}}
 </style>
 </head>
 <body style="--art:none">
@@ -1347,7 +1348,7 @@ async function step(d){if(stepping)return;
   if(idx+1<queue.length)return play(idx+1);
   if(repeat&&queue.length>1)return play(0);
   stepping=true;$('#ms').textContent='Finding the next song...';
-  try{const t=await api.random();queue.push(t);play(queue.length-1)}catch(e){$('#ms').textContent='Could not get the next song ('+e.message+')'}
+  try{const t=await api.random();queue.push(t);play(queue.length-1)}catch(e){const pool=[...list,...hist.map(api.toTrack)].filter(x=>x&&x.src&&(!cur()||x.id!==cur().id));if(pool.length){queue.push(pool[Math.floor(Math.random()*pool.length)]);play(queue.length-1)}else $('#ms').textContent='Could not get the next song ('+e.message+')'}
   finally{stepping=false}}
 audio.onended=()=>step(1);
 const ico=n=>'<svg class="ic"><use href="#i-'+n+'"/></svg>';
@@ -1662,14 +1663,20 @@ const adlib=x=>esc(x).replace(/\(([^)]*)\)/g,'<span class="ad">($1)</span>');
 function gapify(L){const o=[];L.forEach((l,i)=>{if(l.txt==='♪')return;if(i===0&&l.t>6)o.push({t:0,gap:1});o.push(l);const n=L[i+1];if(n&&n.t-l.t>12)o.push({t:l.t+Math.min(6,(n.t-l.t)/2),gap:1})});return o}
 function parseLRC(x){const out=[];x.split(/\r?\n/).forEach(l=>{const tags=[...l.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)],txt=l.replace(/\[[^\]]*\]/g,'').trim();tags.forEach(m=>out.push({t:+m[1]*60+ +m[2],txt:txt||'♪'}))});return out.sort((a,b)=>a.t-b.t)}
 const lyrKey=x=>String(x||'').toLowerCase().replace(/[\(\[][^\)\]]*[\)\]]/g,' ').replace(/\b(feat|ft|with)\b.*$/,'').replace(/&/g,'and').replace(/[^a-z0-9]+/g,'');
+function apiLyrics(r){const sy=r&&r.synced_lyrics,pl=r&&r.lyrics;let synced=null;
+  try{if(typeof sy==='string'&&/\[\d+:\d+/.test(sy))synced=parseLRC(sy);else{const a=typeof sy==='string'&&sy.trim().startsWith('[')?JSON.parse(sy):Array.isArray(sy)?sy:null;
+    if(a&&a.length)synced=a.map(x=>({t:+(x.time??x.t??x.start??(x.startTimeMs!=null?x.startTimeMs/1000:NaN)),txt:String(x.text??x.line??x.words??x.txt??'').trim()||'♪'})).filter(x=>!isNaN(x.t)).sort((a,b)=>a.t-b.t)}}catch(e){}
+  const plain=typeof pl==='string'?pl.replace(/\r/g,'').trim():'';if((synced&&synced.length)||plain)return{synced:synced&&synced.length?synced:null,plain};return null}
 async function fetchLyrics(t){if(lyrCache[t.id])return lyrCache[t.id];
+  const own=apiLyrics(t.raw);if(own&&own.synced){lyrCache[t.id]=own;return own}
+  const lf=(typeof sfetch==='function')?sfetch:fetch;
   const names=[titleOf(t),...namesOf(t)].filter((x,i,a)=>x&&a.indexOf(x)===i),dur=Math.round(audio.duration||0);let best=null;
-  for(const n of names){try{const r=await fetch('https://lrclib.net/api/search?'+new URLSearchParams({track_name:n,artist_name:t.raw.artist||'Juice WRLD'}));if(!r.ok)continue;
+  for(const n of names){try{const r=await lf('https://lrclib.net/api/search?'+new URLSearchParams({track_name:n,artist_name:t.raw.artist||'Juice WRLD'}));if(!r.ok)continue;
       const want=names.map(lyrKey);
       const res=(await r.json()).filter(x=>(t.raw.artist?true:/juice/i.test(x.artistName||''))&&want.includes(lyrKey(x.trackName))&&(!dur||!x.duration||Math.abs(x.duration-dur)<=12));
       res.sort((a,b)=>(!!b.syncedLyrics-!!a.syncedLyrics)||(dur?Math.abs(a.duration-dur)-Math.abs(b.duration-dur):0));
       if(res[0]){best=res[0];if(best.syncedLyrics)break}}catch{}}
-  const v=best?{synced:best.syncedLyrics?parseLRC(best.syncedLyrics):null,plain:best.plainLyrics||'',inst:best.instrumental}:{none:true};lyrCache[t.id]=v;return v}
+  const v=best&&(best.syncedLyrics||!own)?{synced:best.syncedLyrics?parseLRC(best.syncedLyrics):null,plain:best.plainLyrics||(own&&own.plain)||'',inst:best.instrumental}:own||{none:true};lyrCache[t.id]=v;return v}
 async function showLyrics(){const t=cur(),body=$('#lyrBody'),msg=$('#lyrMsg');if(!t){body.innerHTML='';msg.textContent='Play a song first';return}
   if(lyrFor===t.id)return;lyrFor=t.id;lyrOn=-1;lyrLines=[];$('#lyrT').textContent=titleOf(t);$('#lyrA').textContent=artistOf(t);$('#lyrE').textContent=isSC(t)?'SoundCloud era':subOf(t);$('#lyrC').src=coverEl.currentSrc||coverOf(t)||eraCover(t);body.innerHTML='';body.className='';msg.textContent='Finding lyrics...';
   const v=await fetchLyrics(t);if(cur()!==t)return;$('#lyrOv').textContent=lyrOffs[t.id]?(lyrOffs[t.id]>0?'+':'')+lyrOffs[t.id]+'s':'';
@@ -2324,9 +2331,9 @@ swipe(cw,{move:d=>{cw.classList.add('drag');cw.style.transform='translateX('+d+'
       setTimeout(()=>{step(s);cw.classList.add('drag');cw.style.transform='translateX('+(s*60)+'vw)';requestAnimationFrame(()=>requestAnimationFrame(()=>{cw.classList.remove('drag');cw.style.transform='';cw.style.opacity=''}))},260)}
     else{cw.style.transform='';cw.style.opacity=''}}});
 /* 3) double-tap the cover to like, with a heart burst */
-let lastTap=0;cw.addEventListener('touchend',e=>{if(!MOB())return;const n=Date.now();if(n-lastTap<300){const t=cur();if(t){if(!likes[t.id])toggleLike(t);buzz('ok');
-    const h=document.createElementNS('http://www.w3.org/2000/svg','svg');h.setAttribute('viewBox','0 0 24 24');h.classList.add('mHeart');h.innerHTML='<path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.4 4.5 6.2 4.5c2.2 0 3.8 1.3 4.6 2.6l1.2 1.8 1.2-1.8c.8-1.3 2.4-2.6 4.6-2.6 3.8 0 5.8 3.9 4.2 7.2C19.5 16.4 12 21 12 21z"/>';
-    cw.appendChild(h);setTimeout(()=>h.remove(),950);paintActs()}lastTap=0}else lastTap=n});
+let lastTap=0,tapXY=null;cw.addEventListener('touchend',e=>{if(!MOB())return;const n=Date.now(),tt=e.changedTouches&&e.changedTouches[0],rc=cw.getBoundingClientRect();tapXY=tt?[tt.clientX-rc.left,tt.clientY-rc.top]:null;if(n-lastTap<350){const t=cur();if(t){if(!likes[t.id])toggleLike(t);buzz('ok');
+    const h=document.createElementNS('http://www.w3.org/2000/svg','svg');h.setAttribute('viewBox','0 0 24 24');h.classList.add('mHeart');if(tapXY){h.style.left=tapXY[0]+'px';h.style.top=tapXY[1]+'px';h.style.setProperty('--rot',(Math.random()*40-20)+'deg')}h.innerHTML='<path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2.4 4.5 6.2 4.5c2.2 0 3.8 1.3 4.6 2.6l1.2 1.8 1.2-1.8c.8-1.3 2.4-2.6 4.6-2.6 3.8 0 5.8 3.9 4.2 7.2C19.5 16.4 12 21 12 21z"/>';
+    cw.appendChild(h);setTimeout(()=>h.remove(),950);if(tapXY)for(let k=0;k<9;k++){const p=document.createElement('i');p.className='mSpark';const an=k/9*Math.PI*2+Math.random()*.5,d=60+Math.random()*50;p.style.cssText='left:'+tapXY[0]+'px;top:'+tapXY[1]+'px;--x:'+Math.cos(an)*d+'px;--y:'+Math.sin(an)*d+'px;animation-delay:'+(.08+Math.random()*.08)+'s';cw.appendChild(p);setTimeout(()=>p.remove(),900)}paintActs()}lastTap=0}else lastTap=n});
 /* 4) swipe the mini player to skip */
 const bl=$('#bar .bl');swipe(bl,{move:d=>{bl.classList.add('drag');bl.style.transform='translateX('+d*.6+'px)'},end:d=>{bl.classList.remove('drag');bl.style.transform='';if(Math.abs(d)>60&&cur()){buzz('med');step(d<0?1:-1)}}});
 /* 5) swipe songs: right = add to queue, left = like */
@@ -2336,8 +2343,8 @@ function rowSwipe(box,getT){let row=null,lab=null;
       if(!lab){lab=document.createElement('span');lab.className='swq';row.appendChild(lab)}lab.className='swq '+(d>0?'r':'l');lab.textContent=d>0?'+ QUEUE':'LIKE ♥';lab.style.opacity=Math.min(Math.abs(d)/80,1)},
     end:d=>{if(!row)return;const r=row,t=getT(r);r.classList.remove('sw');r.classList.add('back');r.style.transform='';if(lab){lab.remove();lab=null}row=null;
       if(!t||Math.abs(d)<80)return;buzz('ok');if(d>0)addQueue(t);else{toggleLike(t);const lk=r.querySelector('[data-a=like]');if(lk)lk.classList.toggle('on',!!likes[t.id])}}})}
-rowSwipe($('#res'),r=>list[[...$('#res').querySelectorAll('.row')].indexOf(r)]);
-rowSwipe($('#plRes'),r=>{if(!openPl)return null;const n=[...$('#plRes').querySelectorAll('.row')].indexOf(r),s=openPl.songs[n];return s?api.toTrack(s):null});
+
+
 /* 6-8) now-playing buttons on phones: share, sleep timer, lyrics, queue */
 const acts=document.createElement('div');acts.id='mActs';
 acts.innerHTML='<button data-m="share" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12M7 8l5-5 5 5"/></svg></button>'+

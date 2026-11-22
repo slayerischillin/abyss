@@ -1,6 +1,17 @@
 {
  "versions": [
   {
+   "version": 66,
+   "date": "Nov 22",
+   "changes": [
+    "Lyrics now come from the song library first, so released songs show lyrics again",
+    "Fixed lyrics never loading on iPhone",
+    "Skipping at the end of your queue always plays a random song",
+    "The double-tap heart pops up where your finger was",
+    "Removed swiping on songs in lists"
+   ]
+  },
+  {
    "version": 65,
    "date": "Nov 22",
    "changes": [
