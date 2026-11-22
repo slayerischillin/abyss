@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 67,
+   "date": "Nov 22",
+   "changes": [
+    "Notifications now hide completely on iPhone instead of peeking out from the top"
+   ]
+  },
+  {
    "version": 66,
    "date": "Nov 22",
    "changes": [
