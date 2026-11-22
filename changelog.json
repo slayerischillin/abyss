@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 57,
+   "date": "Nov 22",
+   "changes": [
+    "Phone updates are saved in a bigger storage space, so they stop getting dropped"
+   ]
+  },
+  {
    "version": 56,
    "date": "Nov 22",
    "changes": [
