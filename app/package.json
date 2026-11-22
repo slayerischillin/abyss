@@ -1,0 +1,53 @@
+{
+  "name": "abyss",
+  "productName": "Abyss",
+  "version": "1.0.0",
+  "description": "Abyss music player",
+  "main": "main.js",
+  "author": "Abyss",
+  "build": {
+    "appId": "com.abyss.player",
+    "productName": "Abyss",
+    "files": [
+      "main.js",
+      "index.html",
+      "icon.png"
+    ],
+    "afterPack": "./afterPack.js",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Abyss",
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "artifactName": "Abyss-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "Abyss-Portable-${version}.exe"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
+    "resedit": "^2.0.3"
+  }
+}
