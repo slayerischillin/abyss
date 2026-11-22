@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 50,
+   "date": "Nov 22",
+   "changes": [
+    "Continue with Google now uses the Google logo"
+   ]
+  },
+  {
    "version": 49,
    "date": "Nov 22",
    "changes": [
