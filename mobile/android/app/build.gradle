@@ -1,3 +1,4 @@
+def hasDiscordSdk = file('libs/discord_partner_sdk.aar').exists()
 apply plugin: 'com.android.application'
 
 android {
@@ -11,18 +12,23 @@ android {
     }
     namespace "com.slayer.abyss"
     compileSdk rootProject.ext.compileSdkVersion
+    buildFeatures { prefab true }
     defaultConfig {
         applicationId "com.slayer.abyss"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.1.0"
+        versionCode 3
+        versionName "1.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+    }
+    if (hasDiscordSdk) {
+        defaultConfig.ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' }
+        externalNativeBuild { cmake { path 'src/main/cpp/CMakeLists.txt' } }
     }
     buildTypes {
         debug {
@@ -43,6 +49,8 @@ repositories {
 }
 
 dependencies {
+    if (hasDiscordSdk) { implementation files('libs/discord_partner_sdk.aar') }
+    implementation "androidx.browser:browser:1.8.0"
     implementation "androidx.media:media:1.7.0"
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"

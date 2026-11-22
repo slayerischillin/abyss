@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 40,
+   "date": "Nov 22",
+   "changes": [
+    "Discord status on Android (needs the new APK)",
+    "Settings shows whether Abyss is connected to Discord, and what's wrong if it isn't"
+   ]
+  },
+  {
    "version": 39,
    "date": "Nov 22",
    "changes": [

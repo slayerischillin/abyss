@@ -24,6 +24,19 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Get the Discord SDK (kept in a private repo)
+        env:
+          SDK_TOKEN: ${{ secrets.ABYSS_SDK_TOKEN }}
+        run: |
+          if [ -n "$SDK_TOKEN" ]; then
+            git clone --depth 1 "https://x-access-token:${SDK_TOKEN}@github.com/slayerischillin/abyss-sdk.git" "$RUNNER_TEMP/sdk"
+            mkdir -p mobile/android/app/libs
+            cp "$RUNNER_TEMP/sdk/discord_partner_sdk.aar" mobile/android/app/libs/
+            echo "Discord SDK added"
+          else
+            echo "::warning::No ABYSS_SDK_TOKEN secret, building without Discord status."
+          fi
+
       - name: Install Capacitor
         working-directory: mobile
         run: npm install --no-audit --no-fund
