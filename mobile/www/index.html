@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Abyss</title>
+<style>html,body{margin:0;height:100%;background:#020104}
+#b{position:fixed;inset:0;display:grid;place-items:center;font:300 13px/1 sans-serif;letter-spacing:.5em;color:rgba(255,255,255,.5)}
+#b i{display:block;width:44px;height:44px;margin:0 auto 18px;border-radius:50%;border:2px solid rgba(255,255,255,.1);border-top-color:#b46bff;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}</style></head>
+<body><div id="b"><div><i></i>ABYSS</div></div>
+<script>
+/* Abyss for Android: always runs the newest player.
+   1. use the newest of: the copy saved from GitHub, or the copy built into the app
+   2. quietly check GitHub for a newer one (used on the next launch, or right away if it arrives fast) */
+(async()=>{
+  const FEED='https://raw.githubusercontent.com/slayerischillin/abyss/main';
+  const ver=h=>{const m=/name="abyss-version" content="([\d.]+)"/.exec(h||'');return m?+m[1]:0};
+  const get=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+  const put=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
+  let saved=get('abyss.page')||'';
+  let bundled='';try{bundled=await (await fetch('abyss.html')).text()}catch(e){}
+  let page=ver(saved)>ver(bundled)?saved:bundled;
+  const check=(async()=>{try{
+      const ctl=new AbortController();setTimeout(()=>ctl.abort(),5000);
+      const v=+(await (await fetch(FEED+'/version.json?t='+Date.now(),{cache:'no-store',signal:ctl.signal})).json()).version;
+      if(v>ver(page)){const h=await (await fetch(FEED+'/index.html?t='+Date.now(),{cache:'no-store'})).text();
+        if(ver(h)===v&&h.includes('<title>')){put('abyss.page',h);return h}}
+    }catch(e){}return null})();
+  /* wait a moment for a fresh version so updates apply on this launch when the connection is quick */
+  const fresh=await Promise.race([check,new Promise(r=>setTimeout(()=>r(null),1800))]);
+  if(fresh)page=fresh;
+  if(!page){document.getElementById('b').textContent='Could not start Abyss';return}
+  document.open();document.write(page);document.close();
+})();
+</script></body></html>
