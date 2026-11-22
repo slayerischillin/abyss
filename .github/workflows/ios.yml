@@ -1,0 +1,59 @@
+name: Build iOS app
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Capacitor with iOS
+        working-directory: mobile
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-audit --no-fund @capacitor/ios@^6.2.0
+
+      - name: Create the iOS project
+        working-directory: mobile
+        run: |
+          cp ../index.html www/abyss.html
+          npx cap add ios
+          npx cap sync ios
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" "$PLIST" || true
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string audio" "$PLIST" || true
+
+      - name: Build (unsigned)
+        working-directory: mobile/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination "generic/platform=iOS" \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Package the IPA
+        run: |
+          APP=$(find "$RUNNER_TEMP/dd/Build/Products" -name "App.app" -maxdepth 3 | head -1)
+          mkdir -p Payload && cp -R "$APP" Payload/Abyss.app
+          zip -qry Abyss.ipa Payload
+          ls -la Abyss.ipa
+
+      - name: Publish the download
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios
+          name: Abyss for iPhone (unsigned)
+          body: |
+            Unsigned Abyss.ipa. It must be signed when installed, for example with Sideloadly or AltStore.
+          files: Abyss.ipa
+          make_latest: false
