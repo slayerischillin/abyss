@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="85">
+<meta name="abyss-version" content="86">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1286,8 +1286,8 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 
 /* v85: repeat one */
 #rep,#fp [data-f=rep]{position:relative}
-#rep.one::after,#fp [data-f=rep].one::after{content:"1";position:absolute;top:2px;right:0;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:var(--glow);color:#fff;font:800 9.5px/14px system-ui;text-align:center;box-shadow:0 0 0 2px rgba(10,8,16,.85);animation:rep1 .35s cubic-bezier(.2,1.6,.3,1)}
-@keyframes rep1{from{transform:scale(0)}}
+#rep.one::after,#fp [data-f=rep].one::after{content:"1";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:800 8.5px/1 system-ui;color:currentColor;pointer-events:none}
+
 </style>
 </head>
 <body style="--art:none">

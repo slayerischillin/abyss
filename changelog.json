@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 86,
+   "date": "Nov 22",
+   "changes": [
+    "Repeat-one now shows a small plain 1 inside the repeat icon"
+   ]
+  },
+  {
    "version": 85,
    "date": "Nov 22",
    "changes": [
