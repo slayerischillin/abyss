@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="99">
+<meta name="abyss-version" content="100">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1297,6 +1297,11 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 #plBar{scroll-behavior:smooth}
 #plBar.all{flex-wrap:wrap!important;overflow:visible!important;max-height:none!important;row-gap:8px}
 #plBar .plAll{background:linear-gradient(160deg,rgba(255,255,255,.2),rgba(255,255,255,.06))!important;font-weight:700}
+#dLyr .mlB{padding:0 22px}.mlP{font-size:13px;opacity:.7;line-height:1.5;margin:0 0 10px}
+#mlTx{width:100%;min-height:42vh;resize:vertical;padding:14px;border-radius:14px;color:#fff;font:15px/1.6 inherit;background:var(--lg-in);border:1px solid rgba(255,255,255,.15);box-shadow:var(--lg-in-shadow);outline:0}
+.mlNow{text-align:center;padding:26px 10px}.mlNow small{font-size:11px;letter-spacing:.14em;opacity:.55}.mlNow b{display:block;font-size:26px;margin:10px 0 8px;line-height:1.25}.mlNow span{opacity:.5;font-size:14px}
+.mlBig{display:block;width:100%;padding:18px!important;font-size:17px}.mlRow{display:flex;align-items:center;justify-content:space-between;margin:12px 0 4px}.mlRow span{opacity:.6;font-size:13px}
+#dLyr.tapping .shFoot{display:none}
 </style>
 </head>
 <body style="--art:none">
@@ -2328,7 +2333,7 @@ const dock=document.querySelector('.dock');if(!reduce){dock.addEventListener('po
 /* ================= v45: accounts + sync (Supabase) ================= */
 (()=>{
 const CB='https://slayerischillin.github.io/abyss/auth.html';
-const SYNC=['pls','likes','hist','plays','covers','myPicks','nm','lyroff','cfg','cloudSongs'],CFGK=['names','auto','perf','resume','pre','mode'];
+const SYNC=['pls','likes','hist','plays','covers','myPicks','nm','lyroff','cfg','cloudSongs','myLyrics'],CFGK=['names','auto','perf','resume','pre','mode'];
 const raw=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
 const baseSet=store.set;try{if(store.get('acctTemp',0)&&!sessionStorage.getItem('abyssLive')){baseSet('acct',null);baseSet('acctTemp',0)}}catch{}
 let ts=store.get('syncTs',{}),acct=store.get('acct',null),applying=false,busy=false,pushT=0;
@@ -3122,6 +3127,33 @@ setInterval(()=>document.body.classList.toggle('playing',!!cur()&&!audio.paused)
 
 /* v98: mouse wheel scrolls the playlist row sideways */
 (()=>{const b=$('#plBar');b.addEventListener('wheel',e=>{if(b.classList.contains('all')||Math.abs(e.deltaX)>Math.abs(e.deltaY)||b.scrollWidth<=b.clientWidth)return;e.preventDefault();b.scrollLeft+=e.deltaY},{passive:false})})();
+/* ================= v100: your own lyrics (paste, or tap along to time them) ================= */
+(()=>{const get=()=>store.get('myLyrics',{});
+const _fl=fetchLyrics;fetchLyrics=async function(t){const m=get()[t.id];if(m&&m.txt){const isL=/\[\d+:\d+/.test(m.txt);return{synced:isL?parseLRC(m.txt):null,plain:isL?'':m.txt,mine:true}}return _fl.apply(this,arguments)};
+const hb=$('#lyr header'),eb=document.createElement('button');eb.id='lyrEd';eb.title='Write or fix the lyrics';eb.setAttribute('aria-label','Edit lyrics');eb.innerHTML=ico('edit');hb.insertBefore(eb,$('#lyrF'));
+const d=document.createElement('dialog');d.id='dLyr';d.className='sheet wide';document.body.appendChild(d);
+d.innerHTML='<div class="shHead"><div><small>YOUR LYRICS</small><h3 id="mlT"></h3></div><button class="shX" data-close aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button></div>'+
+ '<div class="mlB"><p class="mlP">Paste the lyrics, one line per line. Then press <b>Time it</b> and tap along while the song plays to make them scroll in sync. Already have timed lyrics (LRC)? Just paste them.</p>'+
+ '<textarea id="mlTx" spellcheck="false" placeholder="First line\nSecond line\n..."></textarea>'+
+ '<div id="mlTap" hidden><div class="mlNow"><small>TAP WHEN THIS LINE STARTS</small><b id="mlLine"></b><span id="mlNext"></span></div><button class="sBtn main mlBig" id="mlHit">Tap (or press Space)</button><div class="mlRow"><button class="sBtn ghost" id="mlBack">Undo</button><span id="mlProg"></span><button class="sBtn ghost" id="mlStop">Stop</button></div></div></div>'+
+ '<div class="shFoot"><button class="sBtn ghost" id="mlDel">Remove mine</button><button class="sBtn" id="mlTime">Time it</button><button class="sBtn main" id="mlSave">Save</button></div>';
+let tId=null,lines=[],stamps=[],k=0;const fmt=x=>{const m=Math.floor(x/60),s=(x%60).toFixed(2).padStart(5,'0');return '['+String(m).padStart(2,'0')+':'+s+']'};
+const close=()=>{stopTap();d.close()};d.querySelector('[data-close]').onclick=close;
+function open(){const t=cur();if(!t){toast('Play a song first');return}tId=t.id;$('#mlT').textContent=titleOf(t);const m=get()[t.id];
+  let txt=m&&m.txt||'';if(!txt&&lyrLines&&lyrLines.length&&lyrFor===t.id)txt=lyrLines.map(l=>l.txt).filter(x=>x&&x!=='♪').join('\n');$('#mlTx').value=txt;$('#mlDel').hidden=!m;stopTap();d.showModal()}
+eb.onclick=open;
+function save(txt){const all=get();if(txt&&txt.trim())all[tId]={txt:txt.trim(),at:Date.now()};else delete all[tId];store.set('myLyrics',all);delete lyrCache[tId];lyrFor=null;try{showLyrics()}catch(e){}}
+$('#mlSave').onclick=()=>{save($('#mlTx').value);toast('Lyrics saved');close()};
+$('#mlDel').onclick=()=>{save('');toast('Your lyrics removed');close()};
+function paintTap(){$('#mlLine').textContent=lines[k]||'Done!';$('#mlNext').textContent=lines[k+1]?'Next: '+lines[k+1]:'';$('#mlProg').textContent=Math.min(k,lines.length)+' / '+lines.length}
+function stopTap(){$('#mlTap').hidden=true;$('#mlTx').hidden=false;d.classList.remove('tapping')}
+$('#mlTime').onclick=()=>{lines=$('#mlTx').value.replace(/\[\d+:[\d.]+\]\s*/g,'').split('\n').map(x=>x.trim()).filter(Boolean);if(!lines.length){toast('Paste the lyrics first');return}
+  const t=cur();if(!t||t.id!==tId){toast('Play this song to time it');return}stamps=[];k=0;audio.currentTime=0;audio.play();$('#mlTx').hidden=true;$('#mlTap').hidden=false;d.classList.add('tapping');paintTap()};
+function hit(){if(k>=lines.length)return;stamps[k]=audio.currentTime;k++;paintTap();if(window.abyssBuzz)abyssBuzz();
+  if(k>=lines.length){const lrc=lines.map((l,i)=>fmt(Math.max(0,stamps[i]-0.15))+l).join('\n');$('#mlTx').value=lrc;stopTap();save(lrc);toast('Timed! Your lyrics now scroll with the song')}}
+$('#mlHit').onclick=hit;$('#mlBack').onclick=()=>{if(k>0){k--;audio.currentTime=Math.max(0,(stamps[k]||audio.currentTime)-2);paintTap()}};$('#mlStop').onclick=stopTap;
+addEventListener('keydown',e=>{if(d.open&&d.classList.contains('tapping')&&(e.code==='Space'||e.key==='Enter')){e.preventDefault();e.stopImmediatePropagation();hit()}},true);
+})();
 </script>
 </body>
 </html>

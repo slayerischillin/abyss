@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 100,
+   "date": "Nov 23",
+   "changes": [
+    "Write or fix lyrics for any song: the pencil in the lyrics panel",
+    "Tap along while the song plays to time them, so they scroll in sync",
+    "Your lyrics sync to your other devices"
+   ]
+  },
+  {
    "version": 99,
    "date": "Nov 23",
    "changes": [
