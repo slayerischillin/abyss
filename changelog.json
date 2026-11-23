@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 94,
+   "date": "Nov 23",
+   "changes": [
+    "Fixed songs getting stuck at 0:00 on phones: if the phone's player doesn't start, Abyss switches to its own player within 4 seconds"
+   ]
+  },
+  {
    "version": 93,
    "date": "Nov 23",
    "changes": [
