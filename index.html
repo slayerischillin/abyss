@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="98">
+<meta name="abyss-version" content="99">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2708,7 +2708,14 @@ const unleaked=(()=>{const B='unleaked';let items=[],ok=false,busy=false;window.
       items=files.map(f=>{const id='ul:'+f.name,raw={id,name:(meta[f.name]&&meta[f.name].title)||pretty(f.name),unleaked:true,ulFile:f.name,category:'unleaked',era:{name:'Unleaked',description:'Unleaked'},length:(meta[f.name]&&meta[f.name].len)||''};
         window.__ulMap[id]={src:url(f.name),art:url(f.name+'.jpg')};return raw});ok=true}
     catch(e){ok=false;if(e.message==='nobucket')console.warn('Unleaked: run abyss-unleaked-setup.sql')}
-    paintOpt();if(ok&&$('#view').value==='unleaked')load(true)}
+    paintOpt();if(ok&&$('#view').value==='unleaked')load(true);if(ok)fixCovers()}
+  /* songs dropped straight into Supabase have no cover file yet: pull the cover out of the MP3 and save it next to it */
+  let fixing=false;async function fixCovers(){if(fixing)return;fixing=true;let n=0;
+    try{for(const raw of items){const m=window.__ulMap[raw.id];if(!m||m.art||!m.src||raw.noArt)continue;
+        try{const buf=await (await sfetch(m.src)).arrayBuffer();const tag=id3(buf);
+          if(tag.pic){await req('POST','object/'+B+'/'+encodeURIComponent(raw.ulFile+'.jpg'),tag.pic,tag.pic.type||'image/jpeg',{'x-upsert':'true'});n++}else raw.noArt=true;
+          if(tag.title){const mm=store.get('ulMeta',{});mm[raw.ulFile]=Object.assign(mm[raw.ulFile]||{},{title:tag.title});store.set('ulMeta',mm)}}catch(e){}}}
+    finally{fixing=false}if(n)refresh()}
   async function upload(files){if(!isMe()||busy)return;busy=true;let n=0;
     try{for(const f of files){if(!/^audio\//.test(f.type)&&!/\.(mp3|m4a|wav|flac|ogg|aac|opus)$/i.test(f.name))continue;
         toast('Adding '+f.name+' to Unleaked...');const buf=await f.arrayBuffer();let tag={};try{tag=id3(buf)}catch(e){}
