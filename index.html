@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="101">
+<meta name="abyss-version" content="102">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2697,14 +2697,15 @@ const _finish3=finish;finish=async function(d){const ok=await _finish3(d);if(ok)
 
 /* ================= v97: Unleaked, a private playlist for @slayer only ================= */
 const unleaked=(()=>{const B='unleaked';let items=[],ok=false,busy=false;window.__ulMap={};
-  const isMe=()=>!!(acct&&prof&&String(prof.username||'').toLowerCase()==='slayer');
+  let owner=null;const isMe=()=>!!(acct&&owner);
+  const checkOwner=async()=>{if(!acct){owner=null;return}try{const t=await token();const r=await sfetch(SUPA.url+'/rest/v1/rpc/is_unleaked_owner',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},body:'{}'});owner=r.ok?(await r.json())===true:false}catch(e){}};
   const req=async(method,path,body,type,extra)=>{const t=await token();const r=await sfetch(SUPA.url+'/storage/v1/'+path,{method,headers:Object.assign({apikey:SUPA.key,Authorization:'Bearer '+t},type?{'Content-Type':type}:{},extra||{}),body});
     if(!r.ok){const tx=await r.text().catch(()=>'');throw new Error(/not found/i.test(tx)?'nobucket':'HTTP '+r.status)}return r};
   const pretty=n=>n.replace(/\.[a-z0-9]+$/i,'').replace(/[_]+/g,' ').replace(/\s+\d+$/,'').trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
   function paintOpt(){const v=$('#view');let o=v.querySelector('option[value=unleaked]');
     if(ok&&!o){o=document.createElement('option');o.value='unleaked';o.textContent='🔒 Unleaked';const loc=v.querySelector('option[value=local]');loc.insertAdjacentElement('afterend',o)}
     if(!ok&&o){if(v.value==='unleaked'){v.value='lib';load(true)}o.remove()}}
-  async function refresh(){if(!isMe()){ok=false;items=[];paintOpt();return}
+  async function refresh(){await checkOwner();if(!isMe()){ok=false;items=[];paintOpt();return}
     try{const r=await req('POST','object/list/'+B,JSON.stringify({prefix:'',limit:1000,sortBy:{column:'created_at',order:'asc'}}),'application/json');
       const all=await r.json(),names=new Set(all.map(f=>f.name)),files=all.filter(f=>/\.(mp3|m4a|wav|flac|ogg|aac|opus)$/i.test(f.name));
       const want=files.flatMap(f=>[f.name].concat(names.has(f.name+'.jpg')?[f.name+'.jpg']:[]));let signed=[];
