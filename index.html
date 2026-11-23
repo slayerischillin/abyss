@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="77">
+<meta name="abyss-version" content="78">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1740,14 +1740,14 @@ function sample(t){if(live){an.getByteFrequencyData(fd);for(let i=0;i<N;i++){con
   else{const on=audio.paused?0:1;for(let i=0;i<N;i++){const v=on*(.34+.3*Math.sin(t*2.1+i*.35)+.22*Math.sin(t*3.9+i*.8))*(1-i/N*.55);bins[i]+=(Math.max(v,0)-bins[i])*.2}}}
 function burst(p){const n=4+Math.floor(p*6);for(let i=0;i<n;i++){const a=Math.random()*6.283,v=2+Math.random()*5*(1+p);sparks.push({a,d:158*DPR,v,l:1})}}
 let dlgOpen=false;setInterval(()=>dlgOpen=!!document.querySelector('dialog[open]'),250);
-const LITE=matchMedia('(max-width:700px)').matches||/iPhone|iPad|Android/i.test(navigator.userAgent);let lastF=0;
+const LITE=matchMedia('(max-width:700px)').matches||/iPhone|iPad|Android/i.test(navigator.userAgent);let lastF=0,lmx=null,lmy=null;
 function frame(ms){requestAnimationFrame(frame);if(cfg.perf||dlgOpen||document.hidden)return;if(LITE){if(ms-lastF<33)return;lastF=ms}const t=ms/1000;sample(t);
   let bass=0;for(let i=0;i<6;i++)bass+=bins[i];bass/=6;avg+=(bass-avg)*.04;lvl+=(bass-lvl)*.3;
   if(!audio.paused&&bass>avg*1.22&&bass>.28&&t-beatT>.2){beatT=t;burst(bass);const pb=$('#pp');pb.classList.remove('beat');void pb.offsetWidth;pb.classList.add('beat')}
-  let dh=((hue-hueNow+540)%360)-180;hueNow=(hueNow+dh*.05+360)%360;const hr=Math.round(hueNow);if(hr!==lastHue&&(!LITE||Math.abs(hr-lastHue)>=3)){lastHue=hr;document.documentElement.style.setProperty('--glow','hsl('+hr+' 85% 62%)')}
+  let dh=((hue-hueNow+540)%360)-180;hueNow=(hueNow+dh*.05+360)%360;const hr=Math.round(hueNow);if(hr!==lastHue&&Math.abs(hr-lastHue)>=(LITE?3:2)){lastHue=hr;document.documentElement.style.setProperty('--glow','hsl('+hr+' 85% 62%)')}
   sx+=(tx-sx)*.08;sy+=(ty-sy)*.08;
   rx+=(mx-rx)*.18;ry+=(my-ry)*.18;document.getElementById('cGlow').style.transform='translate('+rx.toFixed(1)+'px,'+ry.toFixed(1)+'px)';
-  if(!LITE){document.body.style.setProperty('--mx',mx+'px');document.body.style.setProperty('--my',my+'px')}
+  if(!LITE&&(mx!==lmx||my!==lmy)){lmx=mx;lmy=my;document.body.style.setProperty('--mx',mx+'px');document.body.style.setProperty('--my',my+'px')}
   $('#stage').style.transform='translate('+(sx*-26).toFixed(1)+'px,'+(sy*-18).toFixed(1)+'px)';
   card.style.transform='rotateY('+(sx*20).toFixed(2)+'deg) rotateX('+(-sy*16).toFixed(2)+'deg) scale('+(1+lvl*.035).toFixed(3)+')';
   card.style.setProperty('--gx',(50+sx*90)+'%');card.style.setProperty('--gy',(30+sy*90)+'%');
@@ -2558,10 +2558,10 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
     $('#cnList').innerHTML=(list.length?'<small class="cnH">Other devices</small>':'')+list.map((d,i)=>'<button data-dev="'+esc(d.id)+'" style="--i:'+i+'"><span class="cnI">'+svg(d.platform==='pc'?'pc':d.platform==='phone'?'phone':'web')+'</span><div><b>'+esc(d.id===me?d.name+' (this device)':d.name)+'</b><small>'+(d.id===me?'Play here':d.platform==='pc'?'Abyss on PC':d.platform==='phone'?'Abyss on phone':'Abyss in a browser')+'</small></div></button>').join('')+
       (on.length<2?'<p class="cnTip">Open Abyss on another device with the same account and it shows up here.</p>':'')}
   /* when another device is playing, the controls here drive that device */
-  const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r)return;e.stopImmediatePropagation();e.preventDefault();
+  const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r||r.state.paused||(cur()&&!audio.paused))return;e.stopImmediatePropagation();e.preventDefault();
     if(type==='toggle'&&r.state.paused&&r.state.raw){const st=r.state;run({id:'x'+Date.now(),type:'take',raw:st.raw,pos:st.pos,paused:false});return}if(type==='toggle'){r.state.paused=!r.state.paused;r.state.at=Date.now();paint()}send(r.id,{type})},true)};
   ctl('#pp','toggle');ctl('#next','next');ctl('#prev','prev');
-  $('#seek').addEventListener('change',e=>{const r=remote();if(!r||!r.state.dur)return;e.stopImmediatePropagation();send(r.id,{type:'seek',pos:e.target.value/1000*r.state.dur})},true);
+  $('#seek').addEventListener('change',e=>{const r=remote();if(!r||!r.state.dur||r.state.paused||(cur()&&!audio.paused))return;e.stopImmediatePropagation();send(r.id,{type:'seek',pos:e.target.value/1000*r.state.dur})},true);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loop()});
   setInterval(()=>{if(remote())paint()},1000);
   return{start(){if(acct&&supaOn())loop()},open,devices:()=>devs,me}})();
@@ -2844,7 +2844,7 @@ const kv={db:null,open(){return this.db||(this.db=new Promise((res,rej)=>{const 
   async del(k){const d=await this.open();return new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=r})}};
 let dir=null,running=false,progress={done:0,total:0,now:''},timer=0;
 const opts=()=>Object.assign({liked:true,pls:true,recent:false,local:true},store.get('spotOpts',{}));
-function wanted(){const o=opts(),m=new Map();const add=r=>{if(!r||m.has(r.id))return;const t=api.toTrack(r);if(t&&(t.src||t.raw.local))m.set(r.id,t)};
+function wanted(){const o=opts(),m=new Map();const add=r=>{if(!r||m.has(String(r.id)))return;const t=api.toTrack(r);if(t&&(t.src||t.raw.local))m.set(String(r.id),t)};
   if(o.liked)Object.values(likes).forEach(add);if(o.pls)pls.forEach(p=>p.songs.forEach(add));if(o.recent)hist.slice(0,50).forEach(add);if(o.local)locals.forEach(add);return m}
 async function perm(h,ask){try{const o={mode:'readwrite'};if(await h.queryPermission(o)==='granted')return true;return ask?(await h.requestPermission(o))==='granted':false}catch(e){return false}}
 async function sync(manual){if(running||!dir)return;if(!await perm(dir,manual)){paintS();if(manual)toast('Allow Abyss to use the folder to keep it in sync');return}

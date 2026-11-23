@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 78,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed the Spotify folder deleting songs right after adding them",
+    "Fixed buttons sometimes not responding (they were controlling a paused device instead)",
+    "Smoother and more responsive on PC"
+   ]
+  },
+  {
    "version": 77,
    "date": "Nov 22",
    "changes": [
