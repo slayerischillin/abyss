@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 97,
+   "date": "Nov 23",
+   "changes": [
+    "Small fixes"
+   ]
+  },
+  {
    "version": 96,
    "date": "Nov 23",
    "changes": [

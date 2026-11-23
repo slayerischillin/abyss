@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="96">
+<meta name="abyss-version" content="97">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1289,6 +1289,9 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 #rep.one::after,#fp [data-f=rep].one::after{content:"1";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:800 8.5px/1 system-ui;color:currentColor;pointer-events:none}
 
 .gmenu{max-width:calc(100vw - 16px)}.gopt{white-space:normal;line-height:1.3}
+.ulHead{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:14px;margin:4px 0 10px;border-radius:18px;background:radial-gradient(120% 90% at 10% 0%,rgba(255,60,90,.22),transparent 60%),var(--lg-in);border:1px solid rgba(255,255,255,.15);box-shadow:var(--lg-in-shadow)}
+.ulHead .ulLock{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#ff4f6d,#7a1730);box-shadow:0 8px 24px -8px #ff4f6d}.ulHead .ulLock svg{width:22px;height:22px;color:#fff}
+.ulHead div{flex:1;min-width:0}.ulHead b{display:block;font-size:17px}.ulHead small{opacity:.65;font-size:12px}
 </style>
 </head>
 <body style="--art:none">
@@ -1558,7 +1561,7 @@ const coverEl=$('#cover');
 /* ---- API adapter ---- */
 const api={
   headers:()=>cfg.token?{Authorization:'Token '+cfg.token}:{},
-  toTrack(s){if(s.local)return{id:s.id,raw:s,path:null,src:localUrl[s.id]||null,art:localArt[s.id]||''};const p=s.path;return{id:s.id,raw:s,path:p,
+  toTrack(s){if(s.unleaked){const m=(window.__ulMap||{})[s.id]||{};return{id:s.id,raw:s,path:null,src:m.src||null,art:m.art||''}}if(s.local)return{id:s.id,raw:s,path:null,src:localUrl[s.id]||null,art:localArt[s.id]||''};const p=s.path;return{id:s.id,raw:s,path:p,
     src:p?cfg.base+'/files/download/?path='+encodeURIComponent(p):null,
     art:p?cfg.base+'/files/cover-art/?path='+encodeURIComponent(p)+'&size=512':''}},
   pickAudio(x){const aud=/\.(mp3|m4a|wav|flac|ogg|aac|opus|wma)$/i;let f=x.file_names;if(typeof f==='string'){try{f=JSON.parse(f)}catch{f=f.split(/\s*[,;\n]\s*/)}}
@@ -1663,8 +1666,8 @@ let loadSeq=0;async function load(reset){if(reset){page=1;list=[];hasMore=false}
   if(view.startsWith('pl:')){const p=pls.find(x=>x.id===view.slice(3));$('#view').value='lib';if(p)showPl(p);return load(reset)}
   paintChips();
   if(view!=='lib'){const pl=view.startsWith('pl:')&&pls.find(x=>x.id===view.slice(3));
-    const src=pl?pl.songs:view==='local'?locals:view==='liked'?Object.values(likes):view==='recent'?hist:Object.values(plays).sort((a,b)=>b.n-a.n).map(x=>x.raw);
-    list=src.map(api.toTrack).filter(t=>!q||namesOf(t).some(n=>n.toLowerCase().includes(q)));hasMore=false;if(!pl)sortList();renderList();status(list.length?'':view==='local'?'No local files yet. Drop songs anywhere on the page, or use the folder button in the dock.':pl?'This playlist is empty. Use the playlist button on any song to add it.':'Nothing here yet');return}
+    const src=pl?pl.songs:view==='unleaked'?(window.abyssUnleaked?abyssUnleaked.items():[]):view==='local'?locals:view==='liked'?Object.values(likes):view==='recent'?hist:Object.values(plays).sort((a,b)=>b.n-a.n).map(x=>x.raw);
+    list=src.map(api.toTrack).filter(t=>!q||namesOf(t).some(n=>n.toLowerCase().includes(q)));hasMore=false;if(!pl)sortList();renderList();status(list.length?'':view==='unleaked'?'Nothing in Unleaked yet. Tap "Add songs" above.':view==='local'?'No local files yet. Drop songs anywhere on the page, or use the folder button in the dock.':pl?'This playlist is empty. Use the playlist button on any song to add it.':'Nothing here yet');return}
   status('Loading...');
   try{const r=await api.songs($('#q').value.trim(),$('#cat').value,page,$('#era').value);if(seq!==loadSeq)return;list=list.concat(r.items);hasMore=r.more;sortList();renderList();status(list.length?'':'No songs found')}
   catch(e){if(seq!==loadSeq)return;if(page>1&&/404/.test(e.message)){page--;hasMore=false;renderList();status('');return}status(navigator.onLine?'The song server did not answer ('+e.message+'). Try again in a moment.':'You are offline. Local files and playlists still work.')}}
@@ -2232,7 +2235,7 @@ const AD=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssDiscord;
 if(AD)document.body.classList.add('android');
 function sendPresence(){if(AD&&!window.abyssWin)return sendPresenceAndroid();const R=abyssWin.rpc;
   if(!DISCORD_ID||cfg.discord===false){R({clientId:DISCORD_ID||undefined,off:true});rpcLast='';return}
-  const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){R({clientId:DISCORD_ID,activity:null});rpcLast='none'}return}
+  const t=cur();if(!t||!audio.src||audio.paused||t.raw.unleaked){if(rpcLast!=='none'){R({clientId:DISCORD_ID,activity:null});rpcLast='none'}return}
   const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');
@@ -2251,7 +2254,7 @@ $('#sSave').addEventListener('click',()=>{cfg.discord=$('#sDisc').checked;cfg.di
 setTimeout(()=>presence(true),3000);
 function sendPresenceAndroid(){
   if(!DISCORD_ID||cfg.discord===false){AD.clear().catch(()=>{});rpcLast='';return}
-  const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){AD.clear().catch(()=>{});rpcLast='none'}return}
+  const t=cur();if(!t||!audio.src||audio.paused||t.raw.unleaked){if(rpcLast!=='none'){AD.clear().catch(()=>{});rpcLast='none'}return}
   const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');if(audio.paused)state='Paused · '+state;
@@ -2680,6 +2683,44 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
 window.abyssConnect=connect;window.abyssCmdDone=id=>{try{localStorage.setItem('devLastCmd',id)}catch(e){}};setTimeout(()=>connect.start(),2500);
 const _finish3=finish;finish=async function(d){const ok=await _finish3(d);if(ok)setTimeout(()=>connect.start(),1500);return ok};
 
+/* ================= v97: Unleaked, a private playlist for @slayer only ================= */
+const unleaked=(()=>{const B='unleaked';let items=[],ok=false,busy=false;window.__ulMap={};
+  const isMe=()=>!!(acct&&prof&&String(prof.username||'').toLowerCase()==='slayer');
+  const req=async(method,path,body,type,extra)=>{const t=await token();const r=await sfetch(SUPA.url+'/storage/v1/'+path,{method,headers:Object.assign({apikey:SUPA.key,Authorization:'Bearer '+t},type?{'Content-Type':type}:{},extra||{}),body});
+    if(!r.ok){const tx=await r.text().catch(()=>'');throw new Error(/not found/i.test(tx)?'nobucket':'HTTP '+r.status)}return r};
+  const pretty=n=>n.replace(/\.[a-z0-9]+$/i,'').replace(/[_]+/g,' ').replace(/\s+\d+$/,'').trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+  function paintOpt(){const v=$('#view');let o=v.querySelector('option[value=unleaked]');
+    if(ok&&!o){o=document.createElement('option');o.value='unleaked';o.textContent='🔒 Unleaked';const loc=v.querySelector('option[value=local]');loc.insertAdjacentElement('afterend',o)}
+    if(!ok&&o){if(v.value==='unleaked'){v.value='lib';load(true)}o.remove()}}
+  async function refresh(){if(!isMe()){ok=false;items=[];paintOpt();return}
+    try{const r=await req('POST','object/list/'+B,JSON.stringify({prefix:'',limit:1000,sortBy:{column:'created_at',order:'asc'}}),'application/json');
+      const all=await r.json(),names=new Set(all.map(f=>f.name)),files=all.filter(f=>/\.(mp3|m4a|wav|flac|ogg|aac|opus)$/i.test(f.name));
+      const want=files.flatMap(f=>[f.name].concat(names.has(f.name+'.jpg')?[f.name+'.jpg']:[]));let signed=[];
+      if(want.length){signed=await (await req('POST','object/sign/'+B,JSON.stringify({expiresIn:604800,paths:want}),'application/json')).json()}
+      const url=p=>{const s=signed.find(x=>x.path===p);return s&&s.signedURL?SUPA.url+'/storage/v1'+s.signedURL:''};
+      const meta=store.get('ulMeta',{});
+      items=files.map(f=>{const id='ul:'+f.name,raw={id,name:(meta[f.name]&&meta[f.name].title)||pretty(f.name),unleaked:true,ulFile:f.name,category:'unleaked',era:{name:'Unleaked',description:'Unleaked'},length:(meta[f.name]&&meta[f.name].len)||''};
+        window.__ulMap[id]={src:url(f.name),art:url(f.name+'.jpg')};return raw});ok=true}
+    catch(e){ok=false;if(e.message==='nobucket')console.warn('Unleaked: run abyss-unleaked-setup.sql')}
+    paintOpt();if(ok&&$('#view').value==='unleaked')load(true)}
+  async function upload(files){if(!isMe()||busy)return;busy=true;let n=0;
+    try{for(const f of files){if(!/^audio\//.test(f.type)&&!/\.(mp3|m4a|wav|flac|ogg|aac|opus)$/i.test(f.name))continue;
+        toast('Adding '+f.name+' to Unleaked...');const buf=await f.arrayBuffer();let tag={};try{tag=id3(buf)}catch(e){}
+        const name=f.name.replace(/[^\w.\- ()']/g,'_');await req('POST','object/'+B+'/'+encodeURIComponent(name),f,f.type||'audio/mpeg',{'x-upsert':'true'});
+        if(tag.pic){try{await req('POST','object/'+B+'/'+encodeURIComponent(name+'.jpg'),tag.pic,tag.pic.type||'image/jpeg',{'x-upsert':'true'})}catch(e){}}
+        let len='';try{const d=await durOf(f);if(d)len=Math.floor(d/60)+':'+String(Math.round(d%60)).padStart(2,'0')}catch(e){}
+        const m=store.get('ulMeta',{});m[name]={title:tag.title||pretty(name),len};store.set('ulMeta',m);n++}
+      toast(n?'Added '+n+' song'+(n>1?'s':'')+' to Unleaked':'No audio files picked')}
+    catch(e){toast(e.message==='nobucket'?'Run abyss-unleaked-setup.sql in Supabase first':'Could not add to Unleaked ('+e.message+')')}
+    finally{busy=false;refresh()}}
+  async function remove(t){if(!isMe()||!t.raw.ulFile)return;if(!await ask('Remove "'+titleOf(t)+'" from Unleaked? It is deleted from your account.',{ok:'Remove'}))return;
+    try{await req('DELETE','object/'+B,JSON.stringify({prefixes:[t.raw.ulFile,t.raw.ulFile+'.jpg']}),'application/json');toast('Removed')}catch(e){toast('Could not remove ('+e.message+')')}refresh()}
+  const pick=()=>{const i=document.createElement('input');i.type='file';i.accept='audio/*,.mp3,.m4a,.wav,.flac';i.multiple=true;i.onchange=()=>upload([...i.files]);i.click()};
+  return{refresh,items:()=>items,pick,remove,isMe,ok:()=>ok}})();
+window.abyssUnleaked=unleaked;setTimeout(()=>unleaked.refresh(),3000);setInterval(()=>unleaked.refresh(),6*3600*1000);
+const _finish4=finish;finish=async function(d){const r=await _finish4(d);setTimeout(()=>unleaked.refresh(),4000);return r};
+const _lp=loadProfile;loadProfile=async function(){const r=await _lp.apply(this,arguments);try{unleaked.refresh()}catch(e){}return r};
+
 window.abyssShareUpload=async(t,canvas)=>{if(!acct||!t||t.raw.local)return;try{const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.85));const tk=await token(),path=acct.user.id+'/'+String(t.id).replace(/[^\w-]/g,'_')+'-'+Date.now()+'.jpg';
   const r=await sfetch(SUPA.url+'/storage/v1/object/covers/'+path,{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+tk,'Content-Type':'image/jpeg','cache-control':'31536000'},body:blob});if(!r.ok)throw 0;
   const u=SUPA.url+'/storage/v1/object/public/covers/'+path;saveCover(t,u);shareCover(t,u);toast('Cover saved and shared')}catch{toast('Cover saved on this device (sharing failed)')}};
@@ -3059,6 +3100,12 @@ setInterval(()=>document.body.classList.toggle('playing',!!cur()&&!audio.paused)
 
 /* v88: keep the phone's notification buttons (shuffle, like) in step with the app */
 (()=>{if(!NATIVE_PLAYER||!NATIVE_PLAYER.setButtons)return;let k='';setInterval(()=>{const t=cur(),l=!!(t&&likes[t.id]),n=l+'|'+shuffle;if(n===k)return;k=n;NATIVE_PLAYER.setButtons({liked:l,shuffle:!!shuffle}).catch(()=>{})},700)})();
+
+/* v97: Unleaked view header */
+(()=>{const _r=renderList;renderList=function(){_r.apply(this,arguments);try{const box=$('#res');box.querySelector('.ulHead')?.remove();if($('#view').value!=='unleaked')return;
+  const h=document.createElement('div');h.className='ulHead';h.innerHTML='<span class="ulLock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><div><b>Unleaked</b><small>Private · only you can see and play these</small></div><button class="sBtn main">Add songs</button>';
+  h.querySelector('button').onclick=()=>abyssUnleaked.pick();box.insertBefore(h,box.firstChild);
+  box.querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||!t.raw.unleaked)return;const a=row.querySelector('.acts');if(!a||a.querySelector('[data-a=ulx]'))return;const x=document.createElement('span');x.dataset.a='ulx';x.title='Remove from Unleaked';x.innerHTML=ico('x');x.onclick=e=>{e.stopPropagation();abyssUnleaked.remove(t)};a.appendChild(x)})}catch(e){}}})();
 </script>
 </body>
 </html>
