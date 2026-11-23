@@ -19,7 +19,8 @@ public class AbyssPlayerPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "seek", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setVolume", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setRate", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "connect", returnType: CAPPluginReturnPromise)
     ]
 
     private let player = AVQueuePlayer()
@@ -196,4 +197,82 @@ public class AbyssPlayerPlugin: CAPPlugin, CAPBridgedPlugin {
             s.player.seek(to: CMTime(seconds: e.positionTime, preferredTimescale: 600)) { _ in DispatchQueue.main.async { s.emitState(); s.nowPlaying(); s.emit(["type": "seeked"]) } }
             return .success }
     }
+    // MARK: Abyss Connect while the app is asleep
+    // When the phone is locked the page can't run, so the player itself checks in with your account,
+    // follows play / pause / skip / seek from your other devices, and reports what it's playing.
+    private var cn: [String: Any] = [:]
+    private var cnTimer: Timer?
+    private var lastPlay: Double = 0
+    @objc func connect(_ call: CAPPluginCall) {
+        var o: [String: Any] = [:]
+        for k in ["url", "key", "token", "dev", "user", "name", "platform", "rawUrl"] { if let v = call.getString(k) { o[k] = v } }
+        if let r = call.getObject("raw") { o["raw"] = r }
+        for k in ["title", "artist", "sub", "cover"] { o[k] = call.getString(k) ?? "" }
+        DispatchQueue.main.async {
+            self.cn = o
+            if self.cnTimer == nil {
+                self.cnTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in self?.cnBeat() }
+            }
+            call.resolve()
+        }
+    }
+    private func cnBeat() {
+        guard UIApplication.shared.applicationState != .active,
+              let base = cn["url"] as? String, let key = cn["key"] as? String, let tok = cn["token"] as? String, let dev = cn["dev"] as? String,
+              let u = URL(string: base + "/rest/v1/connect_devices?select=cmd&id=eq." + (dev.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? dev)) else { return }
+        var r = URLRequest(url: u); r.setValue(key, forHTTPHeaderField: "apikey"); r.setValue("Bearer " + tok, forHTTPHeaderField: "Authorization")
+        URLSession.shared.dataTask(with: r) { [weak self] data, _, _ in
+            guard let self = self else { return }
+            var cmd: [String: Any]? = nil
+            if let d = data, let a = try? JSONSerialization.jsonObject(with: d) as? [[String: Any]], let f = a.first { cmd = f["cmd"] as? [String: Any] }
+            DispatchQueue.main.async {
+                var handled = false
+                if let c = cmd, let id = c["id"] as? String {
+                    let age = Date().timeIntervalSince1970 * 1000 - (Double(id.prefix(13)) ?? 0)
+                    if age < 60000 { handled = self.runCmd(c) }
+                    self.emit(["type": "cmdDone", "id": id])
+                }
+                self.cnReport(clearCmd: cmd != nil, handled: handled)
+            }
+        }.resume()
+    }
+    private func runCmd(_ c: [String: Any]) -> Bool {
+        let t = c["type"] as? String ?? ""
+        switch t {
+        case "pause": wants = false; player.pause()
+        case "play": wants = true; try? AVAudioSession.sharedInstance().setActive(true); player.playImmediately(atRate: rate); tick()
+        case "toggle": if wants { wants = false; player.pause() } else { wants = true; player.playImmediately(atRate: rate); tick() }
+        case "seek": if let p = c["pos"] as? Double { player.seek(to: CMTime(seconds: p, preferredTimescale: 600)) }
+        case "prev": player.seek(to: .zero)
+        case "next":
+            if player.items().count > 1, !nextInfo.isEmpty {
+                player.advanceToNextItem(); info = nextInfo; nextInfo = [:]; wants = true; player.playImmediately(atRate: rate)
+                loadArt(info["art"] ?? ""); emit(["type": "advanced", "url": info["url"] ?? ""]); tick()
+            } else { emit(["type": "action", "action": "next"]) }
+        default: return false
+        }
+        emitState(); nowPlaying(); return true
+    }
+    private func cnReport(clearCmd: Bool, handled: Bool) {
+        guard let base = cn["url"] as? String, let key = cn["key"] as? String, let tok = cn["token"] as? String, let dev = cn["dev"] as? String,
+              let u = URL(string: base + "/rest/v1/connect_devices?id=eq." + (dev.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? dev)) else { return }
+        let now = Date().timeIntervalSince1970 * 1000
+        let paused = !(wants && player.timeControlStatus != .paused)
+        if !paused { lastPlay = now }
+        let pos = player.currentTime().seconds, d = player.currentItem?.duration.seconds ?? 0
+        var st: [String: Any] = ["title": info["title"] ?? (cn["title"] as? String ?? ""), "artist": info["artist"] ?? (cn["artist"] as? String ?? ""),
+                                 "sub": cn["sub"] as? String ?? "", "cover": info["art"] ?? (cn["cover"] as? String ?? ""),
+                                 "pos": pos.isFinite ? pos : 0, "dur": (d.isFinite && d > 0) ? d : 0, "paused": paused, "at": now, "lastPlay": lastPlay]
+        if let raw = cn["raw"], let ru = cn["rawUrl"] as? String, ru == (info["url"] ?? "") { st["raw"] = raw }
+        let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var body: [String: Any] = ["seen": f.string(from: Date()), "state": st]
+        if clearCmd { body["cmd"] = NSNull() }
+        if handled && !paused { body["active_at"] = f.string(from: Date()) }
+        var r = URLRequest(url: u); r.httpMethod = "PATCH"
+        r.setValue(key, forHTTPHeaderField: "apikey"); r.setValue("Bearer " + tok, forHTTPHeaderField: "Authorization")
+        r.setValue("application/json", forHTTPHeaderField: "Content-Type"); r.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        r.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        URLSession.shared.dataTask(with: r).resume()
+    }
+
 }

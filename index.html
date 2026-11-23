@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="88">
+<meta name="abyss-version" content="89">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1539,6 +1539,7 @@ class NativeAudio extends EventTarget{
       case'seeked':this._fire('seeked');break;
       case'ended':this._paused=true;this._fire('pause');this._fire('ended');break;
       case'advanced':this._native=this._src=e.url||'';this._dur=NaN;this._pos=0;this._posAt=performance.now();this._fire('ended');break;
+      case'cmdDone':try{window.abyssCmdDone&&abyssCmdDone(e.id)}catch(x){}break;
       case'action':if(e.action==='next')step(1);else if(e.action==='prev')$('#prev').click();else if(e.action==='like'){const t=cur();if(t)toggleLike(t)}else if(e.action==='shuffle')$('#shuf').click();break;
       case'error':this.error={message:e.message};this._fire('error');break}}
 }
@@ -2595,7 +2596,7 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
   async function send(id,cmd){cmd.id=Date.now()+Math.random().toString(36).slice(2,6);try{await sfetch(T+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:await hdr({Prefer:'return=minimal'}),body:JSON.stringify({cmd})});setTimeout(beat,700)}catch(e){toast('Could not reach that device')}}
   async function claim(){myClaim=Date.now();const a=new Date().toISOString();const m=devs.find(d=>d.id===me);if(m)m.active_at=a;paint();
     try{await sfetch(T+'?on_conflict=id',{method:'POST',headers:await hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({id:me,user_id:acct.user.id,name:nameOf(),platform:kind,seen:a,active_at:a,state:myState()})})}catch(e){}}
-  async function run(c){if(!c||!c.id||c.id===lastCmd)return;lastCmd=c.id;localStorage.setItem('devLastCmd',c.id);if(Date.now()-parseInt(c.id)>60000)return;
+  async function run(c){lastCmd=localStorage.getItem('devLastCmd')||lastCmd;if(!c||!c.id||c.id===lastCmd)return;lastCmd=c.id;localStorage.setItem('devLastCmd',c.id);if(Date.now()-parseInt(c.id)>60000)return;
     const t=c.type;if(t==='toggle'){audio.paused?audio.play():audio.pause()}else if(t==='play')audio.play();else if(t==='pause')audio.pause();
     else if(t==='next')step(1);else if(t==='prev')step(-1);else if(t==='seek'){audio.currentTime=c.pos}
     else if(t==='take'&&c.raw){const tr=api.toTrack(c.raw);if(!tr||!tr.src){toast('That song can\'t play on this device');return}queue=[tr];play(0);
@@ -2605,6 +2606,7 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
     try{const playing=!!cur()&&!audio.paused;
       if(playing){const a=activeDev();if((!a||a.id!==me)&&(!wasPlaying||Date.now()-myClaim>8000))await claim()}
       wasPlaying=playing;const m=devs.find(d=>d.id===me);
+      try{if(NATIVE_PLAYER&&NATIVE_PLAYER.connect&&plat==='ios'){const t=cur(),tk=await token();NATIVE_PLAYER.connect({url:SUPA.url,key:SUPA.key,token:tk,dev:me,raw:t&&!t.raw.local?t.raw:undefined,rawUrl:t?t.src:'',title:t?titleOf(t):'',artist:t?artistOf(t):'',sub:t?subOf(t):'',cover:t?(coverOf(t)||eraCover(t)):''}).catch(()=>{})}}catch(x){}
       const body={id:me,user_id:acct.user.id,name:nameOf(),platform:kind,seen:new Date().toISOString(),state:myState()};
       await sfetch(T+'?on_conflict=id',{method:'POST',headers:await hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(body)});
       const r=await sfetch(T+'?select=*&order=seen.desc',{headers:await hdr()});if(r.status===404||r.status===401&&!acct){broken=true;return}if(!r.ok)return;{const j=await r.json();devs=Array.isArray(j)?j:[]}
@@ -2634,7 +2636,7 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
     if(r){const s=r.state;strip.querySelector('span').innerHTML='Listening on <b></b>';strip.querySelector('b').textContent=r.name;strip.classList.add('show');
       $('#mt').textContent=s.title||'';$('#ms').textContent=r.name+' · '+(s.artist||'');if(s.cover)$('#barCov').src=s.cover;
       if(mirrorKey!==s.title+'|'+s.cover){mirrorKey=s.title+'|'+s.cover;try{coverEl.crossOrigin='anonymous';coverEl.src=s.cover||'';$('#ct').textContent=s.title||'';$('#cs').textContent=s.sub||s.artist||'';$('#ca').textContent='Playing on '+r.name;document.title=(s.title||'Abyss')+' · '+r.name}catch(e){}}
-      $('#pp').innerHTML=ico(s.paused?'play':'pause');const pos=s.pos+(s.paused?0:(Date.now()-s.at)/1000);if(s.dur){const v=Math.min(1000,pos/s.dur*1000);$('#seek').value=v;$('#seek').style.setProperty('--p',v/10+'%')}}
+      $('#pp').innerHTML=ico(s.paused?'play':'pause');const pos=s.pos+(s.paused?0:(Date.now()-s.at)/1000);if(s.dur){const v=Math.min(1000,pos/s.dur*1000);$('#seek').value=v;$('#seek').style.setProperty('--p',v/10+'%')}const fm=x=>{x=Math.max(0,x|0);return Math.floor(x/60)+':'+String(x%60).padStart(2,'0')};try{$('#tc').textContent=fm(Math.min(pos,s.dur||pos));if(s.dur)$('#td').textContent=fm(s.dur)}catch(x){}}
     else{strip.classList.remove('show');if(wasRemote){mirrorKey='';try{if(cur()){window.__noFlip=true;window.paint()}else{$('#ct').textContent='Nothing playing';$('#cs').textContent='Open the library to pick a song';$('#ca').textContent=''}}catch(e){}const t=cur();$('#pp').innerHTML=ico(audio.paused?'play':'pause');if(t){$('#mt').textContent=titleOf(t);$('#ms').textContent=subOf(t);$('#barCov').src=coverOf(t)||eraCover(t)}else{$('#mt').textContent='Abyss';$('#ms').textContent='Ready'}}}
     wasRemote=!!r;
     if(!sheet.classList.contains('open'))return;
@@ -2645,14 +2647,14 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
     $('#cnList').innerHTML=(list.length?'<small class="cnH">Other devices</small>':'')+list.map((d,i)=>'<button data-dev="'+esc(d.id)+'" style="--i:'+i+'"><span class="cnI">'+svg(d.platform==='pc'?'pc':d.platform==='phone'?'phone':'web')+'</span><div><b>'+esc(d.id===me?d.name+' (this device)':d.name)+'</b><small>'+(d.id===me?'Play here':d.platform==='pc'?'Abyss on PC':d.platform==='phone'?'Abyss on phone':'Abyss in a browser')+'</small></div></button>').join('')+
       (on.length<2?'<p class="cnTip">Open Abyss on another device with the same account and it shows up here.</p>':'')}
   /* when another device is playing, the controls here drive that device */
-  const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r||r.state.paused||(cur()&&!audio.paused))return;e.stopImmediatePropagation();e.preventDefault();
-    if(type==='toggle'&&r.state.paused&&r.state.raw){const st=r.state;run({id:'x'+Date.now(),type:'take',raw:st.raw,pos:st.pos,paused:false});return}if(type==='toggle'){r.state.paused=!r.state.paused;r.state.at=Date.now();paint()}send(r.id,{type})},true)};
+  const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r||(cur()&&!audio.paused))return;e.stopImmediatePropagation();e.preventDefault();
+    if(type==='toggle'){r.state.paused=!r.state.paused;r.state.at=Date.now();paint()}send(r.id,{type})},true)};
   ctl('#pp','toggle');ctl('#next','next');ctl('#prev','prev');
-  $('#seek').addEventListener('change',e=>{const r=remote();if(!r||!r.state.dur||r.state.paused||(cur()&&!audio.paused))return;e.stopImmediatePropagation();send(r.id,{type:'seek',pos:e.target.value/1000*r.state.dur})},true);
+  $('#seek').addEventListener('change',e=>{const r=remote();if(!r||!r.state.dur||(cur()&&!audio.paused))return;e.stopImmediatePropagation();send(r.id,{type:'seek',pos:e.target.value/1000*r.state.dur})},true);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loop()});
   setInterval(()=>{if(remote())paint()},1000);
   return{start(){if(acct&&supaOn())loop()},open,devices:()=>devs,me}})();
-window.abyssConnect=connect;setTimeout(()=>connect.start(),2500);
+window.abyssConnect=connect;window.abyssCmdDone=id=>{try{localStorage.setItem('devLastCmd',id)}catch(e){}};setTimeout(()=>connect.start(),2500);
 const _finish3=finish;finish=async function(d){const ok=await _finish3(d);if(ok)setTimeout(()=>connect.start(),1500);return ok};
 
 window.abyssShareUpload=async(t,canvas)=>{if(!acct||!t||t.raw.local)return;try{const blob=await new Promise(r=>canvas.toBlob(r,'image/jpeg',.85));const tk=await token(),path=acct.user.id+'/'+String(t.id).replace(/[^\w-]/g,'_')+'-'+Date.now()+'.jpg';

@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 89,
+   "date": "Nov 23",
+   "changes": [
+    "Abyss Connect: pause, play, skip and seek from your PC now reach a locked iPhone (needs the new IPA)",
+    "While another device is playing, your buttons always control that device instead of starting a different song here",
+    "The PC shows the other device's real time and song length"
+   ]
+  },
+  {
    "version": 88,
    "date": "Nov 23",
    "changes": [
