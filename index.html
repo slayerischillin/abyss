@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="81">
+<meta name="abyss-version" content="82">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1244,6 +1244,38 @@ select.gselHidden{display:none!important}
 #lyr.full #lyrBody p.gap{font-size:28px!important;letter-spacing:.3em;color:rgba(255,255,255,.25)!important}
 #lyr.full #lyrOff{opacity:.75}
 #lyr.full #lyrOff button,#lyr.full header button{background:var(--lg-in)!important;border:1px solid rgba(255,255,255,.15)!important;box-shadow:var(--lg-in-shadow)!important}
+/* v82: lyrics animations */
+#lyr.full #lyrBody p{transform:scale(.955) translateX(-6px)!important;transform-origin:left center;transition:color .5s ease,transform .7s cubic-bezier(.2,1.25,.3,1),opacity .5s ease,filter .5s ease!important;
+  opacity:var(--o,1)!important;filter:blur(var(--b,0px))!important}
+#lyr.full #lyrBody p.on{transform:scale(1.035) translateX(0)!important;color:rgba(255,255,255,.38)!important;filter:none!important;opacity:1!important}
+#lyr.full #lyrBody p.on.ws .w{display:inline;color:rgba(255,255,255,.38);transition:color .25s ease,text-shadow .4s ease;transition-delay:var(--wd)}
+#lyr.full #lyrBody p.on.ws.go .w{color:#fff;text-shadow:0 0 24px rgba(255,255,255,.35)}
+#lyr.full #lyrBody p.on:not(.ws){color:#fff!important}
+#lyr.full #lyrBody p.on::before{content:"";position:absolute;left:-28px;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--glow);box-shadow:0 0 12px var(--glow);animation:lyDot .6s cubic-bezier(.2,1.6,.3,1)}
+#lyr.full #lyrBody p{position:relative}
+@keyframes lyDot{from{transform:scale(0);opacity:0}}
+#lyr.full #lyrBody p.on.pop{animation:lyPop .8s cubic-bezier(.2,1.25,.3,1)}
+@keyframes lyPop{0%{text-shadow:0 0 0 transparent}40%{text-shadow:0 0 40px rgba(255,255,255,.35)}100%{text-shadow:0 0 0 transparent}}
+#lyr.full #lyrBody p.gap.on{color:#fff!important;letter-spacing:.4em}
+#lyr.full #lyrBody p.gap.on{animation:lyGap 1.4s ease-in-out infinite}
+@keyframes lyGap{50%{opacity:.45;transform:scale(1.08) translateX(0)}}
+/* opening the full view */
+#lyr.full.enter .lnow img{animation:lyCov .9s cubic-bezier(.2,1.2,.3,1) both}
+#lyr.full.enter .lnow b,#lyr.full.enter .lnow small{animation:lyUp .7s cubic-bezier(.2,1.2,.3,1) both}
+#lyr.full.enter .lnow b{animation-delay:.12s}#lyr.full.enter .lnow small{animation-delay:.2s}#lyr.full.enter .lnow small+small{animation-delay:.26s}
+#lyr.full.enter #lyrBody p{animation:lyUp .7s cubic-bezier(.2,1.2,.3,1) both;animation-delay:calc(.15s + var(--si,0)*55ms)}
+#lyr.full.enter header,#lyr.full.enter #lyrOff{animation:lyFade .8s .3s both}
+@keyframes lyCov{from{opacity:0;transform:scale(.8) translateY(30px)!important;filter:blur(12px)}}
+@keyframes lyUp{from{opacity:0;transform:translateY(26px)}}
+@keyframes lyFade{from{opacity:0}}
+#lyr.full.leave{animation:lyOut .35s cubic-bezier(.5,0,.75,0) forwards}
+@keyframes lyOut{to{opacity:0;transform:scale(1.04);filter:blur(10px)}}
+/* breathing cover while playing */
+body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
+@keyframes lyBreath{50%{transform:scale(1.018)!important;box-shadow:0 40px 90px -25px rgba(0,0,0,.9),0 0 70px -20px var(--glow)!important}}
+#lyr.full .lbg{animation:lyBg 24s ease-in-out infinite alternate!important}
+@keyframes lyBg{0%{transform:scale(1.3) rotate(0)}50%{transform:scale(1.45) rotate(8deg) translate(3%,-2%)}100%{transform:scale(1.35) rotate(-6deg) translate(-3%,2%)}}
+@media (prefers-reduced-motion:reduce){#lyr.full *{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body style="--art:none">
@@ -1919,7 +1951,7 @@ function syncLyrics(){if(!lyrOpen()||!lyrLines.length)return;const t=cur(),ct=au
   if(i===lyrOn)return;lyrOn=i;const ps=$('#lyrBody').children;
   for(let k=0;k<ps.length;k++){const d=k-(i<0?0:i),ad=Math.min(Math.abs(d),9);ps[k].classList.toggle('on',k===i);ps[k].classList.toggle('past',k<i);ps[k].classList.toggle('near',Math.abs(k-i)===1);
     ps[k].style.transform=k===i?'':'perspective(800px) rotateX('+(Math.sign(d)*-ad*6)+'deg) translateZ('+(-ad*18)+'px)';ps[k].style.opacity=k===i?1:Math.max(.15,1-ad*.11)}
-  if(ps[i])ps[i].scrollIntoView({block:'center',behavior:reduce?'auto':'smooth'})}
+  if(ps[i]){if($('#lyr').classList.contains('full')&&window.lyrScroll&&!reduce)lyrScroll(ps[i]);else ps[i].scrollIntoView({block:'center',behavior:reduce?'auto':'smooth'})}}
 audio.addEventListener('timeupdate',syncLyrics);audio.addEventListener('seeked',()=>{lyrOn=-2;syncLyrics()});
 audio.addEventListener('loadedmetadata',()=>{if(lyrOpen())showLyrics()});
 /* plain lyrics: curve lines by distance from the middle while scrolling */
@@ -2959,6 +2991,27 @@ document.querySelectorAll('select').forEach(enhance);
 new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;if(n.tagName==='SELECT')enhance(n);else n.querySelectorAll&&n.querySelectorAll('select').forEach(enhance)}))).observe(document.body,{childList:true,subtree:true});
 addEventListener('pointerdown',e=>{if(openMenu&&!openMenu.menu.contains(e.target)&&!openMenu.btn.contains(e.target))close()},true);
 addEventListener('resize',close);addEventListener('scroll',e=>{if(openMenu&&!openMenu.menu.contains(e.target))close()},true);
+})();
+/* ================= v82: lyrics motion ================= */
+(()=>{const L=$('#lyr'),B=$('#lyrBody');let scrollAnim=0,lastOn=-9,wordT=0;
+/* silky spring scroll to the current line */
+window.lyrScroll=el=>{if(!el)return;const target=Math.max(0,el.offsetTop-B.clientHeight*.42+el.offsetHeight/2),start=B.scrollTop,dist=target-start;if(Math.abs(dist)<2)return;
+  cancelAnimationFrame(scrollAnim);const t0=performance.now(),D=Math.min(900,420+Math.abs(dist)*.6);const ease=x=>1-Math.pow(1-x,4);
+  const f=n=>{const p=Math.min(1,(n-t0)/D);B.scrollTop=start+dist*ease(p);if(p<1)scrollAnim=requestAnimationFrame(f)};scrollAnim=requestAnimationFrame(f)};
+/* depth: lines fade and soften the further they are from the current one; words light up in time */
+function tick(){if(!L.classList.contains('full'))return;const ps=B.children,i=lyrOn;if(i===lastOn)return;lastOn=i;
+  for(let k=0;k<ps.length;k++){const d=Math.abs(k-(i<0?0:i));ps[k].style.setProperty('--o',k===i?1:Math.max(.22,1-d*.16).toFixed(2));ps[k].style.setProperty('--b',(k===i||d<2?0:Math.min(2.2,(d-1)*.55)).toFixed(2)+'px')}
+  const p=ps[i];if(!p||p.classList.contains('gap'))return;p.classList.remove('pop');void p.offsetWidth;p.classList.add('pop');
+  const ln=lyrLines[i],nx=lyrLines[i+1];if(!ln||p.dataset.split)return;
+  const words=p.textContent.split(/(\s+)/);const dur=Math.max(.6,Math.min(8,((nx?nx.t:ln.t+4)-ln.t)*.85));const n=words.filter(w=>w.trim()).length||1;let k=0;
+  p.innerHTML=words.map(w=>w.trim()?'<span class="w" style="--wd:'+((k++)/n*dur).toFixed(2)+'s">'+esc(w)+'</span>':w).join('');p.dataset.split='1';p.classList.add('ws');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('go')))}
+audio.addEventListener('timeupdate',()=>requestAnimationFrame(tick));audio.addEventListener('seeked',()=>{lastOn=-9;[...B.querySelectorAll('p.go')].forEach(p=>p.classList.remove('go'));requestAnimationFrame(tick)});
+new MutationObserver(()=>{lastOn=-9;[...B.children].forEach((p,i)=>p.style.setProperty('--si',Math.min(i,12)))}).observe(B,{childList:true});
+/* open / close with motion */
+new MutationObserver(()=>{const f=L.classList.contains('full');if(f&&!L.dataset.was){L.dataset.was='1';L.classList.add('enter');lastOn=-9;setTimeout(()=>L.classList.remove('enter'),1400);setTimeout(tick,80)}else if(!f&&L.dataset.was){delete L.dataset.was}}).observe(L,{attributes:true,attributeFilter:['class']});
+const _lf=lyrFull;lyrFull=function(on){const isF=L.classList.contains('full');on=on===undefined?!isF:on;if(!on&&isF&&!matchMedia('(prefers-reduced-motion:reduce)').matches){L.classList.add('leave');setTimeout(()=>{L.classList.remove('leave');_lf(false)},330);return}_lf(on)};
+setInterval(()=>document.body.classList.toggle('playing',!!cur()&&!audio.paused),500);
 })();
 </script>
 </body>

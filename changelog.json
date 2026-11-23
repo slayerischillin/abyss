@@ -1,6 +1,17 @@
 {
  "versions": [
   {
+   "version": 82,
+   "date": "Nov 22",
+   "changes": [
+    "Full-screen lyrics: words light up one by one in time with the song",
+    "Smooth spring scrolling between lines, with depth: far lines fade and soften",
+    "The current line pops in with a glow and a marker",
+    "Cover gently breathes while playing; the background slowly drifts",
+    "Opening and closing full-screen lyrics now animates"
+   ]
+  },
+  {
    "version": 81,
    "date": "Nov 22",
    "changes": [
