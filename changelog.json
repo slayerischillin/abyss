@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 101,
+   "date": "Nov 23",
+   "changes": [
+    "Reopening Abyss brings back the exact song and spot you left off",
+    "Fixed a leftover Abyss Connect command starting a different song when the app opens"
+   ]
+  },
+  {
    "version": 100,
    "date": "Nov 23",
    "changes": [
