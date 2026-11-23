@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 96,
+   "date": "Nov 23",
+   "changes": [
+    "Fixed dropdowns in Settings (like the cover setting) opening behind the Settings window"
+   ]
+  },
+  {
    "version": 95,
    "date": "Nov 23",
    "changes": [
