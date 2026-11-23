@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 98,
+   "date": "Nov 23",
+   "changes": [
+    "New 'All playlists' button shows every playlist at once; tap the X to fold them back",
+    "The mouse wheel scrolls the playlist row sideways"
+   ]
+  },
+  {
    "version": 97,
    "date": "Nov 23",
    "changes": [
