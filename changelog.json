@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 87,
+   "date": "Nov 23",
+   "changes": [
+    "iPhone: music now plays through the phone's own player, so it keeps going on the lock screen and home screen, with lock screen controls (needs the new IPA)",
+    "Discord status disappears while a song is paused",
+    "Signing out takes you straight to the sign-in screen",
+    "Abyss Connect stays connected while a phone is locked and playing"
+   ]
+  },
+  {
    "version": 86,
    "date": "Nov 22",
    "changes": [

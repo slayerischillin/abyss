@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="86">
+<meta name="abyss-version" content="87">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1544,7 +1544,7 @@ class NativeAudio extends EventTarget{
 }
 ['play','pause','ended','timeupdate','error','playing','loadedmetadata','seeked','ratechange','loadstart','waiting','canplay','durationchange'].forEach(n=>
   Object.defineProperty(NativeAudio.prototype,'on'+n,{get(){return this._h[n]||null},set(f){this._h[n]=f}}));
-const NATIVE_PLAYER=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssPlayer&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'?Capacitor.Plugins.AbyssPlayer:null;
+const NATIVE_PLAYER=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssPlayer&&Capacitor.getPlatform&&/^(android|ios)$/.test(Capacitor.getPlatform())?Capacitor.Plugins.AbyssPlayer:null;
 const audio=NATIVE_PLAYER?new NativeAudio(NATIVE_PLAYER):new Audio();audio.preload='metadata';audio.volume=.8;if(!NATIVE_PLAYER)audio.crossOrigin='anonymous';
 const coverEl=$('#cover');
 
@@ -2225,7 +2225,7 @@ const AD=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssDiscord;
 if(AD)document.body.classList.add('android');
 function sendPresence(){if(AD&&!window.abyssWin)return sendPresenceAndroid();const R=abyssWin.rpc;
   if(!DISCORD_ID||cfg.discord===false){R({clientId:DISCORD_ID||undefined,off:true});rpcLast='';return}
-  const t=cur();if(!t||!audio.src){R({clientId:DISCORD_ID,activity:null});rpcLast='';return}
+  const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){R({clientId:DISCORD_ID,activity:null});rpcLast='none'}return}
   const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');
@@ -2244,7 +2244,7 @@ $('#sSave').addEventListener('click',()=>{cfg.discord=$('#sDisc').checked;cfg.di
 setTimeout(()=>presence(true),3000);
 function sendPresenceAndroid(){
   if(!DISCORD_ID||cfg.discord===false){AD.clear().catch(()=>{});rpcLast='';return}
-  const t=cur();if(!t||!audio.src){AD.clear().catch(()=>{});rpcLast='';return}
+  const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){AD.clear().catch(()=>{});rpcLast='none'}return}
   const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');if(audio.paused)state='Paused · '+state;
@@ -2365,7 +2365,7 @@ async function sync(soft){if(!acct||!supaOn()||busy)return;busy=true;st('Syncing
 function paint(){const inn=!!acct;$('#acOutBox').hidden=inn;$('#acInBox').hidden=!inn;
   if(inn){$('#acWho').textContent='Signed in as '+acct.user.email;const t=store.get('lastSync',0);$('#acSync').textContent=t?'Last synced '+new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'Not synced yet'}
   if(!supaOn())st('Accounts need the database to be switched on first.');try{paintBtn()}catch{}}
-$('#acSignOut').onclick=async()=>{try{const t=acct&&acct.access_token;if(t&&supaOn())await sfetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t}})}catch{}acct=null;store.set('acct',null);try{localStorage.removeItem('syncedFor')}catch{}st('Signed out. Your music stays on this device.');paint()};
+$('#acSignOut').onclick=async()=>{try{const t=acct&&acct.access_token;if(t&&supaOn())await sfetch(SUPA.url+'/auth/v1/logout',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+t}})}catch{}acct=null;store.set('acct',null);try{localStorage.removeItem('syncedFor')}catch{}st('Signed out. Your music stays on this device.');paint();try{document.querySelectorAll('dialog[open]').forEach(d=>d.close())}catch{}setTimeout(()=>openAuth('in'),250)};
 $('#acNow').onclick=async()=>{await sync(false);try{await cloud.run(true)}catch(e){}};
 
 /* ================= v48: sign-in screen ================= */
@@ -2588,9 +2588,9 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
   let mirrorKey='',wasRemote=false,devs=[],ready=null,lastCmd=localStorage.getItem('devLastCmd')||'',wasPlaying=false,gesture=0,myClaim=0,timer=0,broken=false;
   addEventListener('pointerdown',()=>gesture=Date.now(),true);addEventListener('keydown',()=>gesture=Date.now(),true);
   const hdr=async(extra)=>{const t=await token();if(!t)throw new Error('signed out');return Object.assign({apikey:SUPA.key,Authorization:'Bearer '+t,'Content-Type':'application/json'},extra||{})};
-  const online=d=>Date.now()-new Date(d.seen).getTime()<25000;
+  const online=d=>Date.now()-new Date(d.seen).getTime()<(d.state&&!d.state.paused&&!d.state.idle?120000:30000);
   const activeDev=()=>{const on=devs.filter(d=>online(d)&&d.active_at);on.sort((a,b)=>new Date(b.active_at)-new Date(a.active_at));return on[0]||null};
-  const remote=()=>{const a=activeDev();if(!a||a.id===me||!a.state||a.state.idle)return null;const st=a.state;if(st.paused&&Date.now()-(st.lastPlay||0)>120000)return null;if(Date.now()-(st.at||0)>20000)return null;return a};let lastPlay=0;
+  const remote=()=>{const a=activeDev();if(!a||a.id===me||!a.state||a.state.idle)return null;const st=a.state;if(st.paused&&Date.now()-(st.lastPlay||0)>120000)return null;if(st.paused&&Date.now()-(st.at||0)>30000)return null;return a};let lastPlay=0;
   function myState(){const t=cur();if(!t)return{idle:true};if(!audio.paused)lastPlay=Date.now();return{lastPlay,raw:t.raw.local?null:t.raw,title:titleOf(t),artist:artistOf(t),cover:coverOf(t)||eraCover(t),pos:audio.currentTime||0,dur:audio.duration||0,paused:!!audio.paused,at:Date.now()}}
   async function send(id,cmd){cmd.id=Date.now()+Math.random().toString(36).slice(2,6);try{await sfetch(T+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:await hdr({Prefer:'return=minimal'}),body:JSON.stringify({cmd})});setTimeout(beat,700)}catch(e){toast('Could not reach that device')}}
   async function claim(){myClaim=Date.now();const a=new Date().toISOString();const m=devs.find(d=>d.id===me);if(m)m.active_at=a;paint();

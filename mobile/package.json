@@ -7,7 +7,8 @@
     "@capacitor/core": "^6.2.0",
     "@capacitor/browser": "^6.0.0",
     "@capacitor/haptics": "^6.0.0",
-    "@capacitor/share": "^6.0.0"
+    "@capacitor/share": "^6.0.0",
+    "abyss-player": "file:plugins/abyss-player"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.2.0"

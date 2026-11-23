@@ -1,0 +1,7 @@
+{
+  "name": "abyss-player",
+  "version": "1.0.0",
+  "description": "Native iPhone player for Abyss (keeps music going on the lock screen)",
+  "main": "index.js",
+  "capacitor": { "ios": { "src": "ios" } }
+}
