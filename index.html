@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="84">
+<meta name="abyss-version" content="85">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1283,6 +1283,11 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 #lyr.full #lyrBody p.on{text-shadow:none!important}
 #lyr.full #lyrBody p.on.ws.go .w{text-shadow:none}
 #lyr.full #lyrBody p.on::before{animation:none}
+
+/* v85: repeat one */
+#rep,#fp [data-f=rep]{position:relative}
+#rep.one::after,#fp [data-f=rep].one::after{content:"1";position:absolute;top:2px;right:0;min-width:14px;height:14px;padding:0 3px;border-radius:7px;background:var(--glow);color:#fff;font:800 9.5px/14px system-ui;text-align:center;box-shadow:0 0 0 2px rgba(10,8,16,.85);animation:rep1 .35s cubic-bezier(.2,1.6,.3,1)}
+@keyframes rep1{from{transform:scale(0)}}
 </style>
 </head>
 <body style="--art:none">
@@ -1478,7 +1483,7 @@ if(cfg.v!==2){cfg.names='orig';cfg.v=2}
 if(!cfg.mode)cfg.mode=cfg.auto===false?'off':(store.get('covers',null)?'era':'community');
 let covers=store.get('covers',{});
 {let ch=0;for(const k in covers)if(covers[k]==='https://i.redd.it/iuntgb7w2ch41.jpg'){covers[k]='https://preview.redd.it/outsiders-cover-art-v0-iuntgb7w2ch41.jpg?width=1080&crop=smart&auto=webp&s=a029928e73a2f5bb71eea388a3a71f7f3452ffc9';ch=1}if(ch)store.set('covers',covers)}
-let list=[],queue=[],idx=-1,page=1,hasMore=false,shuffle=false,repeat=false;
+let list=[],queue=[],idx=-1,page=1,hasMore=false,shuffle=false,repeat=0;
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 /* On Android, music plays through the phone's own media player (keeps going on the home screen,
    with the screen off, and from the notification / lock screen). This stand-in behaves like the
@@ -1614,11 +1619,11 @@ async function step(d){if(stepping)return;
   if(d<0){if(queue.length)play(Math.max(0,idx-1));return}
   if(shuffle&&queue.length>1){let n;do n=Math.floor(Math.random()*queue.length);while(n===idx);return play(n)}
   if(idx+1<queue.length)return play(idx+1);
-  if(repeat&&queue.length>1)return play(0);
+  if(repeat===1)return play(queue.length>1?0:idx);
   stepping=true;$('#ms').textContent='Finding the next song...';
   try{const t=await api.random();queue.push(t);play(queue.length-1)}catch(e){const pool=[...list,...hist.map(api.toTrack)].filter(x=>x&&x.src&&(!cur()||x.id!==cur().id));if(pool.length){queue.push(pool[Math.floor(Math.random()*pool.length)]);play(queue.length-1)}else $('#ms').textContent='Could not get the next song ('+e.message+')'}
   finally{stepping=false}}
-audio.onended=()=>step(1);
+audio.onended=()=>{if(repeat===2&&idx>=0&&queue[idx]){try{audio.currentTime=0}catch(e){}return play(idx)}step(1)};
 const ico=n=>'<svg class="ic"><use href="#i-'+n+'"/></svg>';
 audio.onplay=()=>$('#pp').innerHTML=ico('pause');audio.onpause=()=>$('#pp').innerHTML=ico('play');
 const fmt=x=>isFinite(x)?Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0'):'0:00';
@@ -1630,7 +1635,10 @@ $('#vol').oninput=e=>{audio.volume=e.target.value/100;e.target.style.setProperty
 $('#pp').onclick=()=>{if(!cur()){openPanel();return}audio.paused?audio.play():audio.pause()};
 $('#next').onclick=()=>step(1);$('#prev').onclick=()=>audio.currentTime>4?audio.currentTime=0:step(-1);
 $('#shuf').onclick=e=>{shuffle=!shuffle;e.currentTarget.classList.toggle('act',shuffle)};
-$('#rep').onclick=e=>{repeat=!repeat;e.currentTarget.classList.toggle('act',repeat)};
+$('#rep').onclick=e=>{repeat=(repeat+1)%3;paintRep();toast(repeat===0?'Repeat off':repeat===1?'Repeating your queue':'Repeating this song');
+  if(audio.setNext){audio.setNext(repeat===2||shuffle?null:queue[idx+1])}};
+function paintRep(){const r=$('#rep');r.classList.toggle('act',repeat>0);r.classList.toggle('one',repeat===2);r.title=repeat===2?'Repeating this song (R)':repeat===1?'Repeating your queue (R)':'Repeat (R)';
+  const f=document.querySelector('#fp [data-f=rep]');if(f){f.classList.toggle('act',repeat>0);f.classList.toggle('one',repeat===2)}}
 addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.metaKey||e.ctrlKey)return;const k=e.key.toLowerCase();
   if(e.code==='Space'){e.preventDefault();$('#pp').click()}
   else if(k==='arrowright'){audio.currentTime+=5}else if(k==='arrowleft'){audio.currentTime-=5}
@@ -1878,7 +1886,7 @@ function onPlay(t){{const f=$('#flash');f.classList.remove('go');void f.offsetWi
   const p=plays[t.id]||{n:0,raw:t.raw};p.n++;p.raw=t.raw;plays[t.id]=p;store.set('plays',plays);
   store.set('last',{raw:t.raw,time:0});
   if('mediaSession' in navigator){try{const c=coverOf(t)||eraCover(t);navigator.mediaSession.metadata=new MediaMetadata({title:titleOf(t),artist:artistOf(t),album:isSC(t)?'SoundCloud era':subOf(t),artwork:c?[{src:c,sizes:'512x512'}]:[]})}catch{}}
-  const nx=queue[idx+1];if(nx){const i=new Image();i.referrerPolicy='no-referrer';i.src=coverOf(nx)||eraCover(nx);if(audio.setNext){if(!shuffle)audio.setNext(nx)}else if(cfg.pre!==false)pre.src=nx.src}}
+  const nx=queue[idx+1];if(nx){const i=new Image();i.referrerPolicy='no-referrer';i.src=coverOf(nx)||eraCover(nx);if(audio.setNext){if(!shuffle&&repeat!==2)audio.setNext(nx)}else if(cfg.pre!==false)pre.src=nx.src}}
 if('mediaSession' in navigator){const ms=navigator.mediaSession;try{ms.setActionHandler('play',()=>audio.play());ms.setActionHandler('pause',()=>audio.pause());ms.setActionHandler('nexttrack',()=>step(1));ms.setActionHandler('previoustrack',()=>step(-1));ms.setActionHandler('seekto',e=>audio.currentTime=e.seekTime)}catch{}}
 let lastSave=0;audio.addEventListener('timeupdate',()=>{const t=cur();if(t&&Date.now()-lastSave>5000){lastSave=Date.now();store.set('last',{raw:t.raw,time:audio.currentTime})}});
 /* speed */
@@ -2146,7 +2154,7 @@ function qInsertAt(){let i=idx+1;while(i<queue.length&&queue[i]._q)i++;return i}
 const qCopy=t=>({...t,_q:true});
 function playNext(t){if(!queue.length||idx<0){queue=[t];play(0);return}queue.splice(idx+1,0,qCopy(t));afterQ();toast('Playing next: '+titleOf(t))}
 function addQueue(t){if(!queue.length||idx<0){queue=[t];play(0);return}queue.splice(qInsertAt(),0,qCopy(t));afterQ();toast('Added to queue: '+titleOf(t))}
-function afterQ(){paintQueue();renderQ();if(audio.setNext){if(!shuffle)audio.setNext(queue[idx+1])}else if(cfg.pre!==false&&queue[idx+1])pre.src=queue[idx+1].src}
+function afterQ(){paintQueue();renderQ();if(audio.setNext){if(!shuffle&&repeat!==2)audio.setNext(queue[idx+1])}else if(cfg.pre!==false&&queue[idx+1])pre.src=queue[idx+1].src}
 /* the old row "+" button now uses Play next with the queue tag */
 function renderQ(){const w=$('#qWin');if(!w.classList.contains('open'))return;const box=$('#qRes');box.innerHTML='';
   const mk=(t,n,lab)=>{const b=document.createElement('button');b.className='row'+(n===idx?' now':'');b.draggable=n>idx;
@@ -2759,7 +2767,7 @@ function sync(){const t=cur();if(!t)return;
   $('#fpLike').classList.toggle('on',!!likes[t.id]);
   const d=audio.duration||0,c=audio.currentTime||0;if(!seeking){$('#fpSeek').value=d?c/d*1000:0}$('#fpC').textContent=f2(c);$('#fpD').textContent=f2(d);
   fp.classList.toggle('paused',!!audio.paused);fp.querySelector('.pp use').setAttribute('href',audio.paused?'#i-play':'#i-pause');
-  fp.querySelector('[data-f=shuf]').classList.toggle('act',$('#shuf').classList.contains('act'));fp.querySelector('[data-f=rep]').classList.toggle('act',$('#rep').classList.contains('act'))}
+  fp.querySelector('[data-f=shuf]').classList.toggle('act',$('#shuf').classList.contains('act'));fp.querySelector('[data-f=rep]').classList.toggle('act',repeat>0);fp.querySelector('[data-f=rep]').classList.toggle('one',repeat===2)}
 let seeking=false,tick=0;
 $('#fpSeek').addEventListener('input',e=>{seeking=true;const d=audio.duration||0;$('#fpC').textContent=f2(e.target.value/1000*d)});
 $('#fpSeek').addEventListener('change',e=>{if(audio.duration)audio.currentTime=e.target.value/1000*audio.duration;seeking=false});

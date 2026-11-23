@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 85,
+   "date": "Nov 22",
+   "changes": [
+    "Fixed repeat doing nothing when only one song was queued",
+    "Repeat has two modes: tap once to repeat your queue, tap again for a '1' to repeat just this song, tap again to turn it off"
+   ]
+  },
+  {
    "version": 84,
    "date": "Nov 22",
    "changes": [
