@@ -20,11 +20,13 @@ public class AbyssPlayerPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setVolume", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setRate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "stop", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "connect", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "connect", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setRepeat", returnType: CAPPluginReturnPromise)
     ]
 
     private let player = AVQueuePlayer()
     private var wants = false
+    private var repeatOne = false
     private var rate: Float = 1
     private var info: [String: String] = [:]
     private var nextInfo: [String: String] = [:]
@@ -85,6 +87,7 @@ public class AbyssPlayerPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func play(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
             try? AVAudioSession.sharedInstance().setActive(true)
+            if self.player.currentItem == nil, let u = URL(string: self.info["url"] ?? "") { self.player.insert(AVPlayerItem(url: u), after: nil) }
             if let it = self.player.currentItem, it.duration.isValid, CMTimeCompare(it.currentTime(), it.duration) >= 0 { self.player.seek(to: .zero) }
             self.wants = true; self.player.playImmediately(atRate: self.rate); self.emitState(); self.nowPlaying(); self.tick(); call.resolve()
         }
@@ -103,12 +106,20 @@ public class AbyssPlayerPlugin: CAPPlugin, CAPBridgedPlugin {
         let r = Float(call.getDouble("rate") ?? 1)
         DispatchQueue.main.async { self.rate = r; if self.wants { self.player.rate = r }; self.nowPlaying(); call.resolve() }
     }
+    @objc func setRepeat(_ call: CAPPluginCall) { let m = call.getInt("mode") ?? 0; DispatchQueue.main.async { self.repeatOne = (m == 2); call.resolve() } }
     @objc func stop(_ call: CAPPluginCall) { DispatchQueue.main.async { self.wants = false; self.player.pause(); self.player.removeAllItems(); self.emitState(); call.resolve() } }
 
     // MARK: events
     @objc private func itemEnded(_ n: Notification) {
         guard let it = n.object as? AVPlayerItem else { return }
         DispatchQueue.main.async {
+            if self.repeatOne, let u = URL(string: self.info["url"] ?? "") {
+                // play the same song again, even with the screen locked
+                for x in self.player.items() { self.player.remove(x) }
+                self.player.insert(AVPlayerItem(url: u), after: nil)
+                self.wants = true; self.player.playImmediately(atRate: self.rate); self.nowPlaying(); self.tick(); self.emitState()
+                return
+            }
             let hasNext = !self.nextInfo.isEmpty && self.player.items().contains(where: { $0 !== it })
             if hasNext {
                 // the queued song started by itself (works even while the page is asleep)

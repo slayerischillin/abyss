@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 92,
+   "date": "Nov 23",
+   "changes": [
+    "Fixed repeat not repeating on phones",
+    "Repeat this song keeps looping with the screen locked (needs the new APK / IPA)"
+   ]
+  },
+  {
    "version": 91,
    "date": "Nov 23",
    "changes": [

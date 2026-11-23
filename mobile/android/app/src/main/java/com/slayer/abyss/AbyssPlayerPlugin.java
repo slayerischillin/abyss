@@ -88,6 +88,12 @@ public class AbyssPlayerPlugin extends Plugin {
         withPlayer(call, p -> { PlaybackService s = PlaybackService.instance; if (s != null) s.setButtons(like, shuf); });
     }
 
+    /** 0 = off, 1 = repeat queue (handled by the page), 2 = repeat this song (handled here, works with the screen off) */
+    @PluginMethod public void setRepeat(PluginCall call) {
+        final int m = call.getInt("mode", 0);
+        withPlayer(call, p -> p.setRepeatMode(m == 2 ? Player.REPEAT_MODE_ONE : Player.REPEAT_MODE_OFF));
+    }
+
     @PluginMethod public void play(PluginCall call) { withPlayer(call, p -> { if (p.getPlaybackState() == Player.STATE_ENDED) p.seekTo(0); p.play(); }); }
     @PluginMethod public void pause(PluginCall call) { withPlayer(call, p -> p.pause()); }
     @PluginMethod public void seek(PluginCall call) { final double s = call.getDouble("position", 0.0); withPlayer(call, p -> { p.seekTo((long) (s * 1000)); emitEvent("seeked"); }); }
