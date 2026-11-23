@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="89">
+<meta name="abyss-version" content="91">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2593,7 +2593,7 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
   const activeDev=()=>{const on=devs.filter(d=>online(d)&&d.active_at);on.sort((a,b)=>new Date(b.active_at)-new Date(a.active_at));return on[0]||null};
   const remote=()=>{const a=activeDev();if(!a||a.id===me||!a.state||a.state.idle)return null;const st=a.state;if(st.paused&&Date.now()-(st.lastPlay||0)>120000)return null;if(st.paused&&Date.now()-(st.at||0)>30000)return null;return a};let lastPlay=0;
   function myState(){const t=cur();if(!t)return{idle:true};if(!audio.paused)lastPlay=Date.now();return{lastPlay,raw:t.raw.local?null:t.raw,title:titleOf(t),artist:artistOf(t),cover:coverOf(t)||eraCover(t),pos:audio.currentTime||0,dur:audio.duration||0,paused:!!audio.paused,at:Date.now()}}
-  async function send(id,cmd){cmd.id=Date.now()+Math.random().toString(36).slice(2,6);try{await sfetch(T+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:await hdr({Prefer:'return=minimal'}),body:JSON.stringify({cmd})});setTimeout(beat,700)}catch(e){toast('Could not reach that device')}}
+  async function send(id,cmd){cmd.id=Date.now()+Math.random().toString(36).slice(2,6);try{await sfetch(T+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:await hdr({Prefer:'return=minimal'}),body:JSON.stringify({cmd})});if(!wsUp)setTimeout(beat,400)}catch(e){toast('Could not reach that device')}}
   async function claim(){myClaim=Date.now();const a=new Date().toISOString();const m=devs.find(d=>d.id===me);if(m)m.active_at=a;paint();
     try{await sfetch(T+'?on_conflict=id',{method:'POST',headers:await hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({id:me,user_id:acct.user.id,name:nameOf(),platform:kind,seen:a,active_at:a,state:myState()})})}catch(e){}}
   async function run(c){lastCmd=localStorage.getItem('devLastCmd')||lastCmd;if(!c||!c.id||c.id===lastCmd)return;lastCmd=c.id;localStorage.setItem('devLastCmd',c.id);if(Date.now()-parseInt(c.id)>60000)return;
@@ -2611,9 +2611,26 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
       await sfetch(T+'?on_conflict=id',{method:'POST',headers:await hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify(body)});
       const r=await sfetch(T+'?select=*&order=seen.desc',{headers:await hdr()});if(r.status===404||r.status===401&&!acct){broken=true;return}if(!r.ok)return;{const j=await r.json();devs=Array.isArray(j)?j:[]}
       const mine=devs.find(d=>d.id===me);if(mine&&mine.cmd)await run(mine.cmd);
-      const a=activeDev();if(a&&a.id!==me&&!audio.paused&&Date.now()-myClaim>5000){audio.pause();toast('Now playing on '+a.name)}
+      const a=activeDev();if(a&&a.id!==me&&!audio.paused&&Date.now()-myClaim>5000&&a.state&&!a.state.paused&&!a.state.idle&&Date.now()-new Date(a.active_at).getTime()<20000&&new Date(a.active_at).getTime()>myClaim){audio.pause();toast('Now playing on '+a.name)}
       paint()}catch(e){}}
   function loop(){clearTimeout(timer);beat().finally(()=>{timer=setTimeout(loop,document.hidden?10000:(sheet.classList.contains('open')||remote()?1500:3000))})}
+
+  /* ---- instant: Supabase Realtime pushes every device change here the moment it happens ---- */
+  let ws=null,wsRef=1,wsHb=0,wsTok='',wsUp=false;
+  async function rtStart(){if(!acct||!supaOn()||ws)return;let tk;try{tk=await token()}catch(e){return}if(!tk)return;wsTok=tk;
+    const sock=new WebSocket(SUPA.url.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+encodeURIComponent(SUPA.key)+'&vsn=1.0.0');ws=sock;
+    const topic='realtime:abyss-connect-'+acct.user.id;const send=o=>{try{sock.readyState===1&&sock.send(JSON.stringify(o))}catch(e){}};
+    sock.onopen=()=>{send({topic,event:'phx_join',ref:String(wsRef++),join_ref:'1',payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'connect_devices',filter:'user_id=eq.'+acct.user.id}]},access_token:tk}});
+      clearInterval(wsHb);wsHb=setInterval(async()=>{send({topic:'phoenix',event:'heartbeat',payload:{},ref:String(wsRef++)});try{const t2=await token();if(t2&&t2!==wsTok){wsTok=t2;send({topic,event:'access_token',payload:{access_token:t2},ref:String(wsRef++)})}}catch(e){}},25000)};
+    sock.onmessage=async ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}
+      if(m.event==='phx_reply'&&m.payload&&m.payload.status==='ok')wsUp=true;
+      if(m.event!=='postgres_changes')return;const d=m.payload&&m.payload.data,rec=d&&d.record;if(!rec||!rec.id)return;
+      const i=devs.findIndex(x=>x.id===rec.id);if(i>=0)devs[i]=rec;else devs.push(rec);
+      if(rec.id===me&&rec.cmd)await run(rec.cmd);
+      const a=activeDev();if(a&&a.id!==me&&!audio.paused&&Date.now()-myClaim>5000&&a.state&&!a.state.paused&&!a.state.idle&&Date.now()-new Date(a.active_at).getTime()<20000&&new Date(a.active_at).getTime()>myClaim){audio.pause();toast('Now playing on '+a.name)}
+      paint()};
+    sock.onclose=()=>{clearInterval(wsHb);if(ws===sock){ws=null;wsUp=false;setTimeout(rtStart,3000)}};sock.onerror=()=>{try{sock.close()}catch(e){}}}
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!ws)rtStart()});
   /* ---- UI: strip above the player + device sheet ---- */
   const ICO={pc:'<path d="M3 5h18v11H3z"/><path d="M8 20h8M12 16v4"/>',phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',web:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>',spk:'<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><circle cx="12" cy="14" r="3.5"/><circle cx="12" cy="7" r="1"/>'};
   const svg=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+ICO[k]+'</svg>';
@@ -2648,12 +2665,12 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
       (on.length<2?'<p class="cnTip">Open Abyss on another device with the same account and it shows up here.</p>':'')}
   /* when another device is playing, the controls here drive that device */
   const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r||(cur()&&!audio.paused))return;e.stopImmediatePropagation();e.preventDefault();
-    if(type==='toggle'){r.state.paused=!r.state.paused;r.state.at=Date.now();paint()}send(r.id,{type})},true)};
+    if(type==='toggle'){const st=r.state;st.pos=st.pos+(st.paused?0:(Date.now()-st.at)/1000);st.paused=!st.paused;st.at=Date.now();if(!st.paused)st.lastPlay=Date.now();paint()}send(r.id,{type})},true)};
   ctl('#pp','toggle');ctl('#next','next');ctl('#prev','prev');
   $('#seek').addEventListener('change',e=>{const r=remote();if(!r||!r.state.dur||(cur()&&!audio.paused))return;e.stopImmediatePropagation();send(r.id,{type:'seek',pos:e.target.value/1000*r.state.dur})},true);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loop()});
   setInterval(()=>{if(remote())paint()},1000);
-  return{start(){if(acct&&supaOn())loop()},open,devices:()=>devs,me}})();
+  return{start(){if(acct&&supaOn()){loop();rtStart()}},open,devices:()=>devs,me}})();
 window.abyssConnect=connect;window.abyssCmdDone=id=>{try{localStorage.setItem('devLastCmd',id)}catch(e){}};setTimeout(()=>connect.start(),2500);
 const _finish3=finish;finish=async function(d){const ok=await _finish3(d);if(ok)setTimeout(()=>connect.start(),1500);return ok};
 

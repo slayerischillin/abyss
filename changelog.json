@@ -1,6 +1,22 @@
 {
  "versions": [
   {
+   "version": 91,
+   "date": "Nov 23",
+   "changes": [
+    "Fixed music stopping by itself on phones in the background",
+    "Abyss Connect only pauses this device when another device really just started playing"
+   ]
+  },
+  {
+   "version": 90,
+   "date": "Nov 23",
+   "changes": [
+    "Abyss Connect is instant: pause, play, skip and seek reach your other device right away",
+    "The button you press updates immediately on the device in your hand"
+   ]
+  },
+  {
    "version": 89,
    "date": "Nov 23",
    "changes": [
