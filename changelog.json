@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 80,
+   "date": "Nov 22",
+   "changes": [
+    "Every dropdown (eras, view, sort, song names, categories) is now a liquid glass menu instead of the plain white one"
+   ]
+  },
+  {
    "version": 79,
    "date": "Nov 22",
    "changes": [

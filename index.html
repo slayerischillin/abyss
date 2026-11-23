@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="79">
+<meta name="abyss-version" content="80">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1204,6 +1204,26 @@ dialog::backdrop,#cnSheet .cnBg{background:rgba(3,2,6,.35)!important}
 #spBtn.on{color:#4ee68a}
 @media (max-width:700px){.spOpts{grid-template-columns:1fr}}
 #dSpot{background:var(--lg-bg)!important;border:var(--lg-edge)!important;-webkit-backdrop-filter:var(--lg-blur)!important;backdrop-filter:var(--lg-blur)!important;box-shadow:var(--lg-shadow)!important}
+/* v80: liquid glass dropdowns */
+select.gselHidden{display:none!important}
+.gsel{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-width:0;padding:9px 12px;border-radius:12px;color:#fff;font:inherit;font-size:13px;cursor:pointer;
+  background:var(--lg-in)!important;border:1px solid rgba(255,255,255,.15)!important;box-shadow:var(--lg-in-shadow)!important;transition:border-color .2s,background .2s}
+.gsel span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gsel svg{flex:none;width:16px;height:16px;opacity:.65;transition:transform .25s cubic-bezier(.2,1.4,.3,1)}
+.gsel:hover{border-color:rgba(255,255,255,.26)!important}.gsel.open{border-color:rgba(255,255,255,.32)!important}.gsel.open svg{transform:rotate(180deg)}
+.gmenu{position:fixed;z-index:200;overflow:auto;padding:6px;border-radius:16px;scrollbar-width:thin;
+  background:var(--lg-bg);border:var(--lg-edge);-webkit-backdrop-filter:var(--lg-blur);backdrop-filter:var(--lg-blur);box-shadow:var(--lg-shadow);
+  transform-origin:top center;animation:gIn .2s cubic-bezier(.2,1.3,.3,1)}
+.gmenu.up{transform-origin:bottom center}.gmenu.bye{animation:gOut .16s ease-in forwards}
+@keyframes gIn{from{opacity:0;transform:translateY(-6px) scale(.96)}}@keyframes gOut{to{opacity:0;transform:translateY(-4px) scale(.97)}}
+.gopt{display:block;width:100%;text-align:left;padding:8px 12px;border:0;border-radius:10px;background:none;color:rgba(255,255,255,.88);font:inherit;font-size:13.5px;white-space:nowrap;cursor:pointer;outline:0;
+  animation:gRow .25s cubic-bezier(.2,1.2,.3,1) backwards;animation-delay:calc(var(--i)*14ms)}
+@keyframes gRow{from{opacity:0;transform:translateY(4px)}}
+.gopt:hover,.gopt:focus{background:rgba(255,255,255,.08)}
+.gopt.on{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.05));box-shadow:inset 1px 1px 0 rgba(255,255,255,.25);color:#fff;font-weight:600}
+.gopt.on::after{content:"";float:right;width:7px;height:7px;margin:6px 0 0 14px;border-radius:50%;background:var(--glow);box-shadow:0 0 8px var(--glow)}
+.ghd{font-size:11.5px;font-weight:600;opacity:.5;padding:8px 12px 4px}
+@media (max-width:700px){.gmenu{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(20,15,30,.97)}.gopt{padding:11px 14px;font-size:15px}}
 </style>
 </head>
 <body style="--art:none">
@@ -2889,6 +2909,37 @@ if(can){const foot=$('#dSet .shFoot');if(foot){const b=document.createElement('b
   kv.get('dir').then(async h=>{if(!h)return;dir=h;if(await perm(h,false))setTimeout(()=>sync(false),8000)}).catch(()=>{})}
 })();
 $('#cDl').onclick=()=>{const t=cur();if(!t){toast('Play a song first');return}window.abyssDownload(t)};
+/* ================= v80: liquid glass dropdowns (replace the plain white system menus) ================= */
+(()=>{const desc=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value'),sdesc=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'selectedIndex');
+let openMenu=null;
+const close=()=>{if(!openMenu)return;const m=openMenu;openMenu=null;m.menu.classList.add('bye');m.btn.classList.remove('open');setTimeout(()=>m.menu.remove(),160)};
+function enhance(sel){if(sel.dataset.glass)return;sel.dataset.glass='1';
+  const btn=document.createElement('button');btn.type='button';btn.className='gsel'+(sel.classList.contains('fld')?' fld':'');btn.setAttribute('aria-haspopup','listbox');
+  btn.innerHTML='<span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  sel.insertAdjacentElement('afterend',btn);sel.classList.add('gselHidden');
+  const upd=()=>{const o=sel.options[sel.selectedIndex];btn.querySelector('span').textContent=o?o.textContent:'';btn.title=sel.getAttribute('aria-label')||''};
+  Object.defineProperty(sel,'value',{configurable:true,get(){return desc.get.call(this)},set(v){desc.set.call(this,v);upd()}});
+  Object.defineProperty(sel,'selectedIndex',{configurable:true,get(){return sdesc.get.call(this)},set(v){sdesc.set.call(this,v);upd()}});
+  new MutationObserver(upd).observe(sel,{childList:true,subtree:true,characterData:true});sel.addEventListener('change',upd);upd();
+  btn.onclick=e=>{e.stopPropagation();if(openMenu&&openMenu.sel===sel){close();return}close();
+    const menu=document.createElement('div');menu.className='gmenu';menu.setAttribute('role','listbox');let i=0,cur=null;
+    const add=(o)=>{const b=document.createElement('button');b.type='button';b.className='gopt'+(o.selected?' on':'');b.textContent=o.textContent;b.style.setProperty('--i',Math.min(i++,14));if(o.disabled)b.disabled=true;
+      b.onclick=ev=>{ev.stopPropagation();const v=o.value;close();if(desc.get.call(sel)!==v){sel.value=v;sel.dispatchEvent(new Event('input',{bubbles:true}));sel.dispatchEvent(new Event('change',{bubbles:true}))}};menu.appendChild(b);if(o.selected)cur=b};
+    [...sel.children].forEach(c=>{if(c.tagName==='OPTGROUP'){if(!c.children.length)return;const h=document.createElement('div');h.className='ghd';h.textContent=c.label;menu.appendChild(h);[...c.children].forEach(add)}else add(c)});
+    document.body.appendChild(menu);const r=btn.getBoundingClientRect(),H=Math.min(menu.scrollHeight,360),below=innerHeight-r.bottom-12;
+    menu.style.minWidth=r.width+'px';menu.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(r.width,menu.offsetWidth)-8))+'px';
+    if(below<Math.min(H,220)&&r.top>below){menu.style.bottom=(innerHeight-r.top+6)+'px';menu.classList.add('up')}else menu.style.top=(r.bottom+6)+'px';
+    menu.style.maxHeight=Math.max(160,Math.min(360,menu.classList.contains('up')?r.top-16:below))+'px';
+    if(cur)cur.scrollIntoView({block:'nearest'});btn.classList.add('open');openMenu={sel,btn,menu};
+    menu.addEventListener('keydown',ev=>{const all=[...menu.querySelectorAll('.gopt:not([disabled])')],k=all.indexOf(document.activeElement);
+      if(ev.key==='ArrowDown'||ev.key==='ArrowUp'){ev.preventDefault();(all[(k+(ev.key==='ArrowDown'?1:-1)+all.length)%all.length]||all[0]).focus()}else if(ev.key==='Escape'){close();btn.focus()}});
+    setTimeout(()=>(cur||menu.querySelector('.gopt'))?.focus({preventScroll:true}),30)};
+  btn.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();btn.click()}})}
+document.querySelectorAll('select').forEach(enhance);
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;if(n.tagName==='SELECT')enhance(n);else n.querySelectorAll&&n.querySelectorAll('select').forEach(enhance)}))).observe(document.body,{childList:true,subtree:true});
+addEventListener('pointerdown',e=>{if(openMenu&&!openMenu.menu.contains(e.target)&&!openMenu.btn.contains(e.target))close()},true);
+addEventListener('resize',close);addEventListener('scroll',e=>{if(openMenu&&!openMenu.menu.contains(e.target))close()},true);
+})();
 </script>
 </body>
 </html>
