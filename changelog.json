@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 81,
+   "date": "Nov 22",
+   "changes": [
+    "Full-screen lyrics redesigned: flat cover, clean bold lines with no tilt or blur, the current line lights up fully, and the background takes the cover's colors"
+   ]
+  },
+  {
    "version": 80,
    "date": "Nov 22",
    "changes": [

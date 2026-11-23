@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="80">
+<meta name="abyss-version" content="81">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1224,6 +1224,26 @@ select.gselHidden{display:none!important}
 .gopt.on::after{content:"";float:right;width:7px;height:7px;margin:6px 0 0 14px;border-radius:50%;background:var(--glow);box-shadow:0 0 8px var(--glow)}
 .ghd{font-size:11.5px;font-weight:600;opacity:.5;padding:8px 12px 4px}
 @media (max-width:700px){.gmenu{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(20,15,30,.97)}.gopt{padding:11px 14px;font-size:15px}}
+/* v81: cleaner full-screen lyrics */
+#lyr.full .lbg{filter:blur(110px) saturate(1.6) brightness(.62)!important;transform:scale(1.3)}
+#lyr.full::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 80% at 30% 40%,transparent,rgba(5,3,10,.55));z-index:0}
+#lyr.full>*{position:relative;z-index:1}
+#lyr.full .lnow img,#lyr .lnow img{transform:none!important}
+#lyr.full .lnow img{border-radius:14px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)!important;width:min(100%,50vh)}
+#lyr.full .lnow b{font:800 30px/1.15 Barlow,sans-serif;letter-spacing:-.01em;margin-top:4px}
+#lyr.full .lnow small{font-size:16px;color:rgba(255,255,255,.7)}
+#lyr.full .lnow small+small{font-size:12px;letter-spacing:.12em;color:rgba(255,255,255,.45)}
+#lyr.full header{opacity:.8}
+#lyr.full #lyrBody{padding:30vh 7vw 45vh 3vw;-webkit-mask:linear-gradient(transparent,#000 14%,#000 82%,transparent);mask:linear-gradient(transparent,#000 14%,#000 82%,transparent)}
+#lyr.full #lyrBody p{font:800 clamp(28px,3.3vw,48px)/1.2 Barlow,sans-serif!important;letter-spacing:-.015em;margin:0 0 30px;font-style:normal!important;
+  transform:none!important;filter:none!important;opacity:1!important;color:rgba(255,255,255,.3)!important;background:none!important;-webkit-background-clip:border-box;transition:color .35s ease,transform .4s ease}
+#lyr.full #lyrBody p.past{color:rgba(255,255,255,.45)!important}
+#lyr.full #lyrBody p.on{color:#fff!important;text-shadow:0 0 30px rgba(255,255,255,.18)}
+#lyr.full #lyrBody p:hover{color:rgba(255,255,255,.75)!important}
+#lyr.full #lyrBody p .ad{opacity:.6;font-weight:700}
+#lyr.full #lyrBody p.gap{font-size:28px!important;letter-spacing:.3em;color:rgba(255,255,255,.25)!important}
+#lyr.full #lyrOff{opacity:.75}
+#lyr.full #lyrOff button,#lyr.full header button{background:var(--lg-in)!important;border:1px solid rgba(255,255,255,.15)!important;box-shadow:var(--lg-in-shadow)!important}
 </style>
 </head>
 <body style="--art:none">
@@ -1903,7 +1923,7 @@ function syncLyrics(){if(!lyrOpen()||!lyrLines.length)return;const t=cur(),ct=au
 audio.addEventListener('timeupdate',syncLyrics);audio.addEventListener('seeked',()=>{lyrOn=-2;syncLyrics()});
 audio.addEventListener('loadedmetadata',()=>{if(lyrOpen())showLyrics()});
 /* plain lyrics: curve lines by distance from the middle while scrolling */
-function curvePlain(){const b=$('#lyrBody');if(!b.classList.contains('plain'))return;const r=b.getBoundingClientRect(),mid=r.top+r.height*.45;
+function curvePlain(){const b=$('#lyrBody');if(!b.classList.contains('plain')||$('#lyr').classList.contains('full'))return;const r=b.getBoundingClientRect(),mid=r.top+r.height*.45;
   for(const p of b.children){const q=p.getBoundingClientRect(),d=(q.top+q.height/2-mid)/r.height,ad=Math.min(Math.abs(d),1);
     p.style.transform='perspective(800px) rotateX('+(-d*50).toFixed(1)+'deg) translateZ('+(-ad*120).toFixed(0)+'px)';p.style.opacity=Math.max(.2,1-ad*1.3).toFixed(2)}}
 $('#lyrBody').addEventListener('scroll',()=>requestAnimationFrame(curvePlain),{passive:true});
