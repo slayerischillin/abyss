@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="102">
+<meta name="abyss-version" content="103">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2247,8 +2247,8 @@ const AD=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssDiscord;
 if(AD)document.body.classList.add('android');
 function sendPresence(){if(AD&&!window.abyssWin)return sendPresenceAndroid();const R=abyssWin.rpc;
   if(!DISCORD_ID||cfg.discord===false){R({clientId:DISCORD_ID||undefined,off:true});rpcLast='';return}
-  const t=cur();if(!t||!audio.src||audio.paused||t.raw.unleaked){if(rpcLast!=='none'){R({clientId:DISCORD_ID,activity:null});rpcLast='none'}return}
-  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
+  const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){R({clientId:DISCORD_ID,activity:null});rpcLast='none'}return}
+  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=t.raw.unleaked?'':(coverOf(t)||eraCover(t));
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');
   if(cfg.discordLyric&&!audio.paused){if(dLyr.id!==t.id){dLyr={id:t.id,lines:[]};fetchLyrics(t).then(v=>{if(dLyr.id===t.id){dLyr.lines=v.synced||[];presence()}})}
@@ -2266,8 +2266,8 @@ $('#sSave').addEventListener('click',()=>{cfg.discord=$('#sDisc').checked;cfg.di
 setTimeout(()=>presence(true),3000);
 function sendPresenceAndroid(){
   if(!DISCORD_ID||cfg.discord===false){AD.clear().catch(()=>{});rpcLast='';return}
-  const t=cur();if(!t||!audio.src||audio.paused||t.raw.unleaked){if(rpcLast!=='none'){AD.clear().catch(()=>{});rpcLast='none'}return}
-  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=coverOf(t)||eraCover(t);
+  const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){AD.clear().catch(()=>{});rpcLast='none'}return}
+  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=t.raw.unleaked?'':(coverOf(t)||eraCover(t));
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');if(audio.paused)state='Paused · '+state;
   const o={appId:DISCORD_ID,details:clip(titleOf(t),128),state:clip(state,128),largeImage:big,largeText:clip(era||'Abyss',128),
@@ -2709,13 +2709,15 @@ const unleaked=(()=>{const B='unleaked';let items=[],ok=false,busy=false;window.
     try{const r=await req('POST','object/list/'+B,JSON.stringify({prefix:'',limit:1000,sortBy:{column:'created_at',order:'asc'}}),'application/json');
       const all=await r.json(),names=new Set(all.map(f=>f.name)),files=all.filter(f=>/\.(mp3|m4a|wav|flac|ogg|aac|opus)$/i.test(f.name));
       const want=files.flatMap(f=>[f.name].concat(names.has(f.name+'.jpg')?[f.name+'.jpg']:[]));let signed=[];
-      if(want.length){signed=await (await req('POST','object/sign/'+B,JSON.stringify({expiresIn:604800,paths:want}),'application/json')).json()}
+      if(want.length){signed=await (await req('POST','object/sign/'+B,JSON.stringify({expiresIn:21600,paths:want}),'application/json')).json()}
       const url=p=>{const s=signed.find(x=>x.path===p);return s&&s.signedURL?SUPA.url+'/storage/v1'+s.signedURL:''};
       const meta=store.get('ulMeta',{});
       items=files.map(f=>{const id='ul:'+f.name,raw={id,name:(meta[f.name]&&meta[f.name].title)||pretty(f.name),unleaked:true,ulFile:f.name,category:'unleaked',era:{name:'Unleaked',description:'Unleaked'},length:(meta[f.name]&&meta[f.name].len)||''};
         window.__ulMap[id]={src:url(f.name),art:url(f.name+'.jpg')};return raw});ok=true}
     catch(e){ok=false;if(e.message==='nobucket')console.warn('Unleaked: run abyss-unleaked-setup.sql')}
-    paintOpt();if(ok&&$('#view').value==='unleaked')load(true);if(ok)fixCovers()}
+    paintOpt();if(ok&&$('#view').value==='unleaked')load(true);if(ok)fixCovers();
+    if(ok){const t=cur();if(t&&t.raw.unleaked&&!t.src){const m=window.__ulMap[t.id];if(m&&m.src){t.src=m.src;t.art=m.art;const last=store.get('last',null),at=last&&last.raw&&last.raw.id===t.id?last.time:0;
+      audio.src=t.src;try{if(at)audio.currentTime=at}catch(e){}audio.addEventListener('loadedmetadata',()=>{try{if(at&&Math.abs(audio.currentTime-at)>1)audio.currentTime=at}catch(e){}},{once:true});window.paint&&window.paint()}}}}
   /* songs dropped straight into Supabase have no cover file yet: pull the cover out of the MP3 and save it next to it */
   let fixing=false;async function fixCovers(){if(fixing)return;fixing=true;let n=0;
     try{for(const raw of items){const m=window.__ulMap[raw.id];if(!m||m.art||!m.src||raw.noArt)continue;
@@ -2737,7 +2739,7 @@ const unleaked=(()=>{const B='unleaked';let items=[],ok=false,busy=false;window.
     try{await req('DELETE','object/'+B,JSON.stringify({prefixes:[t.raw.ulFile,t.raw.ulFile+'.jpg']}),'application/json');toast('Removed')}catch(e){toast('Could not remove ('+e.message+')')}refresh()}
   const pick=()=>{const i=document.createElement('input');i.type='file';i.accept='audio/*,.mp3,.m4a,.wav,.flac';i.multiple=true;i.onchange=()=>upload([...i.files]);i.click()};
   return{refresh,items:()=>items,pick,remove,isMe,ok:()=>ok}})();
-window.abyssUnleaked=unleaked;setTimeout(()=>unleaked.refresh(),3000);setInterval(()=>unleaked.refresh(),6*3600*1000);
+window.abyssUnleaked=unleaked;setTimeout(()=>unleaked.refresh(),3000);setInterval(()=>unleaked.refresh(),2*3600*1000);
 const _finish4=finish;finish=async function(d){const r=await _finish4(d);setTimeout(()=>unleaked.refresh(),4000);return r};
 const _lp=loadProfile;loadProfile=async function(){const r=await _lp.apply(this,arguments);try{unleaked.refresh()}catch(e){}return r};
 
@@ -3017,7 +3019,7 @@ const kv={db:null,open(){return this.db||(this.db=new Promise((res,rej)=>{const 
   async del(k){const d=await this.open();return new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=r})}};
 let dir=null,running=false,progress={done:0,total:0,now:''},timer=0;
 const opts=()=>Object.assign({liked:true,pls:true,recent:false,local:true},store.get('spotOpts',{}));
-function wanted(){const o=opts(),m=new Map();const add=r=>{if(!r||m.has(String(r.id)))return;const t=api.toTrack(r);if(t&&(t.src||t.raw.local))m.set(String(r.id),t)};
+function wanted(){const o=opts(),m=new Map();const add=r=>{if(!r||r.unleaked||m.has(String(r.id)))return;const t=api.toTrack(r);if(t&&(t.src||t.raw.local))m.set(String(r.id),t)};
   if(o.liked)Object.values(likes).forEach(add);if(o.pls)pls.forEach(p=>p.songs.forEach(add));if(o.recent)hist.slice(0,50).forEach(add);if(o.local)locals.forEach(add);return m}
 async function perm(h,ask){try{const o={mode:'readwrite'};if(await h.queryPermission(o)==='granted')return true;return ask?(await h.requestPermission(o))==='granted':false}catch(e){return false}}
 async function sync(manual){if(running||!dir)return;if(!await perm(dir,manual)){paintS();if(manual)toast('Allow Abyss to use the folder to keep it in sync');return}
@@ -3155,6 +3157,18 @@ function hit(){if(k>=lines.length)return;stamps[k]=audio.currentTime;k++;paintTa
   if(k>=lines.length){const lrc=lines.map((l,i)=>fmt(Math.max(0,stamps[i]-0.15))+l).join('\n');$('#mlTx').value=lrc;stopTap();save(lrc);toast('Timed! Your lyrics now scroll with the song')}}
 $('#mlHit').onclick=hit;$('#mlBack').onclick=()=>{if(k>0){k--;audio.currentTime=Math.max(0,(stamps[k]||audio.currentTime)-2);paintTap()}};$('#mlStop').onclick=stopTap;
 addEventListener('keydown',e=>{if(d.open&&d.classList.contains('tapping')&&(e.code==='Space'||e.key==='Enter')){e.preventDefault();e.stopImmediatePropagation();hit()}},true);
+})();
+/* ================= v103: Unleaked songs never leave Abyss ================= */
+(()=>{const ul=t=>!!(t&&t.raw&&t.raw.unleaked),no=()=>toast('Unleaked songs stay inside Abyss');
+/* no downloading, sharing, exporting or public cover sharing for them */
+if(window.abyssDownload){const d=window.abyssDownload;window.abyssDownload=t=>ul(t)?no():d(t)}
+if(window.abyssShareUpload){const u=window.abyssShareUpload;window.abyssShareUpload=(t,c)=>ul(t)?undefined:u(t,c)}
+if(typeof shareCover==='function'){const sc=shareCover;shareCover=function(t){if(ul(t))return;return sc.apply(this,arguments)}}
+document.addEventListener('click',e=>{const b=e.target.closest('#mActs [data-m=share],#cDl,.fpDl button,[data-c=dl],[data-a=dl]');if(b&&ul(cur())&&!b.closest('.row')){e.stopImmediatePropagation();e.preventDefault();no()}},true);
+const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(ul(t))ctx.querySelectorAll('[data-c=dl],[data-c=radio],[data-c=copy]').forEach(x=>x.remove())};
+const _r=renderList;renderList=function(){_r.apply(this,arguments);try{$('#res').querySelectorAll('.row').forEach((row,i)=>{if(ul(list[i]))row.querySelector('[data-a=dl]')?.remove()})}catch(e){}};
+/* lyrics lookups never send the name out to other websites */
+const _fl=fetchLyrics;fetchLyrics=async function(t){if(ul(t)){const m=store.get('myLyrics',{})[t.id];if(m&&m.txt){const L=/\[\d+:\d+/.test(m.txt);return{synced:L?parseLRC(m.txt):null,plain:L?'':m.txt,mine:true}}return{none:true}}return _fl.apply(this,arguments)};
 })();
 </script>
 </body>
