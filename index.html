@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="82">
+<meta name="abyss-version" content="83">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1245,9 +1245,9 @@ select.gselHidden{display:none!important}
 #lyr.full #lyrOff{opacity:.75}
 #lyr.full #lyrOff button,#lyr.full header button{background:var(--lg-in)!important;border:1px solid rgba(255,255,255,.15)!important;box-shadow:var(--lg-in-shadow)!important}
 /* v82: lyrics animations */
-#lyr.full #lyrBody p{transform:scale(.955) translateX(-6px)!important;transform-origin:left center;transition:color .5s ease,transform .7s cubic-bezier(.2,1.25,.3,1),opacity .5s ease,filter .5s ease!important;
+#lyr.full #lyrBody p{transform:none!important;transform-origin:left center;transition:color .5s ease,transform .7s cubic-bezier(.2,1.25,.3,1),opacity .5s ease,filter .5s ease!important;
   opacity:var(--o,1)!important;filter:blur(var(--b,0px))!important}
-#lyr.full #lyrBody p.on{transform:scale(1.035) translateX(0)!important;color:rgba(255,255,255,.38)!important;filter:none!important;opacity:1!important}
+#lyr.full #lyrBody p.on{transform:none!important;color:rgba(255,255,255,.38)!important;filter:none!important;opacity:1!important}
 #lyr.full #lyrBody p.on.ws .w{display:inline;color:rgba(255,255,255,.38);transition:color .25s ease,text-shadow .4s ease;transition-delay:var(--wd)}
 #lyr.full #lyrBody p.on.ws.go .w{color:#fff;text-shadow:0 0 24px rgba(255,255,255,.35)}
 #lyr.full #lyrBody p.on:not(.ws){color:#fff!important}
@@ -1258,7 +1258,7 @@ select.gselHidden{display:none!important}
 @keyframes lyPop{0%{text-shadow:0 0 0 transparent}40%{text-shadow:0 0 40px rgba(255,255,255,.35)}100%{text-shadow:0 0 0 transparent}}
 #lyr.full #lyrBody p.gap.on{color:#fff!important;letter-spacing:.4em}
 #lyr.full #lyrBody p.gap.on{animation:lyGap 1.4s ease-in-out infinite}
-@keyframes lyGap{50%{opacity:.45;transform:scale(1.08) translateX(0)}}
+@keyframes lyGap{50%{opacity:.45}}
 /* opening the full view */
 #lyr.full.enter .lnow img{animation:lyCov .9s cubic-bezier(.2,1.2,.3,1) both}
 #lyr.full.enter .lnow b,#lyr.full.enter .lnow small{animation:lyUp .7s cubic-bezier(.2,1.2,.3,1) both}
@@ -1269,10 +1269,10 @@ select.gselHidden{display:none!important}
 @keyframes lyUp{from{opacity:0;transform:translateY(26px)}}
 @keyframes lyFade{from{opacity:0}}
 #lyr.full.leave{animation:lyOut .35s cubic-bezier(.5,0,.75,0) forwards}
-@keyframes lyOut{to{opacity:0;transform:scale(1.04);filter:blur(10px)}}
+@keyframes lyOut{to{opacity:0}}
 /* breathing cover while playing */
 body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
-@keyframes lyBreath{50%{transform:scale(1.018)!important;box-shadow:0 40px 90px -25px rgba(0,0,0,.9),0 0 70px -20px var(--glow)!important}}
+@keyframes lyBreath{50%{box-shadow:0 40px 90px -25px rgba(0,0,0,.9),0 0 70px -20px var(--glow)!important}}
 #lyr.full .lbg{animation:lyBg 24s ease-in-out infinite alternate!important}
 @keyframes lyBg{0%{transform:scale(1.3) rotate(0)}50%{transform:scale(1.45) rotate(8deg) translate(3%,-2%)}100%{transform:scale(1.35) rotate(-6deg) translate(-3%,2%)}}
 @media (prefers-reduced-motion:reduce){#lyr.full *{animation:none!important;transition:none!important}}

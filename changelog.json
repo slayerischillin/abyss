@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 83,
+   "date": "Nov 22",
+   "changes": [
+    "Full-screen lyrics: removed the zoom when lines change and when closing; lines just brighten and dim"
+   ]
+  },
+  {
    "version": 82,
    "date": "Nov 22",
    "changes": [
