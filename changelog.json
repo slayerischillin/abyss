@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 93,
+   "date": "Nov 23",
+   "changes": [
+    "Fixed songs not playing on phones",
+    "Play only controls another device when that device is actually playing",
+    "If the phone's player ever fails to start, Abyss plays the song inside the app instead of staying silent"
+   ]
+  },
+  {
    "version": 92,
    "date": "Nov 23",
    "changes": [

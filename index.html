@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="92">
+<meta name="abyss-version" content="93">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1493,7 +1493,9 @@ class NativeAudio extends EventTarget{
     this.preload='';this.crossOrigin=null;this.error=null;this._el=null;this._h={};this._sentMeta=false;
     P.addListener('player',e=>this._on(e||{}));}
   _isLocal(u){return/^(blob|data|file):/.test(u||'')}
-  get _localMode(){return this._isLocal(this._src)}
+  get _localMode(){return this._fb||this._isLocal(this._src)}
+  _fallback(why){if(this._fb)return;this._fb=true;console.warn('native player failed, using built-in audio',why);try{this.P.pause().catch(()=>{})}catch(e){}
+    const a=this._elx(),u=this._src;a.volume=this._muted?0:this._vol;a.playbackRate=this._rate;a.src=u;if(!this._paused)a.play().catch(()=>{});this._fire('loadstart')}
   _fire(n){const ev=new Event(n);this.dispatchEvent(ev);const h=this._h[n];if(h)try{h.call(this,ev)}catch(e){console.error(e)}}
   _meta(){try{const t=typeof cur==='function'&&cur();if(!t)return{};const c=coverOf(t)||eraCover(t);return{title:titleOf(t),artist:artistOf(t),sub:subOf(t),album:isSC(t)?'SoundCloud era':subOf(t),art:/^https:/.test(c)?c:''}}catch{return{}}}
   _elx(){if(!this._el){const a=this._el=new Audio();a.preload='metadata';
@@ -1505,9 +1507,11 @@ class NativeAudio extends EventTarget{
     if(this._el){this._el.pause()}
     if(u===this._native)return;        /* the phone already moved on to this song by itself */
     this._native=u;this._dur=NaN;this._pos=0;this._posAt=performance.now();this._paused=true;
-    this.P.load(Object.assign({url:u,autoplay:false},this._meta())).catch(e=>{this.error={message:String(e&&e.message||e)};this._fire('error')});this._fire('loadstart')}
+    this._gotState=false;this.P.load(Object.assign({url:u,autoplay:false},this._meta())).catch(e=>this._fallback(e));this._fire('loadstart')}
   play(){if(this._localMode)return this._elx().play();
-    if(this._paused){this._paused=false;this._posAt=performance.now();this._fire('play')}return this.P.play().then(()=>{}).catch(e=>{this._paused=true;this._fire('pause');throw e})}
+    if(this._paused){this._paused=false;this._posAt=performance.now();this._fire('play')}
+    clearTimeout(this._wd);this._wd=setTimeout(()=>{if(!this._gotState&&!this._paused&&!this._localMode)this._fallback('no response')},6000);
+    return this.P.play().then(()=>{}).catch(e=>{this._fallback(e)})}
   pause(){if(this._localMode){this._el&&this._el.pause();return}
     if(!this._paused){this._pos=this.currentTime;this._paused=true;this._fire('pause')}this.P.pause().catch(()=>{})}
   get paused(){return this._localMode?(!this._el||this._el.paused):this._paused}
@@ -1532,7 +1536,7 @@ class NativeAudio extends EventTarget{
   updateInfo(){if(!this._localMode&&this._native)this.P.updateInfo(this._meta()).catch(()=>{})}
   _on(e){if(this._localMode&&e.type!=='action')return;
     switch(e.type){
-      case'state':{this._pos=+e.position||0;this._posAt=performance.now();
+      case'state':{if(e.playing)this._gotState=true;this._pos=+e.position||0;this._posAt=performance.now();
         if(e.duration>0&&e.duration!==this._dur){const first=!isFinite(this._dur);this._dur=e.duration;if(first)this._fire('loadedmetadata');this._fire('durationchange')}
         const p=!e.wants;if(p!==this._paused){this._paused=p;this._fire(p?'pause':'play')}
         if(e.playing&&!this._was)this._fire('playing');this._was=!!e.playing;this._fire('timeupdate');break}
@@ -2664,10 +2668,10 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
     $('#cnList').innerHTML=(list.length?'<small class="cnH">Other devices</small>':'')+list.map((d,i)=>'<button data-dev="'+esc(d.id)+'" style="--i:'+i+'"><span class="cnI">'+svg(d.platform==='pc'?'pc':d.platform==='phone'?'phone':'web')+'</span><div><b>'+esc(d.id===me?d.name+' (this device)':d.name)+'</b><small>'+(d.id===me?'Play here':d.platform==='pc'?'Abyss on PC':d.platform==='phone'?'Abyss on phone':'Abyss in a browser')+'</small></div></button>').join('')+
       (on.length<2?'<p class="cnTip">Open Abyss on another device with the same account and it shows up here.</p>':'')}
   /* when another device is playing, the controls here drive that device */
-  const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r||(cur()&&!audio.paused))return;e.stopImmediatePropagation();e.preventDefault();
+  const ctl=(sel,type)=>{const el=$(sel);if(el)el.addEventListener('click',e=>{const r=remote();if(!r||r.state.paused||(cur()&&!audio.paused))return;e.stopImmediatePropagation();e.preventDefault();
     if(type==='toggle'){const st=r.state;st.pos=st.pos+(st.paused?0:(Date.now()-st.at)/1000);st.paused=!st.paused;st.at=Date.now();if(!st.paused)st.lastPlay=Date.now();paint()}send(r.id,{type})},true)};
   ctl('#pp','toggle');ctl('#next','next');ctl('#prev','prev');
-  $('#seek').addEventListener('change',e=>{const r=remote();if(!r||!r.state.dur||(cur()&&!audio.paused))return;e.stopImmediatePropagation();send(r.id,{type:'seek',pos:e.target.value/1000*r.state.dur})},true);
+  $('#seek').addEventListener('change',e=>{const r=remote();if(!r||!r.state.dur||r.state.paused||(cur()&&!audio.paused))return;e.stopImmediatePropagation();send(r.id,{type:'seek',pos:e.target.value/1000*r.state.dur})},true);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)loop()});
   setInterval(()=>{if(remote())paint()},1000);
   return{start(){if(acct&&supaOn()){loop();rtStart()}},open,devices:()=>devs,me}})();
