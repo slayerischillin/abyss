@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 95,
+   "date": "Nov 23",
+   "changes": [
+    "Fixed Android switching to the in-app player on slow connections, which stopped music in the background and removed the notification",
+    "Phones go back to the phone's own player after this update"
+   ]
+  },
+  {
    "version": 94,
    "date": "Nov 23",
    "changes": [

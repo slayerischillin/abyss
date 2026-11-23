@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="94">
+<meta name="abyss-version" content="95">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1494,7 +1494,7 @@ class NativeAudio extends EventTarget{
     P.addListener('player',e=>this._on(e||{}));}
   _isLocal(u){return/^(blob|data|file):/.test(u||'')}
   get _localMode(){return this._fb||this._isLocal(this._src)}
-  _fallback(why){if(this._fb)return;this._fb=true;console.warn('native player failed, using built-in audio',why);try{const n=+(localStorage.getItem('nativeBad')||0)+1;localStorage.setItem('nativeBad',n);localStorage.setItem('nativeWhy',String(why&&why.message||why))}catch(e){}try{toast('Phone player didn\'t start ('+String(why&&why.message||why).slice(0,60)+'). Playing in the app instead.')}catch(e){}try{this.P.pause().catch(()=>{})}catch(e){}
+  _fallback(why){if(this._fb)return;this._fb=true;console.warn('native player failed, using built-in audio',why);try{const n=+(localStorage.getItem('nativeBad2')||0)+1;localStorage.setItem('nativeBad2',n);localStorage.setItem('nativeWhy',String(why&&why.message||why))}catch(e){}try{toast('Phone player didn\'t start ('+String(why&&why.message||why).slice(0,60)+'). Playing in the app instead.')}catch(e){}try{this.P.pause().catch(()=>{})}catch(e){}
     const a=this._elx(),u=this._src;a.volume=this._muted?0:this._vol;a.playbackRate=this._rate;a.src=u;if(!this._paused)a.play().catch(()=>{});this._fire('loadstart')}
   _fire(n){const ev=new Event(n);this.dispatchEvent(ev);const h=this._h[n];if(h)try{h.call(this,ev)}catch(e){console.error(e)}}
   _meta(){try{const t=typeof cur==='function'&&cur();if(!t)return{};const c=coverOf(t)||eraCover(t);return{title:titleOf(t),artist:artistOf(t),sub:subOf(t),album:isSC(t)?'SoundCloud era':subOf(t),art:/^https:/.test(c)?c:''}}catch{return{}}}
@@ -1509,9 +1509,9 @@ class NativeAudio extends EventTarget{
     this._native=u;this._dur=NaN;this._pos=0;this._posAt=performance.now();this._paused=true;
     this._gotState=false;this.P.load(Object.assign({url:u,autoplay:false},this._meta())).catch(e=>this._fallback(e));this._fire('loadstart')}
   play(){if(this._localMode)return this._elx().play();
-    if(!this._unl){this._unl=true;try{const a=this._elx();if(!a.src){a.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';a.play().then(()=>{if(!this._fb)a.pause()}).catch(()=>{})}}catch(e){}}
+    if(!this._unl&&Capacitor.getPlatform()==='ios'){this._unl=true;try{const a=this._elx();if(!a.src){a.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';a.play().then(()=>{if(!this._fb)a.pause()}).catch(()=>{})}}catch(e){}}
     if(this._paused){this._paused=false;this._posAt=performance.now();this._fire('play')}
-    clearTimeout(this._wd);this._wd=setTimeout(()=>{if(!this._gotState&&!this._paused&&!this._localMode)this._fallback('no response')},4000);
+    clearTimeout(this._wd);this._wd=setTimeout(()=>{if(!this._gotState&&!this._paused&&!this._localMode)this._fallback('no response')},9000);
     return this.P.play().then(()=>{}).catch(e=>{this._fallback(e)})}
   pause(){if(this._localMode){this._el&&this._el.pause();return}
     if(!this._paused){this._pos=this.currentTime;this._paused=true;this._fire('pause')}this.P.pause().catch(()=>{})}
@@ -1537,7 +1537,7 @@ class NativeAudio extends EventTarget{
   updateInfo(){if(!this._localMode&&this._native)this.P.updateInfo(this._meta()).catch(()=>{})}
   _on(e){if(this._localMode&&e.type!=='action')return;
     switch(e.type){
-      case'state':{if(e.playing){this._gotState=true;try{localStorage.removeItem('nativeBad')}catch(x){}}this._pos=+e.position||0;this._posAt=performance.now();
+      case'state':{this._gotState=true;if(e.playing){try{localStorage.removeItem('nativeBad2')}catch(x){}}this._pos=+e.position||0;this._posAt=performance.now();
         if(e.duration>0&&e.duration!==this._dur){const first=!isFinite(this._dur);this._dur=e.duration;if(first)this._fire('loadedmetadata');this._fire('durationchange')}
         const p=!e.wants;if(p!==this._paused){this._paused=p;this._fire(p?'pause':'play')}
         if(e.playing&&!this._was)this._fire('playing');this._was=!!e.playing;this._fire('timeupdate');break}
@@ -1550,7 +1550,7 @@ class NativeAudio extends EventTarget{
 }
 ['play','pause','ended','timeupdate','error','playing','loadedmetadata','seeked','ratechange','loadstart','waiting','canplay','durationchange'].forEach(n=>
   Object.defineProperty(NativeAudio.prototype,'on'+n,{get(){return this._h[n]||null},set(f){this._h[n]=f}}));
-const NATIVE_PLAYER=(+(localStorage.getItem('nativeBad')||0)<2)&&window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssPlayer&&Capacitor.getPlatform&&/^(android|ios)$/.test(Capacitor.getPlatform())?Capacitor.Plugins.AbyssPlayer:null;
+const NATIVE_PLAYER=(+(localStorage.getItem('nativeBad2')||0)<3)&&window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssPlayer&&Capacitor.getPlatform&&/^(android|ios)$/.test(Capacitor.getPlatform())?Capacitor.Plugins.AbyssPlayer:null;
 const audio=NATIVE_PLAYER?new NativeAudio(NATIVE_PLAYER):new Audio();audio.preload='metadata';audio.volume=.8;if(!NATIVE_PLAYER)audio.crossOrigin='anonymous';
 const coverEl=$('#cover');
 
