@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="78">
+<meta name="abyss-version" content="79">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1227,7 +1227,7 @@ dialog::backdrop,#cnSheet .cnBg{background:rgba(3,2,6,.35)!important}
     <h2 id="ct" title="Click to switch to another name for this song" tabindex="0" role="button">Nothing playing</h2>
     <p id="cs">Open the library to pick a song</p>
     <p id="ca"></p>
-    <div class="arrows"><button id="cPrev" title="Previous cover" aria-label="Previous cover"><svg class="ic"><use href="#i-left"/></svg></button><button id="cNext" title="Another cover" aria-label="Another cover"><svg class="ic"><use href="#i-right"/></svg></button><button id="cStudio" title="Studio sessions (T)" aria-label="Studio sessions"><svg class="ic"><use href="#i-mic"/></svg></button><button id="cEra" title="Use the era cover" aria-label="Use the era cover"><svg class="ic"><use href="#i-radio"/></svg></button><button id="cOrig" title="Original cover" aria-label="Original cover"><svg class="ic"><use href="#i-undo"/></svg></button></div>
+    <div class="arrows"><button id="cPrev" title="Previous cover" aria-label="Previous cover"><svg class="ic"><use href="#i-left"/></svg></button><button id="cNext" title="Another cover" aria-label="Another cover"><svg class="ic"><use href="#i-right"/></svg></button><button id="cStudio" title="Studio sessions (T)" aria-label="Studio sessions"><svg class="ic"><use href="#i-mic"/></svg></button><button id="cEra" title="Use the era cover" aria-label="Use the era cover"><svg class="ic"><use href="#i-radio"/></svg></button><button id="cOrig" title="Original cover" aria-label="Original cover"><svg class="ic"><use href="#i-undo"/></svg></button><button id="cDl" title="Download with this cover" aria-label="Download"><svg class="ic"><use href="#i-dl"/></svg></button></div>
   </section>
 </main>
 <nav id="queue" aria-label="Up next"></nav>
@@ -2888,6 +2888,7 @@ window.abyssSpotify=()=>{paintS();d.showModal()};
 if(can){const foot=$('#dSet .shFoot');if(foot){const b=document.createElement('button');b.className='sBtn ghost';b.id='spBtn';b.textContent='Spotify Local Files';b.onclick=()=>{$('#dSet').close();window.abyssSpotify()};foot.insertBefore(b,foot.children[1])}
   kv.get('dir').then(async h=>{if(!h)return;dir=h;if(await perm(h,false))setTimeout(()=>sync(false),8000)}).catch(()=>{})}
 })();
+$('#cDl').onclick=()=>{const t=cur();if(!t){toast('Play a song first');return}window.abyssDownload(t)};
 </script>
 </body>
 </html>

@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 79,
+   "date": "Nov 22",
+   "changes": [
+    "Download button under the cover, next to the cover buttons"
+   ]
+  },
+  {
    "version": 78,
    "date": "Nov 22",
    "changes": [
