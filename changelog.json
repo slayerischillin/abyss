@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 77,
+   "date": "Nov 22",
+   "changes": [
+    "Download any song: the file comes with its name, artist, album and your custom cover built in",
+    "Download from the button on each song, the right-click menu, or the full player",
+    "Link to Spotify Local Files (Settings): copies your liked songs, playlists and own songs into Spotify's folder with your covers",
+    "The Spotify folder updates by itself when you like songs, change playlists or swap covers"
+   ]
+  },
+  {
    "version": 76,
    "date": "Nov 22",
    "changes": [
