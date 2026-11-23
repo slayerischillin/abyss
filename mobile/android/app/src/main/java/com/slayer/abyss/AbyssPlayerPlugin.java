@@ -83,6 +83,11 @@ public class AbyssPlayerPlugin extends Plugin {
         });
     }
 
+    @PluginMethod public void setButtons(PluginCall call) {
+        final boolean like = Boolean.TRUE.equals(call.getBoolean("liked", false)), shuf = Boolean.TRUE.equals(call.getBoolean("shuffle", false));
+        withPlayer(call, p -> { PlaybackService s = PlaybackService.instance; if (s != null) s.setButtons(like, shuf); });
+    }
+
     @PluginMethod public void play(PluginCall call) { withPlayer(call, p -> { if (p.getPlaybackState() == Player.STATE_ENDED) p.seekTo(0); p.play(); }); }
     @PluginMethod public void pause(PluginCall call) { withPlayer(call, p -> p.pause()); }
     @PluginMethod public void seek(PluginCall call) { final double s = call.getDouble("position", 0.0); withPlayer(call, p -> { p.seekTo((long) (s * 1000)); emitEvent("seeked"); }); }

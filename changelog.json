@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 88,
+   "date": "Nov 23",
+   "changes": [
+    "Android notification: the star is now a working Like heart that fills in when the song is liked",
+    "Android notification: the grey shuffle button now works and lights up when shuffle is on",
+    "Both stay in step with the app"
+   ]
+  },
+  {
    "version": 87,
    "date": "Nov 23",
    "changes": [
