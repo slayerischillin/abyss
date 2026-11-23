@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 84,
+   "date": "Nov 22",
+   "changes": [
+    "Removed the zoom on lyric lines when a line finishes, in both the side panel and full screen"
+   ]
+  },
+  {
    "version": 83,
    "date": "Nov 22",
    "changes": [

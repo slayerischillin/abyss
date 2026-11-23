@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="83">
+<meta name="abyss-version" content="84">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1276,6 +1276,13 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 #lyr.full .lbg{animation:lyBg 24s ease-in-out infinite alternate!important}
 @keyframes lyBg{0%{transform:scale(1.3) rotate(0)}50%{transform:scale(1.45) rotate(8deg) translate(3%,-2%)}100%{transform:scale(1.35) rotate(-6deg) translate(-3%,2%)}}
 @media (prefers-reduced-motion:reduce){#lyr.full *{animation:none!important;transition:none!important}}
+
+/* v84: no zoom anywhere in lyrics (side panel too), no bloom */
+#lyrBody p,#lyrBody p.on,#lyrBody p.past,#lyrBody p.near{transform:none!important;scale:none!important}
+#lyr.full #lyrBody p.on.pop{animation:none!important}
+#lyr.full #lyrBody p.on{text-shadow:none!important}
+#lyr.full #lyrBody p.on.ws.go .w{text-shadow:none}
+#lyr.full #lyrBody p.on::before{animation:none}
 </style>
 </head>
 <body style="--art:none">
@@ -1950,7 +1957,7 @@ function syncLyrics(){if(!lyrOpen()||!lyrLines.length)return;const t=cur(),ct=au
   for(let k=0;k<lyrLines.length;k++){if(lyrLines[k].t<=ct)i=k;else break}
   if(i===lyrOn)return;lyrOn=i;const ps=$('#lyrBody').children;
   for(let k=0;k<ps.length;k++){const d=k-(i<0?0:i),ad=Math.min(Math.abs(d),9);ps[k].classList.toggle('on',k===i);ps[k].classList.toggle('past',k<i);ps[k].classList.toggle('near',Math.abs(k-i)===1);
-    ps[k].style.transform=k===i?'':'perspective(800px) rotateX('+(Math.sign(d)*-ad*6)+'deg) translateZ('+(-ad*18)+'px)';ps[k].style.opacity=k===i?1:Math.max(.15,1-ad*.11)}
+    ps[k].style.opacity=k===i?1:Math.max(.15,1-ad*.11)}
   if(ps[i]){if($('#lyr').classList.contains('full')&&window.lyrScroll&&!reduce)lyrScroll(ps[i]);else ps[i].scrollIntoView({block:'center',behavior:reduce?'auto':'smooth'})}}
 audio.addEventListener('timeupdate',syncLyrics);audio.addEventListener('seeked',()=>{lyrOn=-2;syncLyrics()});
 audio.addEventListener('loadedmetadata',()=>{if(lyrOpen())showLyrics()});
