@@ -3345,8 +3345,42 @@ window.abyssSeAdmin=seAdmin;
   const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(!seAdmin.isAdmin()||t.raw.category!=='session_edit')return;const b=document.createElement('button');b.innerHTML=ico('edit')+'Rename for everyone';b.onclick=ev=>{ev.stopPropagation();closeCtx();seAdmin.rename(t)};ctx.appendChild(b)}})();
 
 /* v107: rename the playing session edit from under the cover (slayer only) */
-(()=>{const b=$('#cRen');b.onclick=()=>{const t=cur();if(t&&window.abyssSeAdmin)abyssSeAdmin.rename(t)};
-  setInterval(()=>{const t=cur();b.hidden=!(t&&t.raw.category==='session_edit'&&window.abyssSeAdmin&&abyssSeAdmin.isAdmin())},800)})();
+(()=>{const b=$('#cRen');b.onclick=()=>{const t=cur();if(!t)return;if(t.raw.uzi){window.abyssUziRename&&abyssUziRename(t);return}if(window.abyssSeAdmin)abyssSeAdmin.rename(t)};
+  setInterval(()=>{const t=cur();b.hidden=!(t&&(t.raw.category==='session_edit'||t.raw.uzi)&&window.abyssSeAdmin&&abyssSeAdmin.isAdmin())},800)})();
+
+/* ================= v138: Lil Uzi Vert clean-up, and names only @slayer can change ================= */
+(()=>{const Z=window.abyssUzi;if(!Z)return;
+  const key=r=>'uzi:'+(r.raw?r.raw.uzFile:r.uzFile),raw=x=>x.raw||x;
+  /* hidden for good: anything marked [V1], and anything shorter than a minute */
+  const V1=/\[\s*v\s*1\s*\]/i,durs=store.get('uzDur',{});
+  const keep=r=>{if(durs[r.id]&&!r.length)r.length=fmt(durs[r.id]);return!V1.test(r.name)&&!V1.test(seNames[key(r)]||'')&&!(durs[r.id]>0&&durs[r.id]<60)};
+  const _items=Z.items;Z.items=()=>_items().filter(keep);
+  /* names: a shared rename table only admins (@slayer) can write to; the database enforces it */
+  const _t=titleOf;titleOf=function(t){if(t&&t.raw&&t.raw.uzi){const n=seNames[key(t)];if(n)return n}return _t.apply(this,arguments)};
+  const _s=Z.search;Z.search=(q,n)=>{const ql=q.toLowerCase(),out=_s(q).filter(keep),ids=new Set(out.map(r=>r.id));
+    _items().forEach(r=>{const nn=seNames[key(r)];if(nn&&!ids.has(r.id)&&nn.toLowerCase().includes(ql)&&keep(r)){out.push(r);ids.add(r.id)}});return out.slice(0,n||9999)};
+  async function rename(t){if(!seAdmin.isAdmin()){toast('Only @slayer can rename Lil Uzi Vert songs');return}
+    const n=await ask('Rename this Lil Uzi Vert song',{value:titleOf(t),ok:'Save'});if(n===null||n===undefined)return;const name=String(n).trim(),k=key(t);
+    const a=store.get('acct',null);if(!a||!a.access_token){toast('Sign in first');return}const h={apikey:SUPA.key,Authorization:'Bearer '+a.access_token,'Content-Type':'application/json'};
+    try{let r;if(!name||name===t.raw.name){r=await fetch(SUPA.url+'/rest/v1/session_names?path=eq.'+encodeURIComponent(k),{method:'DELETE',headers:h});delete seNames[k]}
+      else{r=await fetch(SUPA.url+'/rest/v1/session_names?on_conflict=path',{method:'POST',headers:Object.assign({Prefer:'resolution=merge-duplicates,return=minimal'},h),body:JSON.stringify({path:k,name,updated_at:new Date().toISOString()})});seNames[k]=name}
+      if(!r.ok)throw new Error('HTTP '+r.status);localStorage.setItem('seNames',JSON.stringify(seNames));list=list.filter(x=>!x.raw.uzi||keep(x.raw));renderList();if(cur()&&cur().id===t.id&&window.paint)paint();toast('Renamed')}
+    catch(e){toast('Could not rename ('+e.message+')')}}
+  window.abyssUziRename=rename;
+  {const _r=renderList;renderList=function(){_r.apply(this,arguments);try{if(!seAdmin.isAdmin())return;$('#res').querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||!t.raw.uzi)return;const a=row.querySelector('.acts');if(!a||a.querySelector('[data-a=uzn]'))return;
+    const x=document.createElement('span');x.dataset.a='uzn';x.title='Rename';x.innerHTML=ico('edit');x.onclick=e=>{e.stopPropagation();rename(t)};a.insertBefore(x,a.firstChild)})}catch(e){}}}
+  {const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(!t||!t.raw.uzi||!seAdmin.isAdmin())return;const b=document.createElement('button');b.innerHTML=ico('edit')+'Rename';b.onclick=ev=>{ev.stopPropagation();closeCtx();rename(t)};ctx.appendChild(b)}}
+  /* song lengths are only known once the audio is opened, so check the ones that show up, a few at a time */
+  let mq=[],mOn=0,ct;
+  const changed=()=>{clearTimeout(ct);ct=setTimeout(()=>{list=list.filter(t=>!t.raw.uzi||keep(t.raw));renderList()},300)};
+  const note=(id,d)=>{if(!(d>0&&isFinite(d)))return false;durs[id]=Math.round(d);store.set('uzDur',durs);return true};
+  function pump(){while(mOn<3&&mq.length){const r=mq.shift(),m=(window.__ulMap||{})[r.id];if(!m||!m.src)continue;mOn++;const a=new Audio();a.preload='metadata';let done=false;
+    const fin=d=>{if(done)return;done=true;mOn--;a.removeAttribute('src');try{a.load()}catch(e){}if(note(r.id,d)){r.length=fmt(d);changed()}pump()};
+    a.onloadedmetadata=()=>fin(a.duration);a.onerror=()=>fin(0);setTimeout(()=>fin(0),15000);a.src=m.src}}
+  const measure=rs=>{rs.forEach(r=>{if(r.uzi&&durs[r.id]===undefined&&!mq.includes(r))mq.push(r)});pump()};
+  {const _ld=load;load=async function(){const r=await _ld.apply(this,arguments);try{measure(list.map(t=>t.raw))}catch(e){}return r}}
+  audio.addEventListener('loadedmetadata',()=>{const t=cur();if(t&&t.raw.uzi&&note(t.id,audio.duration)&&audio.duration<60)changed()});
+})();
 
 /* ================= v112: the black hole: a dark planet behind the cover with a detailed dust ring ================= */
 (()=>{const card=$('#card'),wrap=$('#coverWrap');const mk=id=>{const c=document.createElement('canvas');c.id=id;card.insertBefore(c,wrap);return c};

@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 139,
+   "title": "Patch Note #3",
+   "date": "Nov 24, 2026",
+   "changes": [
+    "Lil Uzi Vert: songs marked [V1] and songs under a minute are gone",
+    "Lil Uzi Vert songs now show their length",
+    "Renaming Lil Uzi Vert songs is @slayer only"
+   ]
+  },
+  {
    "version": 138,
    "title": "Patch Note #2",
    "date": "Nov 24, 2026",
