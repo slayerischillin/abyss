@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="131">
+<meta name="abyss-version" content="132">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1846,7 +1846,9 @@ const triedCov=new Set();
 coverEl.onerror=()=>{if(coverEl.crossOrigin){coverEl.crossOrigin=null;coverEl.src=coverEl.getAttribute('src');return}
   const t=cur();triedCov.add(coverEl.getAttribute('src'));const fb=[t&&t.art,t&&eraCover(t),ERA_DEFAULT].find(x=>x&&!triedCov.has(x));
   if(fb){coverEl.crossOrigin='anonymous';coverEl.src=fb}else coverEl.removeAttribute('src')};
-coverEl.onload=()=>{{const lc=document.getElementById('lyrC');if(lc&&lc.src!==coverEl.currentSrc)lc.src=coverEl.currentSrc}try{const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');x.drawImage(coverEl,0,0,8,8);const d=x.getImageData(0,0,8,8).data;
+coverEl.onload=()=>{{const lc=document.getElementById('lyrC');if(lc&&lc.src!==coverEl.currentSrc)lc.src=coverEl.currentSrc}
+  /* the bar and background always show the same cover the big player ended up showing */
+  {const bc=document.getElementById('barCov'),u=coverEl.currentSrc;if(u&&bc&&!document.body.classList.contains('cnRemote')&&bc.src!==u){bc.onerror=null;bc.src=u}if(u)document.body.style.setProperty('--art','url("'+u.replace(/"/g,'%22')+'")')}try{const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');x.drawImage(coverEl,0,0,8,8);const d=x.getImageData(0,0,8,8).data;
   let r=0,g=0,b=0,w=0;for(let i=0;i<d.length;i+=4){const m=Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])+8;r+=d[i]*m;g+=d[i+1]*m;b+=d[i+2]*m;w+=m}
   r/=w*255;g/=w*255;b/=w*255;const mx=Math.max(r,g,b),dd=mx-Math.min(r,g,b);if(dd<.04)return;let h;
   if(mx===r)h=((g-b)/dd)%6;else if(mx===g)h=(b-r)/dd+2;else h=(r-g)/dd+4;hue=Math.round((h*60+360)%360)}catch{}};
