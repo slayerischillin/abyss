@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="136">
+<meta name="abyss-version" content="137">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2790,7 +2790,7 @@ const unleaked=(()=>{const B='unleaked';let items=[],ok=false,busy=false;window.
     try{await req('DELETE','object/'+B,JSON.stringify({prefixes:[t.raw.ulFile,t.raw.ulFile+'.jpg']}),'application/json');toast('Removed')}catch(e){toast('Could not remove ('+e.message+')')}refresh()}
   const pick=()=>{const i=document.createElement('input');i.type='file';i.accept='audio/*,.mp3,.m4a,.wav,.flac';i.multiple=true;i.onchange=()=>upload([...i.files]);i.click()};
   return{refresh,items:()=>items,pick,remove,isMe,ok:()=>ok}})();
-window.abyssUnleaked=unleaked;setTimeout(()=>unleaked.refresh(),3000);setInterval(()=>unleaked.refresh(),2*3600*1000);
+window.abyssUnleaked=unleaked;window.abyssToken=token;window.abyssSfetch=sfetch;window.abyssId3=id3;setTimeout(()=>unleaked.refresh(),3000);setInterval(()=>unleaked.refresh(),2*3600*1000);
 const _finish4=finish;finish=async function(d){const r=await _finish4(d);setTimeout(()=>unleaked.refresh(),4000);return r};
 const _lp=loadProfile;loadProfile=async function(){const r=await _lp.apply(this,arguments);try{unleaked.refresh()}catch(e){}return r};
 
@@ -3240,7 +3240,7 @@ const _r=renderList;renderList=function(){_r.apply(this,arguments);try{$('#res')
 const _fl=fetchLyrics;fetchLyrics=async function(t){if(ul(t)){const m=store.get('myLyrics',{})[t.id];if(m&&m.txt){const L=/\[\d+:\d+/.test(m.txt);return{synced:L?parseLRC(m.txt):null,plain:L?'':m.txt,mine:true}}return{none:true}}return _fl.apply(this,arguments)};
 })();
 /* ================= v134: private Lil Uzi Vert library, streamed from the owner's Google Drive ================= */
-const uzi=(()=>{const FN=SUPA.url+'/functions/v1/uzi';let items=[],ok=false,setup=false,tk='',busy=false,err='';
+const uzi=(()=>{const token=()=>window.abyssToken(),sfetch=(...a)=>window.abyssSfetch(...a),id3=b=>window.abyssId3(b);const FN=SUPA.url+'/functions/v1/uzi';let items=[],ok=false,setup=false,tk='',busy=false,err='';
   const db=()=>new Promise((res,rej)=>{const q=indexedDB.open('abyssUzi',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
   const get=async k=>{try{const d=await db();return await new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}};
   const put=async(k,v)=>{try{const d=await db();await new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r})}catch(e){}};
