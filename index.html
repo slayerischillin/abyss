@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="130">
+<meta name="abyss-version" content="131">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1649,7 +1649,7 @@ function play(n,_skip){if(n<0||n>=queue.length)return;if(!queue[n].src){const q=
   {const t0=queue[n],ec=eraCover(t0);if(!t0.raw.local&&covers[t0.id]===ERA_DEFAULT&&ec!==ERA_DEFAULT){covers[t0.id]=ec;store.set('covers',covers)}}const t=cur();clearTimeout(skipT);if(!ac)audio.crossOrigin='anonymous';audio.src=t.src;audio.playbackRate=rate;audio.play().catch(()=>{});paint('new');autoCover(t);onPlay(t)}
 function paint(mode){const t=cur();if(!t)return;const c=coverOf(t);
   const swap=()=>{triedCov.clear();coverEl.crossOrigin='anonymous';if(c)coverEl.src=c;else coverEl.src=eraCover(t);$('#ct').textContent=titleOf(t);$('#cs').textContent=subOf(t);const a=t.raw.category==='session_edit'?'':akaOf(t);$('#ca').textContent=a?'Also: '+a:'';
-    {const bc=document.getElementById('barCov');if(bc)bc.src=c||eraCover(t)}document.body.style.setProperty('--art',c?'url("'+c.replace(/"/g,'%22')+'")':'none')};
+    {const bc=document.getElementById('barCov');if(bc){bc.onerror=()=>{const f=eraCover(t);bc.onerror=()=>{bc.onerror=null;bc.src=ERA_DEFAULT};if(bc.getAttribute('src')!==f)bc.src=f;else bc.onerror()};bc.src=c||eraCover(t)}}document.body.style.setProperty('--art',c?'url("'+c.replace(/"/g,'%22')+'")':'none')};
   $('#mt').textContent=titleOf(t);$('#ms').textContent=subOf(t);document.title=titleOf(t)+' · Abyss';
   if(reduce||window.__noFlip){window.__noFlip=false;swap()}else{
     const a=coverEl.animate([{transform:'rotateY(0)'},{transform:'rotateY(90deg)'}],{duration:170,easing:'ease-in',fill:'forwards'});
@@ -1850,15 +1850,24 @@ coverEl.onload=()=>{{const lc=document.getElementById('lyrC');if(lc&&lc.src!==co
   let r=0,g=0,b=0,w=0;for(let i=0;i<d.length;i+=4){const m=Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])+8;r+=d[i]*m;g+=d[i+1]*m;b+=d[i+2]*m;w+=m}
   r/=w*255;g/=w*255;b/=w*255;const mx=Math.max(r,g,b),dd=mx-Math.min(r,g,b);if(dd<.04)return;let h;
   if(mx===r)h=((g-b)/dd)%6;else if(mx===g)h=(b-r)/dd+2;else h=(r-g)/dd+4;hue=Math.round((h*60+360)%360)}catch{}};
-coverEl.addEventListener('load',()=>{try{const c=document.createElement('canvas');c.width=c.height=24;const x=c.getContext('2d');x.drawImage(coverEl,0,0,24,24);const d=x.getImageData(0,0,24,24).data;
+const palPx=img=>{const c=document.createElement('canvas');c.width=c.height=24;const x=c.getContext('2d');x.drawImage(img,0,0,24,24);return x.getImageData(0,0,24,24).data};
+let palProxySeq=0;
+/* covers from sites that block color reading get read through an image proxy that allows it */
+const palProxy=(src,ok)=>{const my=++palProxySeq,im=new Image();im.crossOrigin='anonymous';im.onload=()=>{if(my===palProxySeq)try{ok(palPx(im))}catch(e){}};im.src='https://wsrv.nl/?w=48&h=48&url='+encodeURIComponent(src.replace(/^https?:\/\//,''))};
+coverEl.addEventListener('load',()=>{let d;palProxySeq++;try{d=palPx(coverEl)}catch(e){const src=coverEl.currentSrc||coverEl.src;window.bhPalTarget=null;if(/^https?:/.test(src))palProxy(src,px=>{palFrom(px)});return}palFrom(d)});
+function palFrom(d){try{
+  {let r=0,g=0,b=0,w=0;for(let i=0;i<d.length;i+=4){const m=Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2])+8;r+=d[i]*m;g+=d[i+1]*m;b+=d[i+2]*m;w+=m}
+   r/=w*255;g/=w*255;b/=w*255;const mx=Math.max(r,g,b),dd=mx-Math.min(r,g,b);if(dd>=.04){let h;if(mx===r)h=((g-b)/dd)%6;else if(mx===g)h=(b-r)/dd+2;else h=(r-g)/dd+4;hue=Math.round((h*60+360)%360)}}
   const bins=new Array(24).fill(0).map(()=>({w:0,s:0,l:0})),grey={w:0,l:0};
   for(let i=0;i<d.length;i+=4){const r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,dd=mx-mn,sat=dd/(1-Math.abs(2*l-1)||1);
     if(dd<.08||l<.08||l>.95){grey.w+=1;grey.l+=l;continue}let h=mx===r?((g-b)/dd)%6:mx===g?(b-r)/dd+2:(r-g)/dd+4;h=(h*60+360)%360;const k=Math.floor(h/15)%24,w=sat*(1-Math.abs(l-.5));bins[k].w+=w;bins[k].s+=sat*w;bins[k].l+=l*w}
-  const picks=[];bins.map((b,i)=>({i,...b})).filter(b=>b.w>.4).sort((a,b)=>b.w-a.w).forEach(b=>{if(picks.length<3&&picks.every(p=>Math.min(Math.abs(p.i-b.i),24-Math.abs(p.i-b.i))>=2))picks.push(b)});
+  const picks=[],gap=(a,b)=>Math.min(Math.abs(a.i-b.i),24-Math.abs(a.i-b.i)),srt=bins.map((b,i)=>({i,...b})).sort((a,b)=>b.w-a.w),top=srt[0].w||1;
+  /* pick clearly different colors from the cover so the ring is not three shades of one color */
+  for(const need of[3,2])srt.filter(b=>b.w>Math.max(.4,top*.02)).forEach(b=>{if(picks.length<3&&!picks.includes(b)&&picks.every(p=>gap(p,b)>=need))picks.push(b)});
   let pal=picks.map(b=>({h:b.i*15+7,s:Math.min(95,Math.max(45,b.s/b.w*100)),l:Math.min(72,Math.max(52,b.l/b.w*100+8))}));
   if(!pal.length)pal=[{h:220,s:8,l:78}];/* black and white art gets a silver ring */
   if(grey.w>d.length/4*.6&&pal.length)pal.push({h:pal[0].h,s:10,l:80});
-  while(pal.length<3)pal.push(pal[pal.length-1]);window.bhPalTarget=pal}catch(e){window.bhPalTarget=null}});
+  while(pal.length<3)pal.push(pal[pal.length-1]);window.bhPalTarget=pal}catch(e){window.bhPalTarget=null}}
 
 /* ---- audio analysis (real when the server allows it, synthetic otherwise) ---- */
 let ac,an,fd,live=false;
