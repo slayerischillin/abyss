@@ -1,6 +1,17 @@
 {
  "versions": [
   {
+   "version": 142,
+   "title": "Patch Note #6",
+   "date": "Nov 24, 2026",
+   "changes": [
+    "Search shows Lil Uzi Vert results instantly, even while the Juice WRLD server is slow or down",
+    "Quick search does the same",
+    "Searches you've already done open instantly",
+    "Nothing sits on Loading... forever: after 12 seconds Abyss tells you the song server didn't answer"
+   ]
+  },
+  {
    "version": 141,
    "title": "Patch Note #5",
    "date": "Nov 24, 2026",

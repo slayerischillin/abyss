@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="141">
+<meta name="abyss-version" content="142">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1710,7 +1710,8 @@ let loadSeq=0;async function load(reset){if(reset){page=1;list=[];hasMore=false}
   if(view!=='lib'){const pl=view.startsWith('pl:')&&pls.find(x=>x.id===view.slice(3));
     const src=pl?pl.songs:view==='unleaked'?(window.abyssUnleaked?abyssUnleaked.items():[]):view==='local'?locals:view==='liked'?Object.values(likes):view==='recent'?hist:Object.values(plays).sort((a,b)=>b.n-a.n).map(x=>x.raw);
     list=src.map(api.toTrack).filter(t=>!q||namesOf(t).some(n=>n.toLowerCase().includes(q)));hasMore=false;if(!pl)sortList();renderList();status(list.length?'':view==='unleaked'?'Nothing in Unleaked yet. Tap "Add songs" above.':view==='local'?'No local files yet. Drop songs anywhere on the page, or use the folder button in the dock.':pl?'This playlist is empty. Use the playlist button on any song to add it.':'Nothing here yet');return}
-  status('Loading...');
+  {const uq=$('#q').value.trim();if(reset&&uq.length>1&&window.abyssUzi&&abyssUzi.ok()){const hits=abyssUzi.search(uq,40).map(api.toTrack);if(hits.length){list=hits;renderList()}}}
+  status(list.length?'Loading Juice WRLD songs...':'Loading...');
   try{const r=await api.songs($('#q').value.trim(),$('#cat').value,page,$('#era').value);if(seq!==loadSeq)return;list=list.concat(r.items);hasMore=r.more;sortList();renderList();status(list.length?'':'No songs found')}
   catch(e){if(seq!==loadSeq)return;if(page>1&&/404/.test(e.message)){page--;hasMore=false;renderList();status('');return}status(navigator.onLine?'The song server did not answer ('+e.message+'). Try again in a moment.':'You are offline. Local files and playlists still work.')}}
 let shownN=0,shownKey='';function renderList(){const box=$('#res'),key=$('#view').value+'|'+$('#q').value+'|'+$('#cat').value+'|'+$('#era').value,keep=key===shownKey?shownN:0,st=box.scrollTop;shownKey=key;box.innerHTML='';
@@ -2970,7 +2971,7 @@ const qPaint=(empty)=>{qr.innerHTML=(empty?(qItems.length?'<div class="qkSec">Re
   [...qr.querySelectorAll('button[data-i]')].forEach((b,i)=>{const t=qItems[i],im=b.querySelector('img');im.onerror=()=>{im.onerror=null;im.src=eraCover(t)};im.src=coverOf(t)||eraCover(t);b.querySelector('b').textContent=titleOf(t);b.querySelector('small').textContent=subOf(t);b.querySelector('em').textContent=t.raw.length||''})};
 const qGo=(i,nx)=>{const t=qItems[i];if(!t)return;qClose();if(nx){playNext(t)}else{queue=[t,...queue.slice(idx+1)];play(0)}};
 qi.addEventListener('input',()=>{clearTimeout(qT);const q=qi.value.trim();if(!q){qEmpty();return}
-  qT=setTimeout(async()=>{const s=++qSeq;pal.querySelector('.qkBox').classList.add('busy');try{const loc=locals.map(api.toTrack).filter(t=>titleOf(t).toLowerCase().includes(q.toLowerCase()));const r=await api.songs(q,'',1,'');if(s!==qSeq)return;qItems=[...loc,...(window.abyssUzi&&abyssUzi.ok()?abyssUzi.search(q,4).map(api.toTrack):[]),...r.items].slice(0,9);qSel=0;qPaint()}catch(e){qr.innerHTML='<p class="qkHint">Search failed</p>'}finally{pal.querySelector('.qkBox').classList.remove('busy')}},220)});
+  qT=setTimeout(async()=>{const s=++qSeq;pal.querySelector('.qkBox').classList.add('busy');try{const loc=locals.map(api.toTrack).filter(t=>titleOf(t).toLowerCase().includes(q.toLowerCase()));const uz=window.abyssUzi&&abyssUzi.ok()?abyssUzi.search(q,4).map(api.toTrack):[];qItems=[...loc,...uz].slice(0,9);qSel=0;if(qItems.length)qPaint();/* Uzi and local results show right away; Juice WRLD results join when the server answers */let r;try{r=await api.songs(q,'',1,'')}catch(e){if(s!==qSeq)return;if(!qItems.length)qr.innerHTML='<p class="qkHint">Search failed</p>';return}if(s!==qSeq)return;qItems=[...loc,...uz,...r.items].slice(0,9);qPaint()}catch(e){qr.innerHTML='<p class="qkHint">Search failed</p>'}finally{pal.querySelector('.qkBox').classList.remove('busy')}},220)});
 qi.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();qSel=(qSel+(e.key==='ArrowDown'?1:-1)+qItems.length)%Math.max(1,qItems.length);qPaint(!qi.value.trim())}else if(e.key==='Enter'){qGo(qSel,e.shiftKey)}else if(e.key==='Escape')qClose()});
 qr.addEventListener('click',e=>{const c=e.target.closest('[data-q]');if(c){qi.value=c.dataset.q;qi.dispatchEvent(new Event('input'));qi.focus();return}const b=e.target.closest('[data-i]');if(b)qGo(+b.dataset.i,e.shiftKey)});pal.querySelector('.qkBg').onclick=qClose;
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();pal.classList.contains('open')?qClose():qOpen()}});
@@ -3352,6 +3353,11 @@ window.abyssSeAdmin=seAdmin;
 (()=>{const b=$('#cRen');b.onclick=()=>{const t=cur();if(!t)return;if(t.raw.uzi){window.abyssUziRename&&abyssUziRename(t);return}if(window.abyssSeAdmin)abyssSeAdmin.rename(t)};
   setInterval(()=>{const t=cur();b.hidden=!(t&&(t.raw.category==='session_edit'||t.raw.uzi)&&window.abyssSeAdmin&&abyssSeAdmin.isAdmin())},800)})();
 
+/* ================= v142: the song server is cached and never left hanging ================= */
+{const _songs=api.songs.bind(api),memo=new Map();
+  api.songs=function(...a){const k=cfg.base+'|'+JSON.stringify(a),c=memo.get(k);if(c&&Date.now()-c.at<5*60*1000)return Promise.resolve(c.r);
+    return Promise.race([_songs(...a),new Promise((_,j)=>setTimeout(()=>j(new Error('the song server took too long')),12000))])
+      .then(r=>{memo.set(k,{at:Date.now(),r});if(memo.size>150)memo.delete(memo.keys().next().value);return r})}}
 /* ================= v140: a song that won't start gets retried, then skipped ================= */
 (()=>{if(NATIVE_PLAYER)return;const pp=$('#pp');let lastT=-1,since=Date.now(),tries=0,id=null,told=false;
   audio.addEventListener('loadstart',()=>{const t=cur();if(t&&t.id!==id){id=t.id;tries=0;told=false}since=Date.now();lastT=audio.currentTime});
@@ -3376,6 +3382,7 @@ window.abyssSeAdmin=seAdmin;
   const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
   const eraArt=r=>{if(r._ea!==undefined)return r._ea;const txt=norm([(r.era&&r.era.name)||'',r.album||'',(r.era&&r.era.description)||''].join(' | '));const m=UZ_ERA.find(([re])=>re.test(txt));return r._ea=m?m[1]:''};
   const _keep=keep;keep=r=>{const ok=_keep(r);if(ok){const u=eraArt(r),m=(window.__ulMap||{})[r.id];if(u&&m)m.art=u}return ok};
+  {const _ec=eraCover;eraCover=function(t){if(t&&t.raw&&t.raw.uzi){const u=eraArt(t.raw);if(u)return u}return _ec.apply(this,arguments)}}
   const _af=Z.artFor;Z.artFor=t=>{if(t&&t.raw&&eraArt(t.raw)){const u=eraArt(t.raw);if(t.art!==u){t.art=u;const c=cur();if(c&&c.id===t.id){c.art=u;window.paint&&window.paint()}}return}return _af(t)};
   const _items=Z.items;Z.items=()=>_items().filter(keep);
   /* names: a shared rename table only admins (@slayer) can write to; the database enforces it */
