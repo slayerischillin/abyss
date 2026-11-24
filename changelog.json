@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 109,
+   "date": "Nov 23",
+   "changes": [
+    "New: a black-hole planet with a spinning ring behind the cover; its glow and ring react to the music and take on the song's colors"
+   ]
+  },
+  {
    "version": 108,
    "date": "Nov 23",
    "changes": [

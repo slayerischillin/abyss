@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="108">
+<meta name="abyss-version" content="109">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1302,6 +1302,12 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 .mlNow{text-align:center;padding:26px 10px}.mlNow small{font-size:11px;letter-spacing:.14em;opacity:.55}.mlNow b{display:block;font-size:26px;margin:10px 0 8px;line-height:1.25}.mlNow span{opacity:.5;font-size:14px}
 .mlBig{display:block;width:100%;padding:18px!important;font-size:17px}.mlRow{display:flex;align-items:center;justify-content:space-between;margin:12px 0 4px}.mlRow span{opacity:.6;font-size:13px}
 #dLyr.tapping .shFoot{display:none}
+
+/* v109: the planet */
+#coverWrap{position:relative;overflow:visible!important}
+#planet{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:-1;transition:opacity .6s}
+#cover{position:relative;z-index:1}
+body.perf #planet{display:none}
 </style>
 </head>
 <body style="--art:none">
@@ -3216,6 +3222,27 @@ window.abyssSeAdmin=seAdmin;
 /* v107: rename the playing session edit from under the cover (slayer only) */
 (()=>{const b=$('#cRen');b.onclick=()=>{const t=cur();if(t&&window.abyssSeAdmin)abyssSeAdmin.rename(t)};
   setInterval(()=>{const t=cur();b.hidden=!(t&&t.raw.category==='session_edit'&&window.abyssSeAdmin&&abyssSeAdmin.isAdmin())},800)})();
+/* ================= v109: the planet: a black hole with a glowing ring behind the cover, reacting to the music ================= */
+(()=>{const wrap=$('#coverWrap'),c=document.createElement('canvas');c.id='planet';wrap.insertBefore(c,wrap.firstChild);const x=c.getContext('2d');
+let W=0,H=0,D=1,last=0;const P=[];for(let i=0;i<420;i++)P.push({a:Math.random()*6.283,r:1.18+Math.pow(Math.random(),1.5)*1.45,s:.15+Math.random()*.35,z:Math.random()});
+function size(){const r=wrap.getBoundingClientRect();D=Math.min(2,devicePixelRatio||1);W=r.width*3.5;H=r.width*2.1;c.width=W*D;c.height=H*D;c.style.width=W+'px';c.style.height=H+'px'}
+size();addEventListener('resize',size);new ResizeObserver(size).observe(wrap);
+function draw(ms){requestAnimationFrame(draw);if(document.hidden||cfg.perf||cfg.planet===false){c.style.opacity=0;return}c.style.opacity=1;
+  if(ms-last<(LITE?40:16))return;last=ms;const t=ms/1000,L=Math.min(1.4,(typeof lvl==='number'?lvl:0)*1.6),h=typeof hueNow==='number'?Math.round(hueNow):150;
+  x.setTransform(D,0,0,D,0,0);x.clearRect(0,0,W,H);const cx=W/2,cy=H/2,R=wrap.getBoundingClientRect().width*.63,tilt=-.18,flat=.26;
+  const ring=(front)=>{x.save();x.translate(cx,cy);x.rotate(tilt);
+    for(const p of P){const a=p.a+t*p.s*(1+L*.8);const sn=Math.sin(a);if(front?sn<0:sn>=0)continue;const rr=R*p.r*(1+L*.05),px=Math.cos(a)*rr,py=sn*rr*flat;
+      const al=Math.min(1,(.3+.7*(1-(p.r-1.18)/1.45))*(.6+L*.7)*(front?1.25:.55));x.fillStyle='hsla('+h+',85%,'+(62+p.z*20)+'%,'+al.toFixed(3)+')';const sz=(1+p.z*1.6)*(1+L*.4);x.fillRect(px,py,sz,sz*.8)}
+    const g=x.createRadialGradient(0,0,R*1.05,0,0,R*2.65);g.addColorStop(0,'hsla('+h+',85%,62%,'+(.26+L*.22)+')');g.addColorStop(1,'hsla('+h+',85%,60%,0)');
+    x.save();x.scale(1,flat);x.beginPath();x.arc(0,0,R*2.65,front?0:Math.PI,front?Math.PI:Math.PI*2);x.arc(0,0,R*1.06,front?Math.PI:Math.PI*2,front?0:Math.PI,true);x.fillStyle=g;x.fill();x.restore();x.restore()};
+  ring(false);
+  /* the planet: black, with a glowing edge that swells on the beat */
+  x.save();x.shadowColor='hsla('+h+',85%,62%,'+(.65+L*.3)+')';x.shadowBlur=(28+L*55);x.beginPath();x.arc(cx,cy,R,0,6.283);x.fillStyle='#030305';x.fill();x.restore();
+  const rim=x.createRadialGradient(cx,cy,R*.86,cx,cy,R*1.02);rim.addColorStop(0,'rgba(0,0,0,0)');rim.addColorStop(.8,'hsla('+h+',80%,55%,'+(.25+L*.25)+')');rim.addColorStop(1,'hsla('+h+',90%,80%,'+(.85)+')');
+  x.beginPath();x.arc(cx,cy,R*1.02,0,6.283);x.fillStyle=rim;x.fill();
+  ring(true)}
+requestAnimationFrame(draw);
+})();
 </script>
 </body>
 </html>
