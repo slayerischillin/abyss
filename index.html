@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="133">
+<meta name="abyss-version" content="134">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1618,7 +1618,7 @@ const clean=x=>(x||'').replace(tagRe,'').replace(/\s+/g,' ').trim();
 let nm=store.get('nm',{});
 function namesOf(t){if(t&&t.raw&&t.raw.category==='session_edit')return[titleOf(t)];const s=t.raw,seen=new Set();return[s.name,...(s.track_titles||[]),fileName(t.path)].map(clean).filter(x=>{const k=x.toLowerCase();if(x.length<2||seen.has(k))return false;seen.add(k);return true})}
 const POPULAR=new Set(['smile','in my head','muddy','takeover','wraith','friends die','already dead','run','armed and dangerous','lean wit me','lose my mind','time','bel-air','chasing the dragon','compromise','pokemon','pokémon','codependent','hypnotic','runaway','dome','facetious','franklin','adore you','i go hard','toxic humans','never switch','westin','biscotti','bonjour','red moonlight','do the most','lovers lane','flintstones','haunted by real life','slenderman','tales of the toxic','nintendo','rich and blind','cigarettes','righteous','wishing well','bad energy','conversations','burn','fighting demons','party by myself','doom','girl of my dreams','man of the year','rockstar status','feline','black and white','hate me',"life's a mess",'come & go','lucid dreams','all girls are the same','legends','robbery','empty','wasted','ring ring','hear me calling','bandit','sometimes','go hard']);
-function titleOf(t){if(nm[t.id])return nm[t.id];const s=t.raw;if(s.category==='session_edit')return (typeof seNames!=='undefined'&&seNames[s.path])||String(s.name).replace(/\s*[\[(]\s*(session\s*edit|sessions?)\s*[\])]\s*/ig,' ').replace(/\s{2,}/g,' ').trim();
+function titleOf(t){if(nm[t.id])return nm[t.id];const s=t.raw;if(s.uzi)return s.name;if(s.category==='session_edit')return (typeof seNames!=='undefined'&&seNames[s.path])||String(s.name).replace(/\s*[\[(]\s*(session\s*edit|sessions?)\s*[\])]\s*/ig,' ').replace(/\s{2,}/g,' ').trim();
   if(cfg.names==='site')return s.name;if(cfg.names==='file')return fileName(t.path)||s.name;
   if(s.category==='released'&&s.name)return clean(s.name)||s.name;
   const all=namesOf(t),pop=all.find(x=>POPULAR.has(x.toLowerCase()));if(pop)return pop;
@@ -1628,7 +1628,7 @@ function cycleName(){const t=cur();if(!t)return;const all=namesOf(t);if(all.leng
 function akaOf(t){const s=t.raw,m=titleOf(t).toLowerCase();
   return[s.name,...(s.track_titles||[]),fileName(t.path)].filter((x,i,a)=>x&&x.toLowerCase()!==m&&a.findIndex(y=>y&&y.toLowerCase()===x.toLowerCase())===i).slice(0,3).join(' / ')}
 const isSC=t=>!t.raw.local&&/sound\s*cloud|\bjute\b|juice\s*the\s*kidd/i.test([(t.raw.era&&t.raw.era.name)||'',t.raw.album||''].join(' '));
-const artistOf=t=>t.raw.local?(t.raw.artist||'Unknown artist'):isSC(t)?'JuiceTheKidd':'Juice WRLD';
+const artistOf=t=>t.raw.local||t.raw.uzi?(t.raw.artist||'Unknown artist'):isSC(t)?'JuiceTheKidd':'Juice WRLD';
 const subOf=t=>{if(isSC(t))return 'JuiceTheKidd';return (t.raw.era&&t.raw.era.name)||t.raw.album||t.raw.category||''};
 const coverOf=t=>covers[t.id]!==undefined?(covers[t.id]||t.art):t.art;
 
@@ -1739,7 +1739,7 @@ const ERA=[
   [/\bjw\s*3\b|juice\s*wrld\s*3/i,'https://i.redd.it/rb6v0ece1gvd1.png']];
 const ERA_DEFAULT='https://images.genius.com/f0abd3249b78fc7af3cb59ebde586d77.1000x1000x1.png';
 const LOCAL_ART='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d3bff"/><stop offset="1" stop-color="#ff4f9a"/></linearGradient></defs><rect width="600" height="600" fill="url(#g)"/><circle cx="300" cy="300" r="170" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="40"/><circle cx="300" cy="300" r="40" fill="#fff" fill-opacity=".85"/><text x="300" y="540" fill="#fff" fill-opacity=".8" font-family="sans-serif" font-weight="700" font-size="44" text-anchor="middle" letter-spacing="8">LOCAL</text></svg>');
-function eraCover(t){if(t.raw&&t.raw.local)return localArt[t.id]||LOCAL_ART;const r=t.raw,txt=[(r.era&&r.era.name)||'',r.album||''].join(' | ');const m=ERA.find(([re])=>re.test(txt));return m?m[1]:ERA_DEFAULT}
+function eraCover(t){if(t.raw&&t.raw.local)return localArt[t.id]||LOCAL_ART;if(t.raw&&t.raw.uzi){const m=(window.__ulMap||{})[t.id];return(m&&m.art)||ERA_DEFAULT}const r=t.raw,txt=[(r.era&&r.era.name)||'',r.album||''].join(' | ');const m=ERA.find(([re])=>re.test(txt));return m?m[1]:ERA_DEFAULT}
 /* ---- covers: automatic first, manual picker as a backup ---- */
 const cand=store.get('cands',{});let serperFail=false;
 const imgKey=x=>x.replace(/\/[^\/]*$/,'');
@@ -1796,7 +1796,7 @@ function shareCover(t,u){if(!supaOn()||!t||t.raw.local||!u||!/^https:\/\//.test(
   if(u===eraCover(t)||u===t.art||/mzstatic\.com|scdn\.co/.test(u))return;  /* only fan-made picks, not era or official art */
   const k=t.id+'|'+u;if(myPicks[k])return;myPicks[k]=1;store.set('myPicks',myPicks);delete commCache[String(t.id)];
   sfetch(SUPA.url+'/rest/v1/rpc/pick_cover',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key,'Content-Type':'application/json'},body:JSON.stringify({p_song:String(t.id),p_url:u})}).catch(()=>{})}
-async function autoCover(t){if(covers[t.id]!==undefined||t.raw.local)return;
+async function autoCover(t){if(covers[t.id]!==undefined||t.raw.local)return;if(t.raw.uzi){try{window.abyssUzi&&abyssUzi.artFor(t)}catch(e){}return}
   if(t.raw.category==='released'){const u=await releasedCover(t);if(u&&cur()&&cur().id===t.id){saveCover(t,u);return}}
   if(cfg.mode==='off')return;if(cfg.mode==='era'){saveCover(t,eraCover(t));return}
   {const cc=await communityCovers(t);if(cc[0]&&cur()&&cur().id===t.id){saveCover(t,cc[0]);return}}
@@ -2965,7 +2965,7 @@ const qPaint=(empty)=>{qr.innerHTML=(empty?(qItems.length?'<div class="qkSec">Re
   [...qr.querySelectorAll('button[data-i]')].forEach((b,i)=>{const t=qItems[i],im=b.querySelector('img');im.onerror=()=>{im.onerror=null;im.src=eraCover(t)};im.src=coverOf(t)||eraCover(t);b.querySelector('b').textContent=titleOf(t);b.querySelector('small').textContent=subOf(t);b.querySelector('em').textContent=t.raw.length||''})};
 const qGo=(i,nx)=>{const t=qItems[i];if(!t)return;qClose();if(nx){playNext(t)}else{queue=[t,...queue.slice(idx+1)];play(0)}};
 qi.addEventListener('input',()=>{clearTimeout(qT);const q=qi.value.trim();if(!q){qEmpty();return}
-  qT=setTimeout(async()=>{const s=++qSeq;pal.querySelector('.qkBox').classList.add('busy');try{const loc=locals.map(api.toTrack).filter(t=>titleOf(t).toLowerCase().includes(q.toLowerCase()));const r=await api.songs(q,'',1,'');if(s!==qSeq)return;qItems=[...loc,...r.items].slice(0,9);qSel=0;qPaint()}catch(e){qr.innerHTML='<p class="qkHint">Search failed</p>'}finally{pal.querySelector('.qkBox').classList.remove('busy')}},220)});
+  qT=setTimeout(async()=>{const s=++qSeq;pal.querySelector('.qkBox').classList.add('busy');try{const loc=locals.map(api.toTrack).filter(t=>titleOf(t).toLowerCase().includes(q.toLowerCase()));const r=await api.songs(q,'',1,'');if(s!==qSeq)return;qItems=[...loc,...(window.abyssUzi&&abyssUzi.ok()?abyssUzi.search(q,4).map(api.toTrack):[]),...r.items].slice(0,9);qSel=0;qPaint()}catch(e){qr.innerHTML='<p class="qkHint">Search failed</p>'}finally{pal.querySelector('.qkBox').classList.remove('busy')}},220)});
 qi.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();qSel=(qSel+(e.key==='ArrowDown'?1:-1)+qItems.length)%Math.max(1,qItems.length);qPaint(!qi.value.trim())}else if(e.key==='Enter'){qGo(qSel,e.shiftKey)}else if(e.key==='Escape')qClose()});
 qr.addEventListener('click',e=>{const c=e.target.closest('[data-q]');if(c){qi.value=c.dataset.q;qi.dispatchEvent(new Event('input'));qi.focus();return}const b=e.target.closest('[data-i]');if(b)qGo(+b.dataset.i,e.shiftKey)});pal.querySelector('.qkBg').onclick=qClose;
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();pal.classList.contains('open')?qClose():qOpen()}});
@@ -3239,6 +3239,66 @@ const _r=renderList;renderList=function(){_r.apply(this,arguments);try{$('#res')
 /* lyrics lookups never send the name out to other websites */
 const _fl=fetchLyrics;fetchLyrics=async function(t){if(ul(t)){const m=store.get('myLyrics',{})[t.id];if(m&&m.txt){const L=/\[\d+:\d+/.test(m.txt);return{synced:L?parseLRC(m.txt):null,plain:L?'':m.txt,mine:true}}return{none:true}}return _fl.apply(this,arguments)};
 })();
+/* ================= v134: private Lil Uzi Vert library, streamed from the owner's Google Drive ================= */
+const uzi=(()=>{const FN=SUPA.url+'/functions/v1/uzi';let items=[],ok=false,setup=false,tk='',busy=false;
+  const db=()=>new Promise((res,rej)=>{const q=indexedDB.open('abyssUzi',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
+  const get=async k=>{try{const d=await db();return await new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}};
+  const put=async(k,v)=>{try{const d=await db();await new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r})}catch(e){}};
+  const TAG=/^[\s\u{1F300}-\u{1FAFF}☀-➿⭐️]+/u;
+  const nice=n=>{const base=n.replace(/\.[a-z0-9]{2,4}$/i,'');const tag=(base.match(TAG)||[''])[0].trim();return{tag,name:base.replace(TAG,'').replace(/_+$/,'').replace(/_/g,' ').replace(/\s{2,}/g,' ').trim()}};
+  /* covers: the song's own embedded art when it has one, otherwise a tile for its era */
+  const tiles={},arts={};
+  const tile=era=>{if(tiles[era])return tiles[era];const c=document.createElement('canvas');c.width=c.height=300;const x=c.getContext('2d');let h=0;for(const ch of era)h=(h*31+ch.charCodeAt(0))%360;
+    const g=x.createLinearGradient(0,0,300,300);g.addColorStop(0,'hsl('+h+',70%,38%)');g.addColorStop(1,'hsl('+((h+50)%360)+',80%,14%)');x.fillStyle=g;x.fillRect(0,0,300,300);
+    x.fillStyle='rgba(255,255,255,.92)';x.font='800 44px system-ui,sans-serif';x.fillText('UZI',22,64);x.font='600 22px system-ui,sans-serif';x.fillStyle='rgba(255,255,255,.8)';
+    const w=era.split(' '),ls=[];let l='';w.forEach(t=>{if(x.measureText(l+' '+t).width>256&&l){ls.push(l);l=t}else l=(l?l+' ':'')+t});ls.push(l);ls.slice(0,4).forEach((t,i)=>x.fillText(t,22,252-(Math.min(ls.length,4)-1-i)*28));
+    return tiles[era]=c.toDataURL('image/jpeg',.85)};
+  const src=f=>FN+'?f='+encodeURIComponent(f)+'&k='+encodeURIComponent(tk);
+  function toRaw(x){const n=nice(x.n);return{id:'uz:'+x.f,name:n.name,tag:n.tag,uzi:true,unleaked:true,uzFile:x.f,artist:'Lil Uzi Vert',category:'uzi',era:{name:x.e,description:x.p||x.e},album:x.p||x.e,length:''}}
+  function fill(list){items=list.map(toRaw);items.forEach(r=>{window.__ulMap[r.id]={src:src(r.uzFile),art:arts[r.id]||arts['era:'+r.era.name]||tile(r.era.name)}})}
+  function paintOpt(){const v=$('#view');let o=v.querySelector('option[value=uzi]');
+    if(ok&&!o){o=document.createElement('option');o.value='uzi';o.textContent='💎 Lil Uzi Vert';const a=v.querySelector('option[value=unleaked]')||v.querySelector('option[value=local]');a.insertAdjacentElement('afterend',o)}
+    if(!ok&&o){if(v.value==='uzi'){v.value='lib';load(true)}o.remove()}}
+  async function refresh(fresh){if(busy)return;busy=true;try{
+    if(!(window.abyssUnleaked&&abyssUnleaked.isMe())){ok=false;items=[];paintOpt();return}
+    if(!items.length){const c=await get('idx');if(c&&c.items&&c.tk){tk=c.tk;Object.assign(arts,(await get('arts'))||{});fill(c.items);ok=true;paintOpt();resume()}}
+    const t=await token();const r=await sfetch(FN+'?list=1'+(fresh?'&fresh=1':''),{headers:{apikey:SUPA.key,Authorization:'Bearer '+t}});
+    if(r.status===404){console.warn('Lil Uzi Vert: deploy the uzi function');return}
+    const d=await r.json();if(d.error){if(r.status===403){ok=false;items=[];paintOpt()}return}
+    tk=d.ticket||tk;setup=!!d.setup;ok=true;
+    if(d.items){fill(d.items);await put('idx',{tk,items:d.items,at:d.at})}
+    paintOpt();if($('#view').value==='uzi')load(true);resume()}
+    catch(e){}finally{busy=false}}
+  /* a Lil Uzi Vert song that was playing when Abyss closed picks back up */
+  function resume(){const t=cur();if(!t||!t.raw.uzi||t.src)return;const m=window.__ulMap[t.id];if(!m||!m.src)return;t.src=m.src;t.art=m.art;
+    const last=store.get('last',null),at=last&&last.raw&&last.raw.id===t.id?last.time:0;audio.src=t.src;try{if(at)audio.currentTime=at}catch(e){}
+    audio.addEventListener('loadedmetadata',()=>{try{if(at&&Math.abs(audio.currentTime-at)>1)audio.currentTime=at}catch(e){}},{once:true});window.paint&&window.paint()}
+  async function artFor(t){if(!t||!t.raw.uzi||arts[t.id]||t.raw.noArt)return;
+    try{const r=await sfetch(src(t.raw.uzFile),{headers:{Range:'bytes=0-524287'}});if(!r.ok)return;const tag=id3(await r.arrayBuffer());
+      if(!tag.pic){t.raw.noArt=true;return}
+      const u=await new Promise(res=>{const im=new Image(),ou=URL.createObjectURL(tag.pic);im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=360;const x=c.getContext('2d'),m=Math.min(im.naturalWidth,im.naturalHeight)||1;
+        x.drawImage(im,(im.naturalWidth-m)/2,(im.naturalHeight-m)/2,m,m,0,0,360,360);URL.revokeObjectURL(ou);res(c.toDataURL('image/jpeg',.85))};im.onerror=()=>{URL.revokeObjectURL(ou);res('')};im.src=ou});
+      if(!u)return;arts[t.id]=u;const ek='era:'+t.raw.era.name;if(!arts[ek])arts[ek]=u;await put('arts',arts);
+      items.forEach(r=>{const m=window.__ulMap[r.id];if(m&&(r.id===t.id||(!arts[r.id]&&r.era.name===t.raw.era.name)))m.art=arts[r.id]||u});
+      t.art=u;const c=cur();if(c&&c.id===t.id){c.art=u;window.paint&&window.paint()}}catch(e){}}
+  function connect(){const u=FN+'?setup=1&k='+encodeURIComponent(tk),C=window.Capacitor,B=C&&C.Plugins&&C.Plugins.Browser;
+    if(B&&B.open)B.open({url:u}).catch(()=>window.open(u,'_blank'));else window.open(u,'_blank');toast('Sign in with the Google account that has the Lil Uzi Vert folder, then come back');
+    let n=0;const iv=setInterval(()=>{if(++n>40||!setup){clearInterval(iv);return}refresh(true)},6000)}
+  const match=(r,q)=>{q=q.toLowerCase();return r.name.toLowerCase().includes(q)||r.era.name.toLowerCase().includes(q)||(r.era.description||'').toLowerCase().includes(q)||('lil uzi vert uzi').includes(q)};
+  return{refresh,items:()=>items,ok:()=>ok,needsSetup:()=>setup,connect,artFor,search:(q,n)=>items.filter(r=>match(r,q)).slice(0,n||9999)}})();
+window.abyssUzi=uzi;setTimeout(()=>uzi.refresh(),4500);setInterval(()=>uzi.refresh(),3*3600*1000);
+{const U=window.abyssUnleaked;if(U){const _ur=U.refresh;U.refresh=async function(){const r=await _ur.apply(this,arguments);uzi.refresh();return r}}}
+/* its own place in the library, with era filtering through the search box */
+{const _ld2=load;load=async function(reset){const v=$('#view').value,q=$('#q').value.trim();
+  if(v==='uzi'){page=1;hasMore=false;if(uzi.needsSetup()&&!uzi.items().length){list=[];renderList();
+      $('#status').innerHTML='';const b=document.createElement('button');b.className='btn';b.textContent='Connect Google Drive';b.onclick=()=>uzi.connect();$('#status').append('Abyss needs to read your Google Drive once to play these. ',b);return}
+    list=(q?uzi.search(q):uzi.items()).map(api.toTrack);if(!q)list.sort((a,b)=>String(a.raw.era.name).localeCompare(b.raw.era.name)||titleOf(a).localeCompare(titleOf(b)));else sortList();
+    renderList();status(list.length?'':uzi.items().length?'No Lil Uzi Vert songs match that':'Loading Lil Uzi Vert...');return}
+  const r=await _ld2.apply(this,arguments);
+  /* searching the library also finds Lil Uzi Vert songs */
+  if(reset&&v==='lib'&&q.length>1&&uzi.ok()){const hits=uzi.search(q,40).map(api.toTrack),have=new Set(list.map(t=>String(t.id)));const add=hits.filter(t=>!have.has(String(t.id)));
+    if(add.length){list=add.concat(list);renderList();status('')}}
+  return r}}
 /* ================= v104: Session Edits from the song server's "Session Edits" folder ================= */
 const sessionEdits=(()=>{const ROOT='Session Edits',KEY='seIndex';let idx=null,loading=null;
   const norm=s=>String(s||'').toLowerCase().replace(/\.[a-z0-9]{2,4}$/,'').replace(/\[[^\]]*\]|\((?:ft|feat|with|prod)[^)]*\)/g,'').replace(/[^a-z0-9]+/g,' ').trim();
