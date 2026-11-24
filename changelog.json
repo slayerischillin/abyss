@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 120,
+   "date": "Nov 23",
+   "changes": [
+    "Fixed the lyrics pencil sometimes not responding when lyrics scrolled over it",
+    "Open the lyrics editor with the E key, or right-click the playing song > Edit lyrics"
+   ]
+  },
+  {
    "version": 119,
    "date": "Nov 23",
    "changes": [
