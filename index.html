@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="115">
+<meta name="abyss-version" content="116">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -3229,8 +3229,9 @@ window.abyssSeAdmin=seAdmin;
 (()=>{const card=$('#card'),wrap=$('#coverWrap');const mk=id=>{const c=document.createElement('canvas');c.id=id;card.insertBefore(c,wrap);return c};
 const back=mk('bhBack'),front=mk('bhFront');card.appendChild(front);const bx=back.getContext('2d'),fx2=front.getContext('2d');
 let W=0,H=0,D=1,last=0,spin=0,pulse=0,lastBeat=0;
-const N=LITE?700:1800,P=[],BH_LANE=Array.from({length:40},()=>Math.random());
-for(let i=0;i<N;i++){const band=Math.random();const r=band<.45?1.2+Math.random()*.35:band<.85?1.5+Math.random()*.55:2.0+Math.pow(Math.random(),.7)*.75;
+const N=LITE?700:1800,P=[],BH_LANE=Array.from({length:60},()=>Math.random());
+const ZONES=[[1.12,1.34,1],[1.42,1.68,.8],[1.78,2.02,.58],[2.12,2.42,.36]];
+for(let i=0;i<N;i++){const zi=Math.random()<.4?0:Math.random()<.55?1:Math.random()<.6?2:3,z=ZONES[zi];const r=z[0]+(z[1]-z[0])*(.5+(Math.random()-.5)*Math.random()*1.9);
   P.push({a:Math.random()*6.283,r,y:(Math.random()-.5)*.05*r,s:Math.pow(1.2/r,1.5)*(.55+Math.random()*.25),z:Math.random(),tw:Math.random()*6.28,hs:(Math.random()-.5)*30,big:Math.random()<.025})}
 function size(){D=Math.min(2,devicePixelRatio||1);const w=wrap.offsetWidth;W=w*3.6;H=w*2.3;for(const c of [back,front]){c.width=W*D;c.height=H*D;c.style.width=W+'px';c.style.height=H+'px'}}
 size();addEventListener('resize',size);new ResizeObserver(size).observe(wrap);
@@ -3240,13 +3241,12 @@ function dust(x,R,h,L,isFront,t){const cx=W/2,cy=H/2,tilt=-.2,flat=.22;x.save();
   x.save();x.scale(1,flat);const g=x.createRadialGradient(0,0,R*1.12,0,0,R*2.8);g.addColorStop(0,'hsla('+h+',90%,70%,'+(.22+L*.25)+')');g.addColorStop(.35,'hsla('+(h+15)+',85%,55%,'+(.12+L*.12)+')');g.addColorStop(1,'hsla('+h+',80%,50%,0)');
   x.beginPath();x.arc(0,0,R*2.8,isFront?0:Math.PI,isFront?Math.PI:2*Math.PI);x.arc(0,0,R*1.12,isFront?Math.PI:2*Math.PI,isFront?0:Math.PI,true);x.fillStyle=g;x.fill();x.restore();
   /* the ring itself: a glowing band of gas with lanes and gaps, hottest at the inner edge, brighter on the side spinning towards you */
-  {const lanes=LITE?16:34,a0=isFront?0:Math.PI,a1=isFront?Math.PI:2*Math.PI,steps=LITE?10:18;
-    for(let i=0;i<lanes;i++){const f=i/(lanes-1),rr=R*(1.14+f*1.05)*(1+pulse*.03),seed=BH_LANE[i],gap=seed<.18?.25:1;
-      const base=Math.pow(1-f,1.3)*(.16+.22*seed)*gap*(.65+L*.55)*(isFront?1:.7);
-      for(let k=0;k<steps;k++){const s0=a0+(a1-a0)*k/steps,s1=a0+(a1-a0)*(k+1)/steps,mid=(s0+s1)/2,dop=1+.7*(-Math.cos(mid)),
-          wob=.75+.25*Math.sin(mid*3+spin*(1.6-f)+seed*9);
-        x.beginPath();x.ellipse(0,0,rr,rr*flat,0,s0,s1+.01);x.lineWidth=(R*.045)*(1-f*.5)*(1+L*.3);
-        x.strokeStyle='hsla('+(h+f*20-10)+','+(70+f*20)+'%,'+(78-f*28)+'%,'+Math.min(.9,base*dop*wob).toFixed(3)+')';x.stroke()}}}
+  {const a0=isFront?0:Math.PI,a1=isFront?Math.PI:2*Math.PI,steps=LITE?10:18,per=LITE?5:11;let li=0;
+    ZONES.forEach((z,zi)=>{for(let i=0;i<per;i++,li++){const f=i/(per-1),edge=Math.sin(f*Math.PI),rr=R*(z[0]+(z[1]-z[0])*f)*(1+pulse*.03),seed=BH_LANE[li%BH_LANE.length];
+      const base=z[2]*(.1+.2*seed)*(.35+.65*edge)*(.65+L*.55)*(isFront?1:.7);
+      for(let k=0;k<steps;k++){const s0=a0+(a1-a0)*k/steps,s1=a0+(a1-a0)*(k+1)/steps,mid=(s0+s1)/2,dop=1+.7*(-Math.cos(mid)),wob=.75+.25*Math.sin(mid*3+spin*(1.6-zi*.3)+seed*9);
+        x.beginPath();x.ellipse(0,0,rr,rr*flat,0,s0,s1+.01);x.lineWidth=R*(z[1]-z[0])/per*1.6*(1+L*.3);
+        x.strokeStyle='hsla('+(h+zi*8-8)+','+(72+zi*6)+'%,'+(76-zi*9)+'%,'+Math.min(.9,base*dop*wob).toFixed(3)+')';x.stroke()}}});}
   for(const p of P){const a=p.a+spin*p.s,sn=Math.sin(a),cs=Math.cos(a);if(isFront?sn<0:sn>=0)continue;
     const rr=R*p.r*(1+pulse*.04),px=cs*rr,py=sn*rr*flat+p.y*R;
     const dop=1+.55*(-cs);/* the side coming towards you is brighter */

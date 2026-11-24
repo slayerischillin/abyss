@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 116,
+   "date": "Nov 23",
+   "changes": [
+    "The black hole's ring now has four separate zones with dark gaps between them, each fainter than the one inside it, and the dust sits in those zones"
+   ]
+  },
+  {
    "version": 115,
    "date": "Nov 23",
    "changes": [
