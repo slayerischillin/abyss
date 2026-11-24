@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 117,
+   "date": "Nov 23",
+   "changes": [
+    "iPhone keeps the classic look without the black hole"
+   ]
+  },
+  {
    "version": 116,
    "date": "Nov 23",
    "changes": [
