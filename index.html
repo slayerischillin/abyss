@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="142">
+<meta name="abyss-version" content="143">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1672,15 +1672,23 @@ async function step(d){if(stepping)return;
   if(shuffle&&queue.length>1){let n;do n=Math.floor(Math.random()*queue.length);while(n===idx);return play(n)}
   if(idx+1<queue.length)return play(idx+1);
   if(repeat===1){if(queue.length<2&&NATIVE_PLAYER){audio._src='';audio._native=''}return play(queue.length>1?0:idx)}
-  stepping=true;$('#ms').textContent='Finding the next song...';
-  try{const t=await api.random();queue.push(t);play(queue.length-1)}catch(e){const pool=[...list,...hist.map(api.toTrack)].filter(x=>x&&x.src&&(!cur()||x.id!==cur().id));if(pool.length){queue.push(pool[Math.floor(Math.random()*pool.length)]);play(queue.length-1)}else $('#ms').textContent='Could not get the next song ('+e.message+')'}
-  finally{stepping=false}}
+  stepping=true;try{await playRandom()}finally{stepping=false}}
+/* a random song, picked instantly from songs Abyss already knows (library, history, likes, Lil Uzi Vert);
+   the song server is only asked when there is nothing else */
+const badSongs=new Set();
+function randomPool(){const seen=new Set(),out=[],c=cur();const add=x=>{if(!x)return;let t;try{t=x.raw?x:api.toTrack(x)}catch(e){return}
+    if(!t||!t.src||seen.has(t.id)||badSongs.has(t.id)||(c&&t.id===c.id))return;seen.add(t.id);out.push(t)};
+  list.forEach(add);hist.forEach(add);Object.values(likes).forEach(add);Object.values(plays).forEach(p=>add(p&&p.raw));
+  try{if(window.abyssUzi&&abyssUzi.ok())abyssUzi.items().forEach(add)}catch(e){}return out}
+async function playRandom(why){const pool=randomPool();
+  if(pool.length){const t=pool[Math.floor(Math.random()*pool.length)];queue.push(t);play(queue.length-1);if(why)toast(why+' Playing '+titleOf(t)+' instead.');return}
+  try{const t=await Promise.race([api.random(),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),8000))]);queue.push(t);play(queue.length-1)}catch(e){$('#ms').textContent='Could not get another song right now'}}
 audio.onended=()=>{if(repeat===2&&idx>=0&&queue[idx]){if(NATIVE_PLAYER){audio._src='';audio._native=''}else{try{audio.currentTime=0}catch(e){}}return play(idx)}step(1)};
 const ico=n=>'<svg class="ic"><use href="#i-'+n+'"/></svg>';
 audio.onplay=()=>$('#pp').innerHTML=ico('pause');audio.onpause=()=>$('#pp').innerHTML=ico('play');
 const fmt=x=>isFinite(x)?Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0'):'0:00';
 audio.ontimeupdate=()=>{if(audio.duration){const v=audio.currentTime/audio.duration*1000;$('#seek').value=v;$('#seek').style.setProperty('--p',v/10+'%');$('#tc').textContent=fmt(audio.currentTime);$('#td').textContent=fmt(audio.duration)}};
-audio.onerror=()=>{if(audio.crossOrigin&&!ac&&cur()){audio.crossOrigin=null;audio.src=cur().src;audio.play().catch(()=>{});return}$('#ms').textContent='This file would not load, skipping...';clearTimeout(skipT);skipT=setTimeout(()=>step(1),1500)};let skipT;
+audio.onerror=()=>{if(audio.crossOrigin&&!ac&&cur()){audio.crossOrigin=null;audio.src=cur().src;audio.play().catch(()=>{});return}{const t=cur();if(t)badSongs.add(t.id);clearTimeout(skipT);skipT=setTimeout(()=>playRandom(t?'Couldn\'t play '+titleOf(t)+'.':''),250)}};let skipT;
 audio.onplaying=()=>{if(!ac&&audio.crossOrigin)wire();if(ac&&ac.state==='suspended')ac.resume()};
 $('#seek').oninput=e=>{if(audio.duration)audio.currentTime=e.target.value/1000*audio.duration};
 $('#vol').oninput=e=>{audio.volume=e.target.value/100;e.target.style.setProperty('--p',e.target.value+'%')};
@@ -3367,9 +3375,9 @@ window.abyssSeAdmin=seAdmin;
     if(audio.currentTime!==lastT){lastT=audio.currentTime;since=Date.now();pp.classList.remove('buf');return}
     const w=Date.now()-since;if(w>1200)pp.classList.add('buf');
     if(w>4000&&!told){told=true;toast('Still loading '+titleOf(t)+'...')}
-    if(w>7000){since=Date.now();
-      if(tries<2){tries++;const at=audio.currentTime;audio.load();audio.addEventListener('loadedmetadata',()=>{try{if(at)audio.currentTime=at}catch(e){}},{once:true});audio.play().catch(()=>{})}
-      else{tries=0;pp.classList.remove('buf');toast('Couldn\'t load '+titleOf(t)+', skipping it');try{step(1)}catch(e){}}}},500)})();
+    if(w>6000){since=Date.now();
+      if(tries<1){tries++;const at=audio.currentTime;audio.load();audio.addEventListener('loadedmetadata',()=>{try{if(at)audio.currentTime=at}catch(e){}},{once:true});audio.play().catch(()=>{})}
+      else{tries=0;pp.classList.remove('buf');badSongs.add(t.id);playRandom('Couldn\'t load '+titleOf(t)+'.')}}},500)})();
 
 /* ================= v138: Lil Uzi Vert clean-up, and names only @slayer can change ================= */
 (()=>{const Z=window.abyssUzi;if(!Z)return;

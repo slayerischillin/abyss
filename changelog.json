@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 143,
+   "title": "Patch Note #7",
+   "date": "Nov 24, 2026",
+   "changes": [
+    "A song that won't play is swapped for a random song right away, no more \"Finding the next song...\"",
+    "When your queue runs out, a random song starts instantly",
+    "Random picks come from your library, history, likes and Lil Uzi Vert, and skip songs that already failed"
+   ]
+  },
+  {
    "version": 142,
    "title": "Patch Note #6",
    "date": "Nov 24, 2026",

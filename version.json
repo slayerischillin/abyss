@@ -1,6 +1,6 @@
 {
- "version": 142,
- "file": "builds/index-142.html",
- "notes": "Lil Uzi Vert shows up instantly in search, and nothing waits forever on the song server",
- "title": "Patch Note #6"
+ "version": 143,
+ "file": "builds/index-143.html",
+ "notes": "Songs that won't play are swapped for a random song instantly",
+ "title": "Patch Note #7"
 }
