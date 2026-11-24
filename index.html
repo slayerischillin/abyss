@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="123">
+<meta name="abyss-version" content="124">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1316,6 +1316,7 @@ body.perf #bhBack,body.perf #bhFront{display:none}
 #lyr header button{position:relative;z-index:21}
 #lyrBody{position:relative;z-index:1}
 #lyrEd{opacity:.9}
+.spOpts .tg:has([data-o=all]){grid-column:1/-1;font-weight:800;letter-spacing:.02em;background:radial-gradient(120% 120% at 0% 0%,rgba(30,215,96,.18),transparent 60%),var(--lg-in)}
 </style>
 </head>
 <body style="--art:none">
@@ -3046,10 +3047,11 @@ const kv={db:null,open(){return this.db||(this.db=new Promise((res,rej)=>{const 
 let dir=null,running=false,progress={done:0,total:0,now:''},timer=0;
 const opts=()=>Object.assign({liked:true,pls:true,recent:false,local:true},store.get('spotOpts',{}));
 function wanted(){const o=opts(),m=new Map();const add=r=>{if(!r||r.unleaked||m.has(String(r.id)))return;const t=api.toTrack(r);if(t&&(t.src||t.raw.local))m.set(String(r.id),t)};
-  if(o.liked)Object.values(likes).forEach(add);if(o.pls)pls.forEach(p=>p.songs.forEach(add));if(o.recent)hist.slice(0,50).forEach(add);if(o.local)locals.forEach(add);return m}
+  if(o.liked)Object.values(likes).forEach(add);if(o.pls)pls.forEach(p=>p.songs.forEach(add));if(o.recent)hist.slice(0,50).forEach(add);if(o.local)locals.forEach(add);if(o.all&&allCat)allCat.forEach(add);return m}
+let allCat=null,allAt=0;async function loadAll(){if(allCat&&Date.now()-allAt<6*3600*1000)return;const out=[];for(let pg=1;pg<400;pg++){progress.now='Getting the full song list... '+out.length;paintS();const r=await api.songs('','',pg,'');r.items.forEach(t=>{const raw=Object.assign({},t.raw);delete raw.lyrics;delete raw.synced_lyrics;out.push(raw)});if(!r.more)break}allCat=out;allAt=Date.now()}
 async function perm(h,ask){try{const o={mode:'readwrite'};if(await h.queryPermission(o)==='granted')return true;return ask?(await h.requestPermission(o))==='granted':false}catch(e){return false}}
 async function sync(manual){if(running||!dir)return;if(!await perm(dir,manual)){paintS();if(manual)toast('Allow Abyss to use the folder to keep it in sync');return}
-  running=true;const man=(await kv.get('manifest'))||{},want=wanted(),ids=[...want.keys()];progress={done:0,total:0,now:''};let added=0,updated=0,removed=0,failed=0;
+  running=true;if(opts().all){try{await loadAll()}catch(e){toast('Could not get the full song list ('+e.message+')');running=false;paintS();return}}const man=(await kv.get('manifest'))||{},want=wanted(),ids=[...want.keys()];progress={done:0,total:0,now:''};let added=0,updated=0,removed=0,failed=0;
   const todo=ids.filter(id=>{const t=want.get(id),c=coverOf(t)||eraCover(t)||'',e=man[id];return !e||e.cover!==c||e.title!==titleOf(t)});progress.total=todo.length;paintS();
   try{for(const id of todo){const t=want.get(id),e=man[id];progress.now=titleOf(t);paintS();
       try{const f=await build(t);if(e&&e.file&&e.file!==f.name){try{await dir.removeEntry(e.file)}catch(x){}}
@@ -3071,11 +3073,11 @@ d.innerHTML='<div class="shHead"><div><small>ABYSS</small><h3>Link to Spotify Lo
  '<p class="spP">Pick the folder Spotify uses for local files. Abyss copies your songs into it with their names, artist, album and your custom covers, then keeps it updated by itself.</p>'+
  '<div class="spDir"><svg class="ic"><use href="#i-folder"/></svg><div><b id="spName">No folder linked</b><small id="spSt">Not linked yet</small></div><button class="sBtn main" id="spPick">Choose folder</button></div>'+
  '<div class="spBar" id="spBar"><i></i></div><small class="spNow" id="spNow"></small>'+
- '<h4>What to copy</h4><div class="spOpts">'+[['liked','Liked songs'],['pls','All your playlists'],['local','Songs you added'],['recent','Last 50 played']].map(([k,l])=>'<label class="tg"><input type="checkbox" data-o="'+k+'"><i></i><span>'+l+'</span></label>').join('')+'</div>'+
+ '<h4>What to copy</h4><div class="spOpts">'+[['all','EVERYTHING ON ABYSS'],['liked','Liked songs'],['pls','All your playlists'],['local','Songs you added'],['recent','Last 50 played']].map(([k,l])=>'<label class="tg"><input type="checkbox" data-o="'+k+'"><i></i><span>'+l+'</span></label>').join('')+'</div>'+
  '<details class="spHow"><summary>How to see them in Spotify</summary><ol><li>Open Spotify on this PC and go to <b>Settings</b>.</li><li>Turn on <b>Show Local Files</b>.</li><li>Under <b>Show songs from</b>, click <b>Add a source</b> and pick the same folder.</li><li>The songs show up in <b>Your Library</b> under <b>Local Files</b>. New ones appear automatically.</li></ol></details>'+
  '<div class="shFoot"><button class="sBtn ghost" id="spOff">Unlink</button><button class="sBtn" id="spNowBtn">Sync now</button></div></div>';
 d.querySelector('[data-close]').onclick=()=>d.close();
-d.querySelectorAll('[data-o]').forEach(c=>c.onchange=()=>{const o=opts();o[c.dataset.o]=c.checked;store.set('spotOpts',o);queueSync()});
+d.querySelectorAll('[data-o]').forEach(c=>c.onchange=async()=>{if(c.dataset.o==='all'&&c.checked&&!await ask('Copy every song on Abyss into this folder? That is thousands of songs and many gigabytes, and the first copy can take hours. You can keep using Abyss while it works.',{ok:'Copy everything'})){c.checked=false;return}const o=opts();o[c.dataset.o]=c.checked;store.set('spotOpts',o);queueSync()});
 function paintS(){if(!d.open&&!$('#spBtn'))return;const o=opts();d.querySelectorAll('[data-o]').forEach(c=>c.checked=!!o[c.dataset.o]);
   $('#spName').textContent=dir?dir.name:'No folder linked';const n=wanted().size,last=store.get('spotLast',0);
   $('#spSt').textContent=!dir?'Not linked yet':running?'Syncing '+progress.done+' of '+progress.total+'...':n+' song'+(n===1?'':'s')+' · '+(last?'updated '+new Date(last).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'not synced yet');
