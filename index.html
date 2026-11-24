@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="126">
+<meta name="abyss-version" content="127">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1312,7 +1312,7 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 body.perf #bhBack,body.perf #bhFront{display:none}
 
 /* v120: the lyrics header (pencil, full screen, close) always stays on top and clickable */
-#lyr header{position:relative;z-index:20;transform:translateZ(60px)}
+#lyr header{position:sticky;top:0;z-index:20;background:inherit}
 #lyr header button{position:relative;z-index:21}
 #lyrBody{position:relative;z-index:1}
 #lyrEd{opacity:.9}
@@ -1325,6 +1325,7 @@ body.perf dialog,body.perf .glass,body.perf #bar,body.perf .dock,body.perf #pane
 body.perf #card #coverWrap{box-shadow:none!important;transform:none!important}
 body.perf{background:#0b0910!important}
 #bPerf.on{color:#ffd24a}
+#lyrEd2{display:inline-flex;align-items:center;gap:5px;margin-left:6px}#lyrEd2 svg{width:13px;height:13px}
 </style>
 </head>
 <body style="--art:none">
@@ -3341,6 +3342,9 @@ requestAnimationFrame(draw)})();
   addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(e.shiftKey&&(e.key==='p'||e.key==='P')){e.preventDefault();e.stopImmediatePropagation();tog()}},true);
   /* in Performance mode, background checks happen less often */
   setInterval(()=>{if(cfg.perf&&document.hidden&&window.abyssLyrTimer)clearInterval(window.abyssLyrTimer)},60000)})();
+
+/* v127: an Edit lyrics button in the lyrics footer too, next to the timing buttons */
+(()=>{const off=$('#lyrOff');if(!off)return;const b=document.createElement('button');b.id='lyrEd2';b.innerHTML=ico('edit')+' Edit';b.title='Write or fix the lyrics (E)';b.onclick=()=>$('#lyrEd').click();off.appendChild(b)})();
 </script>
 </body>
 </html>
