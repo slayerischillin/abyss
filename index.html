@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="121">
+<meta name="abyss-version" content="122">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2166,7 +2166,7 @@ document.querySelectorAll('dialog.sheet').forEach(d=>d.addEventListener('click',
 /* ---- automatic updates (desktop app) ---- */
 document.addEventListener('click',async e=>{if(e.target.closest('#wnBtn')){$('#dSet').close();if(!await showPatchNotes(MY_VER-5,MY_VER))toast('No patch notes yet')}});
 if(window.abyssWin&&window.abyssWin.upd){const U=window.abyssWin.upd,st=m=>$('#updSt').textContent=m;
-  const refresh=async()=>{const g=await U.get();$('#updVer').textContent='You have version '+g.version+'. Abyss checks for updates when it opens and every 30 minutes.';$('#sFeed').value=g.feed||''};refresh();
+  const refresh=async()=>{const g=await U.get();$('#updVer').textContent='You\'re up to date with the latest Abyss. Abyss checks for updates when it opens and every 30 minutes.';$('#sFeed').value=g.feed||''};refresh();
   $('#bSet').addEventListener('click',refresh);
   $('#sSave').addEventListener('click',async()=>{const v=$('#sFeed').value.trim(),g=await U.get();if(v!==(g.feed||''))U.set(v)},true);
   $('#updChk').onclick=async()=>{const v=$('#sFeed').value.trim(),g=await U.get();st('Checking...');if(v!==(g.feed||''))U.set(v);else manualCheck()};
@@ -2178,8 +2178,8 @@ if(window.abyssWin&&window.abyssWin.upd){const U=window.abyssWin.upd,st=m=>$('#u
     try{const g=await U.get(),feed=(g.feed||'').replace(/\/+$/,'');if(!feed){toast('No update link set');return done()}
       const r=await fetch(feed+'/version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
       const v=+(await r.json()).version;
-      if(v>myVer&&v<=g.version){done();U.on&&0;$('#updPop').classList.remove('bye');$('#tbUpd').classList.add('show');$('#tbUpd').textContent='Update '+v+' ready · Restart';$('#upTitle').textContent='Abyss '+v+' is ready';$('#upNotes').textContent='It is already downloaded. Restarting takes a second, and your playlists and settings stay.';$('#updPop').classList.add('show');changelog().then(l=>fillList($('#upList'),l.filter(e=>e.version>myVer&&e.version<=v).sort((a,b)=>b.version-a.version),false));return}
-      if(v>g.version){toast('Downloading version '+v+'...');autoT=0;U.check();setTimeout(()=>{done();},8000);return}
+      if(v>myVer&&v<=g.version){done();U.on&&0;$('#updPop').classList.remove('bye');$('#tbUpd').classList.add('show');$('#tbUpd').textContent='Update ready · Restart';$('#upTitle').textContent='New update is ready';$('#upNotes').textContent='It is already downloaded. Restarting takes a second, and your playlists and settings stay.';$('#updPop').classList.add('show');changelog().then(l=>fillList($('#upList'),l.filter(e=>e.version>myVer&&e.version<=v).sort((a,b)=>b.version-a.version),false));return}
+      if(v>g.version){toast('Downloading the update...');autoT=0;U.check();setTimeout(()=>{done();},8000);return}
       toast('You have the newest version ('+myVer+')');done()}
     catch(e){toast('Could not reach the update server ('+(e.message||e)+')');done()}};
   const pop=$('#updPop');$('#upImg').src=(document.querySelector('link[rel=icon]')||{}).href||'';
@@ -2190,9 +2190,9 @@ if(window.abyssWin&&window.abyssWin.upd){const U=window.abyssWin.upd,st=m=>$('#u
   setInterval(silent,60000);addEventListener('focus',()=>{if(Date.now()-autoT>15000)silent()});setTimeout(silent,2500);
   U.on(u=>{if(u.state!=='downloading')$('#tbChk').classList.remove('spin');if(Date.now()-autoT<20000)u.manual=false;
     if(u.state==='current'&&u.version>myVer)u={...u,state:'ready'};
-    if(u.state==='ready'){$('#tbUpd').classList.add('show');$('#tbUpd').textContent='Update '+u.version+' ready · Restart';
-    if(shownFor!==u.version){shownFor=u.version;$('#upTitle').textContent='Abyss '+u.version+' is ready';$('#upNotes').textContent=(u.notes?u.notes+'. ':'')+'Restarting takes a second, and your playlists and settings stay.';pop.classList.remove('bye');pop.classList.add('show');changelog().then(l=>{const es=l.filter(e=>e.version>myVer&&e.version<=u.version).sort((a,b)=>b.version-a.version);fillList($('#upList'),es,false);if(es.length)$('#upNotes').textContent='Restarting takes a second. Your playlists and settings stay.'})}st('Version '+u.version+' is ready. Use the button at the top to switch.')}
-    else if(u.state==='downloading')st('Downloading version '+u.version+'...');
+    if(u.state==='ready'){$('#tbUpd').classList.add('show');$('#tbUpd').textContent='Update ready · Restart';
+    if(shownFor!==u.version){shownFor=u.version;$('#upTitle').textContent=(u.title||'New update')+' is ready';$('#upNotes').textContent=(u.notes&&u.notes!==u.title?u.notes+'. ':'')+'Restarting takes a second, and your playlists and settings stay.';pop.classList.remove('bye');pop.classList.add('show');changelog().then(l=>{const es=l.filter(e=>e.version>myVer&&e.version<=u.version).sort((a,b)=>b.version-a.version);fillList($('#upList'),es,false);if(es.length)$('#upNotes').textContent='Restarting takes a second. Your playlists and settings stay.'})}st('Version '+u.version+' is ready. Use the button at the top to switch.')}
+    else if(u.state==='downloading')st('Downloading the update...');
     else if(u.state==='current'){st('You are on the newest version.');if(u.manual)toast('Abyss is up to date')}
     else if(u.state==='nofeed')st('Add an update link first.');
     else if(u.state==='busy')setTimeout(()=>U.check(),2500);
