@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="104">
+<meta name="abyss-version" content="105">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1593,7 +1593,7 @@ const clean=x=>(x||'').replace(tagRe,'').replace(/\s+/g,' ').trim();
 let nm=store.get('nm',{});
 function namesOf(t){const s=t.raw,seen=new Set();return[s.name,...(s.track_titles||[]),fileName(t.path)].map(clean).filter(x=>{const k=x.toLowerCase();if(x.length<2||seen.has(k))return false;seen.add(k);return true})}
 const POPULAR=new Set(['smile','in my head','muddy','takeover','wraith','friends die','already dead','run','armed and dangerous','lean wit me','lose my mind','time','bel-air','chasing the dragon','compromise','pokemon','pokémon','codependent','hypnotic','runaway','dome','facetious','franklin','adore you','i go hard','toxic humans','never switch','westin','biscotti','bonjour','red moonlight','do the most','lovers lane','flintstones','haunted by real life','slenderman','tales of the toxic','nintendo','rich and blind','cigarettes','righteous','wishing well','bad energy','conversations','burn','fighting demons','party by myself','doom','girl of my dreams','man of the year','rockstar status','feline','black and white','hate me',"life's a mess",'come & go','lucid dreams','all girls are the same','legends','robbery','empty','wasted','ring ring','hear me calling','bandit','sometimes','go hard']);
-function titleOf(t){if(nm[t.id])return nm[t.id];const s=t.raw;if(s.category==='session_edit')return s.name;
+function titleOf(t){if(nm[t.id])return nm[t.id];const s=t.raw;if(s.category==='session_edit')return (typeof seNames!=='undefined'&&seNames[s.path])||s.name;
   if(cfg.names==='site')return s.name;if(cfg.names==='file')return fileName(t.path)||s.name;
   if(s.category==='released'&&s.name)return clean(s.name)||s.name;
   const all=namesOf(t),pop=all.find(x=>POPULAR.has(x.toLowerCase()));if(pop)return pop;
@@ -3195,6 +3195,23 @@ const _ld=load;load=async function(reset){if($('#view').value!=='sessions')retur
   page=1;hasMore=false;status('Loading session edits...');try{const all=await sessionEdits.index(),q=$('#q').value.trim().toLowerCase(),era=$('#era').selectedOptions[0];
     list=all.map(api.toTrack).filter(t=>!q||titleOf(t).toLowerCase().includes(q)||String(t.raw.era.name).toLowerCase().includes(q));sortList();renderList();status(list.length?'':'No session edits found')}
   catch(e){status('Could not load session edits ('+e.message+')')}};
+/* ================= v105: session edit names (set by @slayer, seen by everyone) ================= */
+var seNames={};try{seNames=JSON.parse(localStorage.getItem('seNames')||'{}')}catch(e){}
+const seAdmin=(()=>{let admin=false;
+  async function loadNames(){if(!supaOn())return;try{const r=await fetch(SUPA.url+'/rest/v1/session_names?select=path,name',{headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key}});if(!r.ok)return;const m={};(await r.json()).forEach(x=>m[x.path]=x.name);seNames=m;localStorage.setItem('seNames',JSON.stringify(m));if($('#view').value==='sessions')renderList()}catch(e){}}
+  async function check(){admin=false;try{const a=store.get('acct',null);if(!a||!a.access_token)return;const r=await fetch(SUPA.url+'/rest/v1/rpc/is_abyss_admin',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+a.access_token,'Content-Type':'application/json'},body:'{}'});admin=r.ok&&(await r.json())===true}catch(e){}}
+  async function rename(t){if(!admin)return;const cur0=titleOf(t);const n=await ask('Rename this session edit for everyone',{value:cur0,ok:'Save'});if(n===null||n===undefined)return;const name=String(n).trim();
+    const a=store.get('acct',null);const h={apikey:SUPA.key,Authorization:'Bearer '+a.access_token,'Content-Type':'application/json'};
+    try{let r;if(!name||name===t.raw.name){r=await fetch(SUPA.url+'/rest/v1/session_names?path=eq.'+encodeURIComponent(t.raw.path),{method:'DELETE',headers:h});delete seNames[t.raw.path]}
+      else{r=await fetch(SUPA.url+'/rest/v1/session_names?on_conflict=path',{method:'POST',headers:Object.assign({Prefer:'resolution=merge-duplicates,return=minimal'},h),body:JSON.stringify({path:t.raw.path,name,updated_at:new Date().toISOString()})});seNames[t.raw.path]=name}
+      if(!r.ok)throw new Error('HTTP '+r.status);localStorage.setItem('seNames',JSON.stringify(seNames));renderList();if(cur()&&cur().id===t.id&&window.paint)paint();toast('Renamed for everyone')}
+    catch(e){toast('Could not rename ('+e.message+')')}}
+  setTimeout(()=>{loadNames();check()},2500);setInterval(loadNames,15*60*1000);addEventListener('focus',()=>{check()});
+  return{rename,isAdmin:()=>admin,loadNames,check}})();
+window.abyssSeAdmin=seAdmin;
+(()=>{const _r=renderList;renderList=function(){_r.apply(this,arguments);try{if(!seAdmin.isAdmin())return;$('#res').querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||t.raw.category!=='session_edit')return;const a=row.querySelector('.acts');if(!a||a.querySelector('[data-a=sen]'))return;
+  const x=document.createElement('span');x.dataset.a='sen';x.title='Rename for everyone';x.innerHTML=ico('edit');x.onclick=e=>{e.stopPropagation();seAdmin.rename(t)};a.insertBefore(x,a.firstChild)})}catch(e){}};
+  const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(!seAdmin.isAdmin()||t.raw.category!=='session_edit')return;const b=document.createElement('button');b.innerHTML=ico('edit')+'Rename for everyone';b.onclick=ev=>{ev.stopPropagation();closeCtx();seAdmin.rename(t)};ctx.appendChild(b)}})();
 </script>
 </body>
 </html>

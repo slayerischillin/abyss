@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 105,
+   "date": "Nov 23",
+   "changes": [
+    "Session edits can now have proper names, set by slayer for everyone"
+   ]
+  },
+  {
    "version": 104,
    "date": "Nov 23",
    "changes": [
