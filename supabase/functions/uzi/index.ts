@@ -8,7 +8,16 @@ const ROOTS = [
   "1I2_DeXGChfg8pisliiPVhPeXtOA8oLtZ", // Lil Uzi Vert - W.H.2.U
 ];
 const SB = Deno.env.get("SUPABASE_URL")!;
-const SRK = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Admin key: works with both the old service_role key and Supabase's newer sb_secret_ keys.
+// You can also set your own secret called SERVICE_KEY (Edge Functions > Secrets) to force a specific key.
+function pickKey(): string {
+  const own = Deno.env.get("SERVICE_KEY"); if (own) return own.trim();
+  try { const j = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}"); const v = j.default || Object.values(j)[0]; if (v) return String(v); } catch (_) { /* not set */ }
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+}
+const SRK = pickKey();
+// new sb_secret_ keys are not JWTs: send them as apikey only, never as a Bearer token
+const ADM: Record<string, string> = SRK.startsWith("sb_") ? { apikey: SRK } : { apikey: SRK, Authorization: `Bearer ${SRK}` };
 const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
 const GID = Deno.env.get("GOOGLE_CLIENT_ID") || "";
 const GSEC = Deno.env.get("GOOGLE_CLIENT_SECRET") || "";
@@ -21,29 +30,45 @@ const cors = {
   "Access-Control-Expose-Headers": "content-length, content-range, accept-ranges, content-type",
 };
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" } });
-const page = (msg: string) => new Response(`<!doctype html><meta name=viewport content="width=device-width"><body style="background:#0b0910;color:#fff;font:16px system-ui;display:grid;place-items:center;height:90vh;text-align:center"><div><h2>Abyss</h2><p>${msg}</p></div>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+// Supabase shows function pages as plain text, so send people to the styled page on the Abyss site instead
+const PAGE = "https://slayerischillin.github.io/abyss/drive.html";
+const page = (msg: string) => Response.redirect(PAGE + (/connected/i.test(msg) ? "?ok=1" : "?m=" + encodeURIComponent(msg)), 302);
 
 // ---- private key/value table (service role only) ----
 async function kvGet(k: string) {
-  const r = await fetch(`${SB}/rest/v1/uzi_cfg?k=eq.${encodeURIComponent(k)}&select=v`, { headers: { apikey: SRK, Authorization: `Bearer ${SRK}` } });
-  if (!r.ok) throw new Error("Run abyss-uzi-setup.sql first");
+  const r = await fetch(`${SB}/rest/v1/uzi_cfg?k=eq.${encodeURIComponent(k)}&select=v`, { headers: ADM });
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    if (r.status === 404 || /does not exist|uzi_cfg/i.test(t)) throw new Error("Run abyss-uzi-setup.sql first");
+    throw new Error("admin key rejected (" + r.status + ")" + (SRK ? "" : ": no admin key found"));
+  }
   const a = await r.json(); return a[0]?.v ?? null;
 }
 async function kvSet(k: string, v: unknown) {
-  await fetch(`${SB}/rest/v1/uzi_cfg?on_conflict=k`, { method: "POST", headers: { apikey: SRK, Authorization: `Bearer ${SRK}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ k, v }) });
+  await fetch(`${SB}/rest/v1/uzi_cfg?on_conflict=k`, { method: "POST", headers: { ...ADM, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ k, v }) });
 }
 
 // ---- who is asking ----
-async function ownerFromJwt(jwt: string): Promise<string | null> {
-  const u = await fetch(`${SB}/auth/v1/user`, { headers: { apikey: ANON, Authorization: `Bearer ${jwt}` } });
-  if (!u.ok) return null;
+// Checks the caller with their own sign-in, using the same is_unleaked_owner() check the Unleaked playlist uses.
+// Doesn't depend on the service-role key, so it keeps working with Supabase's newer API keys.
+let lastWhy = "";
+async function ownerFromJwt(jwt: string, key: string): Promise<string | null> {
+  lastWhy = "";
+  if (!jwt) { lastWhy = "no sign-in sent"; return null; }
+  const k = key || ANON;
+  const u = await fetch(`${SB}/auth/v1/user`, { headers: { apikey: k, Authorization: `Bearer ${jwt}` } });
+  if (!u.ok) { lastWhy = "sign-in check failed (" + u.status + ")"; return null; }
   const id = (await u.json()).id as string;
-  return (await isOwner(id)) ? id : null;
+  const r = await fetch(`${SB}/rest/v1/rpc/is_unleaked_owner`, { method: "POST", headers: { apikey: k, Authorization: `Bearer ${jwt}`, "Content-Type": "application/json" }, body: "{}" });
+  if (!r.ok) { lastWhy = "owner check failed (" + r.status + ")"; return null; }
+  if ((await r.json()) !== true) { lastWhy = "not on the owner list"; return null; }
+  ownerCache.set(id, Date.now() + 12 * 3600 * 1000);
+  return id;
 }
 const ownerCache = new Map<string, number>();
 async function isOwner(uid: string) {
   const c = ownerCache.get(uid); if (c && c > Date.now()) return true;
-  const r = await fetch(`${SB}/rest/v1/unleaked_owner?user_id=eq.${uid}&select=user_id`, { headers: { apikey: SRK, Authorization: `Bearer ${SRK}` } });
+  const r = await fetch(`${SB}/rest/v1/unleaked_owner?user_id=eq.${uid}&select=user_id`, { headers: ADM });
   const ok = r.ok && (await r.json()).length > 0;
   if (ok) ownerCache.set(uid, Date.now() + 10 * 60 * 1000); else ownerCache.delete(uid);
   return ok;
@@ -60,7 +85,7 @@ async function ticket(uid: string) { const body = uid + "." + (Date.now() + 12 *
 async function fromTicket(t: string): Promise<string | null> {
   const p = t.split("."); if (p.length !== 3) return null;
   if (await hmac(p[0] + "." + p[1]) !== p[2] || +p[1] < Date.now()) return null;
-  return (await isOwner(p[0])) ? p[0] : null;
+  return p[0]; // signed by this function only after the owner check passed
 }
 
 // ---- Google ----
@@ -77,11 +102,14 @@ async function children(id: string, tok: string) {
   do {
     const u = new URL("https://www.googleapis.com/drive/v3/files");
     u.searchParams.set("q", `'${id}' in parents and trashed=false`);
-    u.searchParams.set("fields", "nextPageToken,files(id,name,mimeType,size)");
+    u.searchParams.set("fields", "nextPageToken,files(id,name,mimeType,size,shortcutDetails)");
     u.searchParams.set("pageSize", "1000"); u.searchParams.set("supportsAllDrives", "true"); u.searchParams.set("includeItemsFromAllDrives", "true");
     if (pt) u.searchParams.set("pageToken", pt);
     const r = await fetch(u, { headers: { Authorization: `Bearer ${tok}` } }); if (!r.ok) throw new Error("Drive " + r.status);
-    const d = await r.json(); out.push(...d.files); pt = d.nextPageToken || "";
+    const d = await r.json();
+    // Drive shortcuts: treat them as the folder or file they point to
+    for (const f of d.files) { const sc = f.shortcutDetails; if (f.mimeType === "application/vnd.google-apps.shortcut" && sc?.targetId) { f.id = sc.targetId; f.mimeType = sc.targetMimeType || ""; } out.push(f); }
+    pt = d.nextPageToken || "";
   } while (pt);
   return out;
 }
@@ -135,7 +163,7 @@ Deno.serve(async (req) => {
     // song list (needs a signed-in owner)
     if (q.get("list")) {
       const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
-      const uid = await ownerFromJwt(jwt); if (!uid) return json({ error: "not allowed" }, 403);
+      const uid = await ownerFromJwt(jwt, req.headers.get("apikey") || ""); if (!uid) return json({ error: "denied (" + lastWhy + ")" }, 403);
       const k = await ticket(uid);
       if (!(await kvGet("refresh"))) return json({ setup: true, ticket: k });
       let idx = await kvGet("index");

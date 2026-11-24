@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Abyss</title>
+<link rel="icon" href="icons/abyss.png">
+<style>
+:root{color-scheme:dark;--g:#a66bff;--p:#ff5fb4}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#020104;color:#f3eefc;font-family:system-ui,Segoe UI,Roboto,sans-serif;overflow:hidden}
+body::before{content:"";position:fixed;inset:-30%;background:radial-gradient(circle at 30% 30%,#4b1f8a,transparent 45%),radial-gradient(circle at 70% 70%,#7a1f5c,transparent 45%);filter:blur(60px);opacity:.55;animation:d 18s ease-in-out infinite alternate}
+@keyframes d{to{transform:rotate(12deg) scale(1.1)}}
+main{position:relative;width:min(420px,calc(100% - 32px));padding:30px 28px;border-radius:26px;background:rgba(16,11,24,.78);border:1px solid rgba(255,255,255,.14);box-shadow:inset 1px 1px 0 rgba(255,255,255,.2),0 40px 100px -30px #000;backdrop-filter:blur(20px);text-align:center;animation:in .6s cubic-bezier(.2,1.3,.3,1)}
+@keyframes in{from{opacity:0;transform:translateY(20px) scale(.95)}}
+img.l{width:64px;height:64px;border-radius:18px;margin-bottom:10px;box-shadow:0 0 40px -6px var(--g)}
+h1{font-size:22px;margin:0 0 6px}p{color:#b9afcc;line-height:1.5;margin:8px 0;font-size:14.5px}
+.ok{width:62px;height:62px;margin:6px auto 10px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--p));display:grid;place-items:center;box-shadow:0 0 40px -6px var(--g);animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(0)}}
+.ok svg{width:30px;height:30px;stroke:#fff;stroke-width:3;fill:none;stroke-dasharray:30;stroke-dashoffset:30;animation:ck .5s .3s forwards}@keyframes ck{to{stroke-dashoffset:0}}
+code{display:block;word-break:break-all;background:#07050c;border:1px solid #2a2338;border-radius:12px;padding:12px;margin:14px 0;font-size:13px;user-select:all;color:#fff}
+button{border:0;border-radius:14px;padding:12px 20px;font-size:15px;font-weight:600;background:#fff;color:#000;cursor:pointer;width:100%;margin-top:8px}
+button:disabled{opacity:.5}
+input{width:100%;padding:13px 14px;margin-top:10px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);color:#fff;font-size:15px;outline:0}
+input:focus{border-color:var(--g)}
+.bar{display:flex;gap:4px;margin:10px 0 4px}.bar i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .3s}
+small{color:#b9afcc;font-size:12.5px}.err{color:#ff8aa8}
+details{margin-top:14px;text-align:left}summary{cursor:pointer;color:#b9afcc;font-size:13px}
+
+.ring{position:relative;width:96px;height:96px;margin:4px auto 12px}
+.ring svg.r{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring svg.r circle{fill:none;stroke-width:4}
+.ring .t{stroke:rgba(255,255,255,.08)}
+.ring .f{stroke:url(#gr);stroke-linecap:round;stroke-dasharray:289;stroke-dashoffset:289;animation:fill var(--dur,3.2s) linear forwards}
+@keyframes fill{to{stroke-dashoffset:0}}
+.ring .ok{position:absolute;inset:17px;margin:0;width:auto;height:auto}
+.pulse{position:absolute;inset:17px;border-radius:50%;border:2px solid var(--g);animation:pl 1.6s ease-out infinite;opacity:0}
+@keyframes pl{from{transform:scale(1);opacity:.7}to{transform:scale(1.9);opacity:0}}
+.cnt{font-variant-numeric:tabular-nums;color:#fff;font-weight:700}
+.bye main{animation:out .55s cubic-bezier(.5,0,.75,0) forwards}@keyframes out{to{opacity:0;transform:translateY(-14px) scale(.92);filter:blur(6px)}}
+.cf{position:fixed;width:8px;height:14px;border-radius:2px;top:50%;left:50%;pointer-events:none;animation:cf 1.3s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes cf{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
+
+.drv{width:58px;height:58px;margin:4px auto 12px;border-radius:18px;display:grid;place-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.drv svg{width:30px;height:30px}
+.bad{width:62px;height:62px;margin:6px auto 10px;border-radius:50%;background:linear-gradient(135deg,#ff5f7e,#a6345a);display:grid;place-items:center;box-shadow:0 0 40px -6px #ff5f7e;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+.bad svg{width:28px;height:28px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round}
+.steps{text-align:left;margin:14px 0 4px;padding:0;list-style:none}
+.steps li{display:flex;gap:10px;align-items:center;font-size:13.5px;color:#b9afcc;padding:7px 0}
+.steps li b{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;color:#fff;background:linear-gradient(135deg,var(--g),var(--p))}
+.sub{font-size:12px;color:#7d7391;margin-top:14px}
+</style>
+<body><main id="m"></main>
+<script>
+const m=document.getElementById('m'),q=new URLSearchParams(location.search),ok=q.get('ok')==='1',msg=q.get('m')||'';
+const DRIVE='<div class="drv"><svg viewBox="0 0 87.3 78"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg></div>';
+const esc=x=>x.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function confetti(){const c=['#a66bff','#ff5fb4','#fff','#7fd1ff'];for(let i=0;i<46;i++){const d=document.createElement('i');d.className='cf';const a=Math.random()*6.283,r=160+Math.random()*260;
+  d.style.cssText='background:'+c[i%4]+';--x:'+Math.cos(a)*r+'px;--y:'+(Math.sin(a)*r-120)+'px;--r:'+(Math.random()*720-360)+'deg;animation-delay:'+Math.random()*.15+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),1600)}}
+if(ok){
+  m.innerHTML=DRIVE+'<div class="ok"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h1>Google Drive connected</h1><p>Your Lil Uzi Vert folders are linked to Abyss.</p>'+
+    '<ul class="steps"><li><b>1</b>Go back to Abyss</li><li><b>2</b>Open the Lil Uzi Vert playlist</li><li><b>3</b>Songs fill in over a minute or two</li></ul>'+
+    '<button id="x">Close this tab</button><p class="sub">You only have to do this once.</p>';
+  confetti();document.getElementById('x').onclick=()=>{try{window.close()}catch(e){}setTimeout(()=>{document.getElementById('x').textContent='You can close this tab now'},300)};
+}else if(msg){
+  m.innerHTML=DRIVE+'<div class="bad"><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"/></svg></div><h1>Couldn\'t connect Drive</h1><p class="err">'+esc(msg)+'</p><p>Go back to Abyss and tap Connect Google Drive again.</p>';
+}else{
+  m.innerHTML='<img class="l" src="icons/abyss.png" alt=""><h1>Abyss</h1><p>Nothing to do here. Go back to the app.</p>';
+}
+</script></body></html>

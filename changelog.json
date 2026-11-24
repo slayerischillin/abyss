@@ -1,8 +1,17 @@
 {
  "versions": [
   {
+   "version": 138,
+   "title": "Patch Note #2",
+   "date": "Nov 24, 2026",
+   "changes": [
+    "The loading screen no longer gets stuck when the song server is slow or down. Abyss opens anyway and keeps your playlists, local files and Unleaked songs ready",
+    "Lil Uzi Vert songs now come up when you search instead of loading as one giant playlist, so it's fast again"
+   ]
+  },
+  {
    "version": 137,
-   "title": "Patch Note #1 \u2014 RELEASE!!!",
+   "title": "Patch Note #1 — RELEASE!!!",
    "date": "Nov 24, 2026",
    "changes": [
     "Welcome to Abyss: every Juice WRLD song, released and unreleased, in one place",

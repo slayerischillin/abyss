@@ -2370,8 +2370,9 @@ async function boot(){const steps=[],set=(p,m)=>{$('#loader').style.setProperty(
   const img=u=>new Promise(r=>{if(!u)return r();const i=new Image(),to=setTimeout(r,5000);i.referrerPolicy='no-referrer';i.onload=i.onerror=()=>{clearTimeout(to);r()};i.src=u});
   set(4,'Loading your files...');await loadLocals();set(8,'Loading fonts...');try{await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,3000))])}catch{}
   set(22,'Loading era covers...');await Promise.all([...ERA.map(x=>x[1]),ERA_DEFAULT].map(img));
-  set(45,'Loading eras...');try{const eras=await api.eras();const sel=$('#era');eras.forEach(x=>{const n=x.name||x;if(!n)return;const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o)})}catch{}
-  set(62,'Loading the library...');try{const r=await api.songs('','',1);list=r.items;hasMore=r.more;renderList()}catch{}
+  const within=(p,ms)=>Promise.race([p,new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),ms))]);
+  set(45,'Loading eras...');try{const eras=await within(api.eras(),8000);const sel=$('#era');eras.forEach(x=>{const n=x.name||x;if(!n)return;const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o)})}catch{}
+  set(62,'Loading the library...');try{const r=await within(api.songs('','',1),12000);list=r.items;hasMore=r.more;renderList()}catch{}
   set(80,'Loading covers...');await Promise.all(list.slice(0,24).map(t=>img(coverOf(t))));
   const last=store.get('last',null);
   if(last&&last.raw&&cfg.resume!==false){set(92,'Restoring your last song...');const t=api.toTrack(last.raw);queue=[t];idx=0;audio.src=t.src;audio.playbackRate=rate;
@@ -3476,7 +3477,7 @@ window.abyssLyrSearch=lyrSearch;
 /* ================= v135: Lil Uzi Vert and Unleaked are real playlists (private, built from their sources, never saved or shared) ================= */
 window.vPls=(()=>{const U=()=>window.abyssUnleaked,Z=()=>window.abyssUzi;
   const all=()=>{const o=[];try{if(U()&&U().ok())o.push({id:'v:unleaked',name:'Unleaked',virtual:'unleaked',songs:U().items()})}catch(e){}
-    try{if(Z()&&Z().ok())o.push({id:'v:uzi',name:'Lil Uzi Vert',virtual:'uzi',songs:Z().items()})}catch(e){}return o};
+    /* Lil Uzi Vert is not a playlist any more: its songs show up in search instead */return o};
   return{all,get:id=>all().find(p=>p.id===id)}})();
 {const _pc=paintChips;paintChips=function(){_pc.apply(this,arguments);const bar=$('#plBar'),vs=vPls.all();if(!vs.length)return;
   const first=bar.querySelector('.chip:not(.plAll)');let at=first?first.nextSibling:null;
