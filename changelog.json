@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 112,
+   "date": "Nov 23",
+   "changes": [
+    "The black hole is back behind the cover, with a far more detailed dust ring: thousands of particles, glowing gas, light bent over the top, and a brighter side spinning towards you",
+    "It still reacts to the music: the ring speeds up and brightens with the bass and pulses on every beat"
+   ]
+  },
+  {
    "version": 111,
    "date": "Nov 23",
    "changes": [
