@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="110">
+<meta name="abyss-version" content="111">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1303,16 +1303,7 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
 .mlBig{display:block;width:100%;padding:18px!important;font-size:17px}.mlRow{display:flex;align-items:center;justify-content:space-between;margin:12px 0 4px}.mlRow span{opacity:.6;font-size:13px}
 #dLyr.tapping .shFoot{display:none}
 
-/* v110: the planet */
-#coverWrap{position:relative;overflow:visible!important}
-#planet,#planetF{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none}
-#planet{z-index:0}#planetF{z-index:2}
-#cover{position:relative;z-index:1}
-body.planetOn #cover{border-radius:50%!important;box-shadow:inset 0 0 40px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08)!important}
-body.planetOn #coverWrap::before,body.planetOn #coverWrap::after{border-radius:50%!important}
-body.planetOn #cover{transform:none!important;translate:none!important;rotate:none!important}
-body.planetOn #coverWrap{transform:none!important;background:none!important;box-shadow:none!important;border-radius:50%!important}
-body.perf #planet,body.perf #planetF{display:none}
+
 </style>
 </head>
 <body style="--art:none">
@@ -3227,33 +3218,7 @@ window.abyssSeAdmin=seAdmin;
 /* v107: rename the playing session edit from under the cover (slayer only) */
 (()=>{const b=$('#cRen');b.onclick=()=>{const t=cur();if(t&&window.abyssSeAdmin)abyssSeAdmin.rename(t)};
   setInterval(()=>{const t=cur();b.hidden=!(t&&t.raw.category==='session_edit'&&window.abyssSeAdmin&&abyssSeAdmin.isAdmin())},800)})();
-/* ================= v110: the planet: the cover becomes a planet with a glowing ring that passes in front of it ================= */
-(()=>{const wrap=$('#coverWrap'),back=document.createElement('canvas'),front=document.createElement('canvas');back.id='planet';front.id='planetF';wrap.insertBefore(back,wrap.firstChild);wrap.appendChild(front);
-const bx=back.getContext('2d'),fx2=front.getContext('2d');let W=0,H=0,D=1,last=0,spin=0;
-function size(){const r={width:$('#cover').offsetWidth||wrap.offsetWidth};D=Math.min(2,devicePixelRatio||1);W=r.width*3.2;H=r.width*1.9;for(const c of [back,front]){c.width=W*D;c.height=H*D;c.style.width=W+'px';c.style.height=H+'px'}}
-size();addEventListener('resize',size);new ResizeObserver(size).observe(wrap);
-/* one half of the ring: many thin glowing ellipses, brightest at the inner edge, fading out */
-function ring(x,R,h,L,isFront){const cx=W/2,cy=H/2,tilt=-.16,flat=.2,a0=isFront?0:Math.PI,a1=isFront?Math.PI:2*Math.PI;
-  x.save();x.translate(cx,cy);x.rotate(tilt);x.globalCompositeOperation='lighter';
-  const n=26;for(let i=0;i<n;i++){const f=i/(n-1),rr=R*(1.16+f*1.25)*(1+L*.035),al=Math.pow(1-f,1.8)*(.2+L*.22)*(isFront?1:.75);
-    x.beginPath();x.ellipse(0,0,rr,rr*flat,0,a0,a1);x.lineWidth=(1.5+(1-f)*3)*(1+L*.5);x.strokeStyle='hsla('+(h+f*25)+',90%,'+(68-f*18)+'%,'+al.toFixed(3)+')';x.stroke()}
-  /* bright streaks travelling round the ring */
-  for(let k=0;k<5;k++){const rr=R*(1.2+k*.18),st=(spin*(1.4-k*.15)+k*1.3)%(Math.PI*2),len=.5+k*.08;
-    for(let j=0;j<2;j++){const s0=st+j*Math.PI;const lo=Math.max(a0,s0),hi=Math.min(a1,s0+len);if(hi<=lo)continue;
-      x.beginPath();x.ellipse(0,0,rr,rr*flat,0,lo,hi);x.lineWidth=2.2*(1+L*.6);x.strokeStyle='hsla('+h+',100%,85%,'+((.35+L*.4)*(isFront?1:.6)).toFixed(3)+')';x.stroke()}}
-  x.restore()}
-function draw(ms){requestAnimationFrame(draw);const off=document.hidden||cfg.perf||cfg.planet===false;document.body.classList.toggle('planetOn',!off);if(off)return;
-  if(ms-last<(LITE?40:16))return;const dt=Math.min(.1,(ms-last)/1000);last=ms;const L=Math.min(1.3,(typeof lvl==='number'?lvl:0)*1.5),h=typeof hueNow==='number'?Math.round(hueNow):200;spin+=dt*(.35+L*.9);
-  const cv=$('#cover'),R=cv.offsetWidth/2;{const a=cv.getBoundingClientRect(),w=wrap.getBoundingClientRect(),L0=(a.left-w.left+a.width/2)+'px',T0=(a.top-w.top+a.height/2)+'px';for(const c of [back,front]){if(c.style.left!==L0)c.style.left=L0;if(c.style.top!==T0)c.style.top=T0}}
-  for(const x of [bx,fx2]){x.setTransform(D,0,0,D,0,0);x.clearRect(0,0,W,H)}
-  /* soft halo and a bright rim around the planet */
-  const cx=W/2,cy=H/2,hg=bx.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.9);hg.addColorStop(0,'hsla('+h+',90%,60%,'+(.38+L*.25)+')');hg.addColorStop(1,'hsla('+h+',90%,60%,0)');
-  bx.fillStyle=hg;bx.beginPath();bx.arc(cx,cy,R*1.9,0,6.283);bx.fill();
-  ring(bx,R,h,L,false);
-  bx.save();bx.shadowColor='hsla('+h+',95%,70%,'+(.9)+')';bx.shadowBlur=18+L*40;bx.beginPath();bx.arc(cx,cy,R*1.012,0,6.283);bx.lineWidth=2+L*2.5;bx.strokeStyle='hsla('+h+',95%,82%,.95)';bx.stroke();bx.restore();
-  ring(fx2,R,h,L,true)}
-requestAnimationFrame(draw);
-})();
+
 </script>
 </body>
 </html>
