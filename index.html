@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="135">
+<meta name="abyss-version" content="136">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2754,7 +2754,7 @@ const unleaked=(()=>{const B='unleaked';let items=[],ok=false,busy=false;window.
     if(!r.ok){const tx=await r.text().catch(()=>'');throw new Error(/not found/i.test(tx)?'nobucket':'HTTP '+r.status)}return r};
   const pretty=n=>n.replace(/\.[a-z0-9]+$/i,'').replace(/[_]+/g,' ').replace(/\s+\d+$/,'').trim().toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
   function paintOpt(){const v=$('#view');let o=v.querySelector('option[value=unleaked]');
-    if(false&&ok&&!o){o=document.createElement('option');o.value='unleaked';o.textContent='🔒 Unleaked';const loc=v.querySelector('option[value=local]');loc.insertAdjacentElement('afterend',o)}
+    if(false&&ok&&!o){o=document.createElement('option');o.value='unleaked';o.textContent='Unleaked';const loc=v.querySelector('option[value=local]');loc.insertAdjacentElement('afterend',o)}
     if(!ok&&o){if(v.value==='unleaked'){v.value='lib';load(true)}o.remove()}try{paintChips();if(openPl&&openPl.virtual)renderPl()}catch(e){}}
   async function refresh(){await checkOwner();if(!isMe()){ok=false;items=[];paintOpt();return}
     try{const r=await req('POST','object/list/'+B,JSON.stringify({prefix:'',limit:1000,sortBy:{column:'created_at',order:'asc'}}),'application/json');
@@ -3240,7 +3240,7 @@ const _r=renderList;renderList=function(){_r.apply(this,arguments);try{$('#res')
 const _fl=fetchLyrics;fetchLyrics=async function(t){if(ul(t)){const m=store.get('myLyrics',{})[t.id];if(m&&m.txt){const L=/\[\d+:\d+/.test(m.txt);return{synced:L?parseLRC(m.txt):null,plain:L?'':m.txt,mine:true}}return{none:true}}return _fl.apply(this,arguments)};
 })();
 /* ================= v134: private Lil Uzi Vert library, streamed from the owner's Google Drive ================= */
-const uzi=(()=>{const FN=SUPA.url+'/functions/v1/uzi';let items=[],ok=false,setup=false,tk='',busy=false;
+const uzi=(()=>{const FN=SUPA.url+'/functions/v1/uzi';let items=[],ok=false,setup=false,tk='',busy=false,err='';
   const db=()=>new Promise((res,rej)=>{const q=indexedDB.open('abyssUzi',1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
   const get=async k=>{try{const d=await db();return await new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}};
   const put=async(k,v)=>{try{const d=await db();await new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r})}catch(e){}};
@@ -3257,18 +3257,19 @@ const uzi=(()=>{const FN=SUPA.url+'/functions/v1/uzi';let items=[],ok=false,setu
   function toRaw(x){const n=nice(x.n);return{id:'uz:'+x.f,name:n.name,tag:n.tag,uzi:true,unleaked:true,uzFile:x.f,artist:'Lil Uzi Vert',category:'uzi',era:{name:x.e,description:x.p||x.e},album:x.p||x.e,length:''}}
   function fill(list){items=list.map(toRaw);items.forEach(r=>{window.__ulMap[r.id]={src:src(r.uzFile),art:arts[r.id]||arts['era:'+r.era.name]||tile(r.era.name)}})}
   function paintOpt(){const v=$('#view');let o=v.querySelector('option[value=uzi]');
-    if(false&&ok&&!o){o=document.createElement('option');o.value='uzi';o.textContent='💎 Lil Uzi Vert';const a=v.querySelector('option[value=unleaked]')||v.querySelector('option[value=local]');a.insertAdjacentElement('afterend',o)}
+    if(false&&ok&&!o){o=document.createElement('option');o.value='uzi';o.textContent='Lil Uzi Vert';const a=v.querySelector('option[value=unleaked]')||v.querySelector('option[value=local]');a.insertAdjacentElement('afterend',o)}
     if(!ok&&o){if(v.value==='uzi'){v.value='lib';load(true)}o.remove()}try{paintChips();if(openPl&&openPl.virtual)renderPl()}catch(e){}}
   async function refresh(fresh){if(busy)return;busy=true;try{
     if(!(window.abyssUnleaked&&abyssUnleaked.isMe())){ok=false;items=[];paintOpt();return}
     if(!items.length){const c=await get('idx');if(c&&c.items&&c.tk){tk=c.tk;Object.assign(arts,(await get('arts'))||{});fill(c.items);ok=true;paintOpt();resume()}}
+    ok=true;err='';paintOpt();
     const t=await token();const r=await sfetch(FN+'?list=1'+(fresh?'&fresh=1':''),{headers:{apikey:SUPA.key,Authorization:'Bearer '+t}});
-    if(r.status===404){console.warn('Lil Uzi Vert: deploy the uzi function');return}
-    const d=await r.json();if(d.error){if(r.status===403){ok=false;items=[];paintOpt()}return}
-    tk=d.ticket||tk;setup=!!d.setup;ok=true;
+    let d={};try{d=await r.json()}catch(e){d={error:'HTTP '+r.status}}
+    if(!r.ok||d.error||d.message){err=d.error||d.message||('HTTP '+r.status);if(r.status===403&&/not allowed/.test(err))err='This account is not on the Unleaked list';paintOpt();return}
+    tk=d.ticket||tk;setup=!!d.setup;
     if(d.items){fill(d.items);await put('idx',{tk,items:d.items,at:d.at})}
     paintOpt();if($('#view').value==='uzi')load(true);resume()}
-    catch(e){}finally{busy=false}}
+    catch(e){err=e.message||'Could not reach the server';paintOpt()}finally{busy=false}}
   /* a Lil Uzi Vert song that was playing when Abyss closed picks back up */
   function resume(){const t=cur();if(!t||!t.raw.uzi||t.src)return;const m=window.__ulMap[t.id];if(!m||!m.src)return;t.src=m.src;t.art=m.art;
     const last=store.get('last',null),at=last&&last.raw&&last.raw.id===t.id?last.time:0;audio.src=t.src;try{if(at)audio.currentTime=at}catch(e){}
@@ -3285,7 +3286,7 @@ const uzi=(()=>{const FN=SUPA.url+'/functions/v1/uzi';let items=[],ok=false,setu
     if(B&&B.open)B.open({url:u}).catch(()=>window.open(u,'_blank'));else window.open(u,'_blank');toast('Sign in with the Google account that has the Lil Uzi Vert folder, then come back');
     let n=0;const iv=setInterval(()=>{if(++n>40||!setup){clearInterval(iv);return}refresh(true)},6000)}
   const match=(r,q)=>{q=q.toLowerCase();return r.name.toLowerCase().includes(q)||r.era.name.toLowerCase().includes(q)||(r.era.description||'').toLowerCase().includes(q)||('lil uzi vert uzi').includes(q)};
-  return{refresh,items:()=>items,ok:()=>ok,needsSetup:()=>setup,connect,artFor,search:(q,n)=>items.filter(r=>match(r,q)).slice(0,n||9999)}})();
+  return{refresh,items:()=>items,ok:()=>ok,error:()=>err,needsSetup:()=>setup,connect,artFor,search:(q,n)=>items.filter(r=>match(r,q)).slice(0,n||9999)}})();
 window.abyssUzi=uzi;setTimeout(()=>uzi.refresh(),4500);setInterval(()=>uzi.refresh(),3*3600*1000);
 {const U=window.abyssUnleaked;if(U){const _ur=U.refresh;U.refresh=async function(){const r=await _ur.apply(this,arguments);uzi.refresh();return r}}}
 /* its own place in the library, with era filtering through the search box */
@@ -3319,7 +3320,7 @@ const _os=openStudio;openStudio=async function(){const t=cur();if(!t)return _os(
   return _os()};
 $('#cStudio').onclick=openStudio;
 /* and they get their own place in the library */
-(()=>{const v=$('#view'),o=document.createElement('option');o.value='sessions';o.textContent='🎚 Session edits';v.querySelector('option[value=local]').insertAdjacentElement('afterend',o)})();
+(()=>{const v=$('#view'),o=document.createElement('option');o.value='sessions';o.textContent='Session edits';v.querySelector('option[value=local]').insertAdjacentElement('afterend',o)})();
 const _ld=load;load=async function(reset){if($('#view').value!=='sessions')return _ld.apply(this,arguments);
   page=1;hasMore=false;status('Loading session edits...');try{const all=await sessionEdits.index(),q=$('#q').value.trim().toLowerCase(),era=$('#era').selectedOptions[0];
     list=all.map(api.toTrack).filter(t=>!q||titleOf(t).toLowerCase().includes(q)||String(t.raw.era.name).toLowerCase().includes(q));sortList();renderList();status(list.length?'':'No session edits found')}
@@ -3445,7 +3446,7 @@ const lyrSearch=(()=>{let idx=null,building=null;const DB='abyssLyr';
     return hits.slice(0,200)}
   return{search,build}})();
 window.abyssLyrSearch=lyrSearch;
-(()=>{const v=$('#view'),o=document.createElement('option');o.value='lyrics';o.textContent='🎤 Search lyrics';v.querySelector('option[value=lib]').insertAdjacentElement('afterend',o);
+(()=>{const v=$('#view'),o=document.createElement('option');o.value='lyrics';o.textContent='Search lyrics';v.querySelector('option[value=lib]').insertAdjacentElement('afterend',o);
   let lines={},seq=0;
   let auto=false;
   const _ld=load;load=async function(reset){if($('#view').value!=='lyrics'){if(reset)auto=false;const r=await _ld.apply(this,arguments);
@@ -3474,24 +3475,25 @@ window.abyssLyrSearch=lyrSearch;
 
 /* ================= v135: Lil Uzi Vert and Unleaked are real playlists (private, built from their sources, never saved or shared) ================= */
 window.vPls=(()=>{const U=()=>window.abyssUnleaked,Z=()=>window.abyssUzi;
-  const all=()=>{const o=[];try{if(U()&&U().ok())o.push({id:'v:unleaked',name:'Unleaked',emoji:'🔒',virtual:'unleaked',songs:U().items()})}catch(e){}
-    try{if(Z()&&Z().ok())o.push({id:'v:uzi',name:'Lil Uzi Vert',emoji:'💎',virtual:'uzi',songs:Z().items()})}catch(e){}return o};
+  const all=()=>{const o=[];try{if(U()&&U().ok())o.push({id:'v:unleaked',name:'Unleaked',virtual:'unleaked',songs:U().items()})}catch(e){}
+    try{if(Z()&&Z().ok())o.push({id:'v:uzi',name:'Lil Uzi Vert',virtual:'uzi',songs:Z().items()})}catch(e){}return o};
   return{all,get:id=>all().find(p=>p.id===id)}})();
 {const _pc=paintChips;paintChips=function(){_pc.apply(this,arguments);const bar=$('#plBar'),vs=vPls.all();if(!vs.length)return;
   const first=bar.querySelector('.chip:not(.plAll)');let at=first?first.nextSibling:null;
   vs.forEach((p,i)=>{const c=document.createElement('button');c.className='chip vpl'+(openPl&&openPl.id===p.id?' on':'');c.style.setProperty('--i',i+1);
-    c.innerHTML=p.emoji+' '+esc(p.name)+' <small style="opacity:.6">'+p.songs.length+'</small>';c.onclick=()=>{if(openPl&&openPl.id===p.id)return closePl();showPl(vPls.get(p.id)||p)};bar.insertBefore(c,at)})}}
+    c.innerHTML=ico('list')+esc(p.name)+' <small style="opacity:.6">'+p.songs.length+'</small>';c.onclick=()=>{if(openPl&&openPl.id===p.id)return closePl();showPl(vPls.get(p.id)||p)};bar.insertBefore(c,at)})}}
 {const _rp=renderPl;renderPl=function(){const p=openPl,w=$('#plWin');w.classList.toggle('virt',!!(p&&p.virtual));if(!p||!p.virtual)return _rp.apply(this,arguments);
   const fresh=vPls.get(p.id);p.songs=fresh?fresh.songs:[];_rp.apply(this,arguments);
-  $('#plName').textContent=p.emoji+' '+p.name;
+  $('#plName').textContent=p.name;
   const rows=$('#plRes').querySelectorAll('.row'),tr=p.songs.map(api.toTrack);
   rows.forEach((b,n)=>{b.draggable=false;b.ondragstart=null;const d=b.querySelector('[data-a=del]');if(!d)return;
     if(p.virtual==='unleaked'){d.title='Remove from Unleaked';d.onclick=e=>{e.stopPropagation();window.abyssUnleaked.remove(tr[n])}}else d.parentNode.remove()});
   const dr=$('#plDrop');dr.textContent='';dr.onclick=null;dr.style.cursor='';
   if(p.virtual==='unleaked'){dr.insertAdjacentHTML('beforeend',ico('lplus')+'Add songs to Unleaked');dr.style.cursor='pointer';dr.onclick=()=>window.abyssUnleaked.pick()}
+  else if(window.abyssUzi&&abyssUzi.error()&&!p.songs.length){dr.insertAdjacentHTML('beforeend',ico('lplus'));dr.append('Could not load Lil Uzi Vert ('+abyssUzi.error()+'). Tap to try again.');dr.style.cursor='pointer';dr.onclick=()=>{dr.textContent='Loading...';abyssUzi.refresh(true).then(()=>renderPl())};$('#plInfo').textContent='0 songs'}
   else if(window.abyssUzi&&abyssUzi.needsSetup()&&!p.songs.length){dr.insertAdjacentHTML('beforeend',ico('lplus')+'Connect Google Drive to load these songs');dr.style.cursor='pointer';dr.onclick=()=>abyssUzi.connect()}
-  else dr.insertAdjacentHTML('beforeend','🔒 Only you can see this playlist');
-  if(!p.songs.length&&p.virtual==='uzi'&&!(window.abyssUzi&&abyssUzi.needsSetup()))$('#plInfo').textContent='Loading from Google Drive...'}}
+  else dr.insertAdjacentHTML('beforeend','Only you can see this playlist');
+  if(!p.songs.length&&p.virtual==='uzi'&&!(window.abyssUzi&&(abyssUzi.needsSetup()||abyssUzi.error())))$('#plInfo').textContent='Loading from Google Drive...'}}
 /* no dragging songs in or around, no renaming, exporting or deleting */
 $('#plWin').addEventListener('drop',e=>{if(openPl&&openPl.virtual){e.preventDefault();e.stopImmediatePropagation();$('#plWin').classList.remove('hot');try{dragEnd()}catch(x){}toast(openPl.virtual==='unleaked'?'Use "Add songs to Unleaked" for new files':'This playlist follows your Google Drive folder')}},true);
 ['#plRen','#plExp','#plDel'].forEach(k=>$(k).addEventListener('click',e=>{if(openPl&&openPl.virtual){e.stopImmediatePropagation();e.preventDefault()}},true));
