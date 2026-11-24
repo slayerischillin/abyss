@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="106">
+<meta name="abyss-version" content="107">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1325,7 +1325,7 @@ body.playing #lyr.full .lnow img{animation:lyBreath 5s ease-in-out infinite}
     <h2 id="ct" title="Click to switch to another name for this song" tabindex="0" role="button">Nothing playing</h2>
     <p id="cs">Open the library to pick a song</p>
     <p id="ca"></p>
-    <div class="arrows"><button id="cPrev" title="Previous cover" aria-label="Previous cover"><svg class="ic"><use href="#i-left"/></svg></button><button id="cNext" title="Another cover" aria-label="Another cover"><svg class="ic"><use href="#i-right"/></svg></button><button id="cStudio" title="Studio sessions (T)" aria-label="Studio sessions"><svg class="ic"><use href="#i-mic"/></svg></button><button id="cEra" title="Use the era cover" aria-label="Use the era cover"><svg class="ic"><use href="#i-radio"/></svg></button><button id="cOrig" title="Original cover" aria-label="Original cover"><svg class="ic"><use href="#i-undo"/></svg></button><button id="cDl" title="Download with this cover" aria-label="Download"><svg class="ic"><use href="#i-dl"/></svg></button></div>
+    <div class="arrows"><button id="cPrev" title="Previous cover" aria-label="Previous cover"><svg class="ic"><use href="#i-left"/></svg></button><button id="cNext" title="Another cover" aria-label="Another cover"><svg class="ic"><use href="#i-right"/></svg></button><button id="cStudio" title="Studio sessions (T)" aria-label="Studio sessions"><svg class="ic"><use href="#i-mic"/></svg></button><button id="cEra" title="Use the era cover" aria-label="Use the era cover"><svg class="ic"><use href="#i-radio"/></svg></button><button id="cOrig" title="Original cover" aria-label="Original cover"><svg class="ic"><use href="#i-undo"/></svg></button><button id="cDl" title="Download with this cover" aria-label="Download"><svg class="ic"><use href="#i-dl"/></svg></button><button id="cRen" title="Rename for everyone" aria-label="Rename for everyone" hidden><svg class="ic"><use href="#i-edit"/></svg></button></div>
   </section>
 </main>
 <nav id="queue" aria-label="Up next"></nav>
@@ -1591,7 +1591,7 @@ const fileName=p=>p?p.split('/').pop().replace(/\.[a-z0-9]{2,4}$/i,'').replace(/
 const tagRe=/\s*[\(\[]\s*(v\d+|ver(?:sion)?\s*\d+|og|demo|snippet|snip|leak|unreleased|session|prod|edit|mix|remaster|ref|reference|\d{4})[^)\]]*[\)\]]/gi;
 const clean=x=>(x||'').replace(tagRe,'').replace(/\s+/g,' ').trim();
 let nm=store.get('nm',{});
-function namesOf(t){const s=t.raw,seen=new Set();return[s.name,...(s.track_titles||[]),fileName(t.path)].map(clean).filter(x=>{const k=x.toLowerCase();if(x.length<2||seen.has(k))return false;seen.add(k);return true})}
+function namesOf(t){if(t&&t.raw&&t.raw.category==='session_edit')return[titleOf(t)];const s=t.raw,seen=new Set();return[s.name,...(s.track_titles||[]),fileName(t.path)].map(clean).filter(x=>{const k=x.toLowerCase();if(x.length<2||seen.has(k))return false;seen.add(k);return true})}
 const POPULAR=new Set(['smile','in my head','muddy','takeover','wraith','friends die','already dead','run','armed and dangerous','lean wit me','lose my mind','time','bel-air','chasing the dragon','compromise','pokemon','pokémon','codependent','hypnotic','runaway','dome','facetious','franklin','adore you','i go hard','toxic humans','never switch','westin','biscotti','bonjour','red moonlight','do the most','lovers lane','flintstones','haunted by real life','slenderman','tales of the toxic','nintendo','rich and blind','cigarettes','righteous','wishing well','bad energy','conversations','burn','fighting demons','party by myself','doom','girl of my dreams','man of the year','rockstar status','feline','black and white','hate me',"life's a mess",'come & go','lucid dreams','all girls are the same','legends','robbery','empty','wasted','ring ring','hear me calling','bandit','sometimes','go hard']);
 function titleOf(t){if(nm[t.id])return nm[t.id];const s=t.raw;if(s.category==='session_edit')return (typeof seNames!=='undefined'&&seNames[s.path])||String(s.name).replace(/\s*\[\s*session\s*edit\s*\]\s*/ig,' ').replace(/\s{2,}/g,' ').trim();
   if(cfg.names==='site')return s.name;if(cfg.names==='file')return fileName(t.path)||s.name;
@@ -3212,6 +3212,10 @@ window.abyssSeAdmin=seAdmin;
 (()=>{const _r=renderList;renderList=function(){_r.apply(this,arguments);try{if(!seAdmin.isAdmin())return;$('#res').querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||t.raw.category!=='session_edit')return;const a=row.querySelector('.acts');if(!a||a.querySelector('[data-a=sen]'))return;
   const x=document.createElement('span');x.dataset.a='sen';x.title='Rename for everyone';x.innerHTML=ico('edit');x.onclick=e=>{e.stopPropagation();seAdmin.rename(t)};a.insertBefore(x,a.firstChild)})}catch(e){}};
   const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(!seAdmin.isAdmin()||t.raw.category!=='session_edit')return;const b=document.createElement('button');b.innerHTML=ico('edit')+'Rename for everyone';b.onclick=ev=>{ev.stopPropagation();closeCtx();seAdmin.rename(t)};ctx.appendChild(b)}})();
+
+/* v107: rename the playing session edit from under the cover (slayer only) */
+(()=>{const b=$('#cRen');b.onclick=()=>{const t=cur();if(t&&window.abyssSeAdmin)abyssSeAdmin.rename(t)};
+  setInterval(()=>{const t=cur();b.hidden=!(t&&t.raw.category==='session_edit'&&window.abyssSeAdmin&&abyssSeAdmin.isAdmin())},800)})();
 </script>
 </body>
 </html>

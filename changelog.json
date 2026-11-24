@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 107,
+   "date": "Nov 23",
+   "changes": [
+    "Session edits no longer show '[Session Edit]' anywhere"
+   ]
+  },
+  {
    "version": 106,
    "date": "Nov 23",
    "changes": [
