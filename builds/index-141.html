@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="140">
+<meta name="abyss-version" content="141">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -3370,7 +3370,13 @@ window.abyssSeAdmin=seAdmin;
   const key=r=>'uzi:'+(r.raw?r.raw.uzFile:r.uzFile),raw=x=>x.raw||x;
   /* hidden for good: anything marked [V1], and anything shorter than a minute */
   const V1=/\[\s*v\s*1\s*\]/i,durs=store.get('uzDur',{});
-  const keep=r=>{if(durs[r.id]&&!r.length)r.length=fmt(durs[r.id]);return!V1.test(r.name)&&!V1.test(seNames[key(r)]||'')&&!(durs[r.id]>0&&durs[r.id]<60)};
+  let keep=r=>{if(durs[r.id]&&!r.length)r.length=fmt(durs[r.id]);return!V1.test(r.name)&&!V1.test(seNames[key(r)]||'')&&!(durs[r.id]>0&&durs[r.id]<60)};
+  /* era covers for Lil Uzi Vert, picked by @slayer: matched on the song's folder names */
+  const UZ_ERA=[[/eternal atake 2\b/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyOp3XEG7vYAZdp3fNljVhyOnFyCkzS1E0Imb_ttBwqQ&s=10"],[/eternal atake/,"https://cdn-images.dzcdn.net/images/cover/1dfc30f6832a56913bedb5430007b64a/1900x1900-000000-80-0-0.jpg"],[/luv is rage 1 5\b/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQe2HUjyK-QnGEm3DFum_vMcnWJ9CLuEgsQloNts8-rGw&s=10"],[/luv is rage 2\b|\blir ?2\b/,"https://cdn-images.dzcdn.net/images/cover/5786e1b86286cc386722ae62a4f3e6f1/1900x1900-000000-81-0-0.jpg"],[/luv is rage 3\b|\blir ?3\b/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQf2iQE6L0zxzCJRoq539whGSis5BSN3steU5aEJ5EktQ&s=10"],[/luv is rage/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7RDNwvOhk6cl3A_oYh3S08unm8TBLjoF3fU3kWN5Iww&s=10"],[/pluto (vs|x) baby pluto|pluto baby pluto/,"https://i.redd.it/eqh19abvhmm91.png"],[/pink tape/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS9OWumcVMM4B8X2YBa80dFc44OKa6AFi7AgtwaHudXNg&s=10"],[/pink lyfe|pink life/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK-BJJpw5nKoHurUlI9gKATGnErbbEjgnVlmMUYVc-sA&s=10"],[/real uzi 2\b/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdh8-C10pmcK8rmwHFMZ5EOcQHJRat0F8r1HHlqquM8w&s=10"],[/real uzi/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYT91MRrCfsHCHC3lIWqGd0Qo9sFDCeBso4Nug8ymjPA&s=10"],[/purple thoughtz|purple thoughts/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLZtmODwSxvpkzQVvZWYr8zROc93uvVFhU1wyY7Ay2PA&s=10"],[/1017 vs the world/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGfuvVC7_hxiwXARyqVX2UZfWHNF8X62g8Ohooq9LroA&s=10"],[/uzi( vert)? vs the world/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxS1G9h2QOgeEbVMKTI8jYKyjB2JoHjfZSFCEvTSmJqw&s=10"],[/perfect luv tape|perfect love tape/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSRsxSTD5rYEWayrjWGe251OTWO1h_KGdXX2OaRJNFJw&s=10"],[/red and white|red white/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSp7Nw-K3yZWlQLzBOlL-byWW6w5ypsSM37yStNz3JQtw&s=10"],[/maverick|almost forever/,"https://i.scdn.co/image/ab67616d0000b273584ecfa79a1a2748e4cf4c88"],[/\b16 ?29\b/,"https://i.pinimg.com/736x/59/4c/1c/594c1c54684244b2feda1fc9650e4f14.jpg"],[/no luv lost|no love lost/,"https://i1.sndcdn.com/artworks-6XeLAnQfneG6NzNN-OC1t2A-t1080x1080.jpg"],[/forever young/,"https://preview.redd.it/everything-we-know-about-forever-young-scrapped-2021-album-v0-agbgah7wkc7d1.png?width=1024&format=png&auto=webp&s=a3f0c533e04456b87c6981dd5495034e134a65e1"],[/barter 16/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRc6GBK9OVXD2py5JgKtcTBmXNoQzef-gWMwz6gjpGLmg&s=10"],[/all white/,"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWLoTf94rrkYFcAByMAIBaTkQlF5AZ_p7ULlnPvG0Utg&s=10"]];
+  const norm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
+  const eraArt=r=>{if(r._ea!==undefined)return r._ea;const txt=norm([(r.era&&r.era.name)||'',r.album||'',(r.era&&r.era.description)||''].join(' | '));const m=UZ_ERA.find(([re])=>re.test(txt));return r._ea=m?m[1]:''};
+  const _keep=keep;keep=r=>{const ok=_keep(r);if(ok){const u=eraArt(r),m=(window.__ulMap||{})[r.id];if(u&&m)m.art=u}return ok};
+  const _af=Z.artFor;Z.artFor=t=>{if(t&&t.raw&&eraArt(t.raw)){const u=eraArt(t.raw);if(t.art!==u){t.art=u;const c=cur();if(c&&c.id===t.id){c.art=u;window.paint&&window.paint()}}return}return _af(t)};
   const _items=Z.items;Z.items=()=>_items().filter(keep);
   /* names: a shared rename table only admins (@slayer) can write to; the database enforces it */
   const _t=titleOf;titleOf=function(t){if(t&&t.raw&&t.raw.uzi){const n=seNames[key(t)];if(n)return n}return _t.apply(this,arguments)};
