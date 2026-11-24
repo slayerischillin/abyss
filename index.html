@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="128">
+<meta name="abyss-version" content="129">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -3370,13 +3370,22 @@ const lyrSearch=(()=>{let idx=null,building=null;const DB='abyssLyr';
 window.abyssLyrSearch=lyrSearch;
 (()=>{const v=$('#view'),o=document.createElement('option');o.value='lyrics';o.textContent='🎤 Search lyrics';v.querySelector('option[value=lib]').insertAdjacentElement('afterend',o);
   let lines={},seq=0;
-  const _ld=load;load=async function(reset){if($('#view').value!=='lyrics')return _ld.apply(this,arguments);
+  let auto=false;
+  const _ld=load;load=async function(reset){if($('#view').value!=='lyrics'){if(reset)auto=false;const r=await _ld.apply(this,arguments);
+      const q=$('#q').value.trim(),v0=$('#view').value;if(v0!=='lib'||!reset||q.length<4)return r;const words=q.split(/\s+/).length;if(list.length&&words<3)return r;
+      const my=++seq,had=list.length,q0=q;if(!had)status('No song titles match. Checking lyrics...');
+      try{const hits=await lyrSearch.search(q,n=>{if(my===seq&&!had)status('Getting lyrics ready for searching... '+n+' songs (only the first time)')});
+        if(my!==seq||$('#q').value.trim()!==q0||$('#view').value!=='lib')return r;
+        const have=new Set(list.map(t=>String(t.id)));lines={};const add=[];hits.forEach(h=>{const t=api.toTrack(h.raw);if(have.has(String(t.id)))lines[t.id]=h.line;else{lines[t.id]=h.line;add.push(t)}});
+        if(!Object.keys(lines).length){if(!had)status('No songs found, and no lyrics have that line');return r}
+        auto=true;list=had?list.concat(add):add;if(!had)hasMore=false;renderList();status('')}catch(e){}
+      return r}
     const q=$('#q').value.trim();page=1;hasMore=false;if(q.length<2){list=[];renderList();status('Type a line from a song, like "I still see your shadows in my room"');return}
     const my=++seq;status('Searching lyrics...');
     try{const hits=await lyrSearch.search(q,n=>{if(my===seq)status('Getting lyrics ready for searching... '+n+' songs (only the first time)')});if(my!==seq)return;
       lines={};list=hits.map(h=>{const t=api.toTrack(h.raw);lines[t.id]=h.line;return t});renderList();status(list.length?'':'No song has that line')}
     catch(e){if(my===seq)status('Could not search lyrics ('+e.message+')')}};
-  const _r=renderList;renderList=function(){_r.apply(this,arguments);if($('#view').value!=='lyrics')return;
+  const _r=renderList;renderList=function(){_r.apply(this,arguments);if($('#view').value!=='lyrics'&&!(auto&&$('#view').value==='lib'))return;
     $('#res').querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||!lines[t.id]||row.querySelector('.lyHit'))return;const m=row.querySelector('.meta, .m, div');if(!m)return;
       const q=$('#q').value.trim(),l=lines[t.id],k=l.toLowerCase().indexOf(q.toLowerCase());const el=document.createElement('small');el.className='lyHit';
       if(k>=0){el.append('“'+l.slice(0,k));const b=document.createElement('b');b.textContent=l.slice(k,k+q.length);el.append(b,l.slice(k+q.length)+'”')}else el.textContent='“'+l+'”';m.appendChild(el)})};
