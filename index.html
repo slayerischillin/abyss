@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="125">
+<meta name="abyss-version" content="126">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -3177,7 +3177,7 @@ d.innerHTML='<div class="shHead"><div><small>YOUR LYRICS</small><h3 id="mlT"></h
  '<textarea id="mlTx" spellcheck="false" placeholder="First line\nSecond line\n..."></textarea>'+
  '<div id="mlTap" hidden><div class="mlNow"><small>TAP WHEN THIS LINE STARTS</small><b id="mlLine"></b><span id="mlNext"></span></div><button class="sBtn main mlBig" id="mlHit">Tap (or press Space)</button><div class="mlRow"><button class="sBtn ghost" id="mlBack">Undo</button><span id="mlProg"></span><button class="sBtn ghost" id="mlStop">Stop</button></div></div></div>'+
  '<div class="shFoot"><button class="sBtn ghost" id="mlDel">Remove mine</button><button class="sBtn" id="mlTime">Time it</button><button class="sBtn main" id="mlSave">Save</button></div>';
-let tId=null,lines=[],stamps=[],k=0;const fmt=x=>{const m=Math.floor(x/60),s=(x%60).toFixed(2).padStart(5,'0');return '['+String(m).padStart(2,'0')+':'+s+']'};
+let tId=null,k=0;const fmt=x=>{const m=Math.floor(x/60),s=(x%60).toFixed(2).padStart(5,'0');return '['+String(m).padStart(2,'0')+':'+s+']'};
 const close=()=>{stopTap();d.close()};d.querySelector('[data-close]').onclick=close;
 function open(){const t=cur();if(!t){toast('Play a song first');return}tId=t.id;$('#mlT').textContent=titleOf(t);const m=get()[t.id];
   let txt=m&&m.txt||'';const lc=lyrCache[t.id];
@@ -3187,15 +3187,28 @@ function open(){const t=cur();if(!t){toast('Play a song first');return}tId=t.id;
   if(!txt){const ps=[...document.querySelectorAll('#lyrBody p')].map(p=>p.textContent.trim()).filter(x=>x&&x!=='♪'&&!/^•/.test(x));if(ps.length>2)txt=ps.join('\n')}$('#mlTx').value=txt;$('#mlDel').hidden=!m;stopTap();d.showModal()}
 eb.onclick=open;
 function save(txt){const all=get();if(txt&&txt.trim())all[tId]={txt:txt.trim(),at:Date.now()};else delete all[tId];store.set('myLyrics',all);delete lyrCache[tId];lyrFor=null;try{showLyrics()}catch(e){}}
-$('#mlSave').onclick=()=>{save($('#mlTx').value);toast('Lyrics saved');close()};
+/* lines can be a mix of timed ([mm:ss.xx] text) and untimed; only the untimed ones need tapping */
+const parse=txt=>txt.replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const m=/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/.exec(x);return m?{t:+m[1]*60+ +m[2],txt:m[3]||'♪'}:{t:null,txt:x}});
+const toLrc=E=>E.map(e=>fmt(e.t)+e.txt).join('\n');
+function fill(E){/* untimed lines left over get spread evenly between their timed neighbours */
+  for(let i=0;i<E.length;i++){if(E[i].t!=null)continue;let j=i;while(j<E.length&&E[j].t==null)j++;const a=i?E[i-1].t:0,b=j<E.length?E[j].t:a+3*(j-i+1),n=j-i+1;for(let q=i;q<j;q++)E[q].t=a+(b-a)*(q-i+1)/n;i=j}
+  return E}
+let ents=[],todo=[];
+$('#mlSave').onclick=()=>{const E=parse($('#mlTx').value);const left=E.filter(e=>e.t==null).length,anyT=E.some(e=>e.t!=null);
+  if(anyT&&left){save(toLrc(fill(E)));toast(left+' line'+(left>1?'s were':' was')+' untimed, so '+(left>1?'they were':'it was')+' placed between the lines around '+(left>1?'them':'it')+'. Press Time it to set '+(left>1?'them':'it')+' exactly.')}
+  else{save($('#mlTx').value);toast('Lyrics saved')}close()};
 $('#mlDel').onclick=()=>{save('');toast('Your lyrics removed');close()};
-function paintTap(){$('#mlLine').textContent=lines[k]||'Done!';$('#mlNext').textContent=lines[k+1]?'Next: '+lines[k+1]:'';$('#mlProg').textContent=Math.min(k,lines.length)+' / '+lines.length}
+function paintTap(){const i=todo[k];$('#mlLine').textContent=i==null?'Done!':ents[i].txt;const nx=todo[k+1];$('#mlNext').textContent=nx!=null?'Next to time: '+ents[nx].txt:'';$('#mlProg').textContent=Math.min(k,todo.length)+' / '+todo.length+(todo.length<ents.length?' untimed lines':'')}
+function goTo(){const i=todo[k];if(i==null)return;let back=null;for(let q=i-1;q>=0;q--)if(ents[q].t!=null){back=ents[q].t;break}const at=back==null?0:Math.max(0,back-1.5);
+  if(audio.currentTime<at-.5||audio.currentTime>(ents[i].t!=null?ents[i].t:at+30)+2||k===0)audio.currentTime=at}
 function stopTap(){$('#mlTap').hidden=true;$('#mlTx').hidden=false;d.classList.remove('tapping')}
-$('#mlTime').onclick=()=>{lines=$('#mlTx').value.replace(/\[\d+:[\d.]+\]\s*/g,'').split('\n').map(x=>x.trim()).filter(Boolean);if(!lines.length){toast('Paste the lyrics first');return}
-  const t=cur();if(!t||t.id!==tId){toast('Play this song to time it');return}stamps=[];k=0;audio.currentTime=0;audio.play();$('#mlTx').hidden=true;$('#mlTap').hidden=false;d.classList.add('tapping');paintTap()};
-function hit(){if(k>=lines.length)return;stamps[k]=audio.currentTime;k++;paintTap();if(window.abyssBuzz)abyssBuzz();
-  if(k>=lines.length){const lrc=lines.map((l,i)=>fmt(Math.max(0,stamps[i]-0.15))+l).join('\n');$('#mlTx').value=lrc;stopTap();save(lrc);toast('Timed! Your lyrics now scroll with the song')}}
-$('#mlHit').onclick=hit;$('#mlBack').onclick=()=>{if(k>0){k--;audio.currentTime=Math.max(0,(stamps[k]||audio.currentTime)-2);paintTap()}};$('#mlStop').onclick=stopTap;
+$('#mlTime').onclick=()=>{ents=parse($('#mlTx').value);if(!ents.length){toast('Paste the lyrics first');return}
+  todo=ents.map((e,i)=>e.t==null?i:null).filter(i=>i!=null);if(!todo.length){todo=ents.map((_,i)=>i);ents.forEach(e=>e.t=null)}
+  const t=cur();if(!t||t.id!==tId){toast('Play this song to time it');return}k=0;goTo();audio.play();$('#mlTx').hidden=true;$('#mlTap').hidden=false;d.classList.add('tapping');paintTap();
+  if(todo.length<ents.length)toast('Only the '+todo.length+' untimed line'+(todo.length>1?'s':'')+' need tapping')};
+function hit(){if(k>=todo.length)return;ents[todo[k]].t=Math.max(0,audio.currentTime-.15);k++;paintTap();if(window.abyssBuzz)abyssBuzz();
+  if(k>=todo.length){const lrc=toLrc(fill(ents));$('#mlTx').value=lrc;stopTap();save(lrc);toast('Timed! Your lyrics now scroll with the song');return}goTo()}
+$('#mlHit').onclick=hit;$('#mlBack').onclick=()=>{if(k>0){k--;const i=todo[k];const t0=ents[i].t;ents[i].t=null;audio.currentTime=Math.max(0,(t0||audio.currentTime)-2);paintTap()}};$('#mlStop').onclick=stopTap;
 addEventListener('keydown',e=>{if(d.open&&d.classList.contains('tapping')&&(e.code==='Space'||e.key==='Enter')){e.preventDefault();e.stopImmediatePropagation();hit()}},true);
 })();
 /* ================= v103: Unleaked songs never leave Abyss ================= */

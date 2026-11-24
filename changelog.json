@@ -1,7 +1,7 @@
 {
  "versions": [
   {
-   "version": 125,
+   "version": 126,
    "title": "Patch Note #1 \u2014 RELEASE!!!",
    "date": "Nov 24, 2026",
    "changes": [
@@ -17,7 +17,8 @@
     "Discord status on PC and Android, lock screen controls and background play on phones",
     "Updates install themselves, no reinstalling",
     "Link to Spotify Local Files can copy EVERYTHING ON ABYSS",
-    "Performance mode: one tap (lightning button or P) turns off every effect so Abyss barely uses your PC"
+    "Performance mode: one tap (lightning button or P) turns off every effect so Abyss barely uses your PC",
+    "Lyrics editor: lines that are already timed stay timed, and Time it only asks you to tap the ones that aren't"
    ]
   }
  ]
