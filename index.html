@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="112">
+<meta name="abyss-version" content="113">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -3262,7 +3262,18 @@ function draw(ms){requestAnimationFrame(draw);const off=document.hidden||cfg.per
   const sh=bx.createRadialGradient(cx-R*.35,cy-R*.4,R*.1,cx,cy,R);sh.addColorStop(0,'rgba(40,40,60,.18)');sh.addColorStop(.7,'rgba(0,0,0,0)');bx.fillStyle=sh;bx.beginPath();bx.arc(cx,cy,R,0,6.283);bx.fill();
   const rim=bx.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.015);rim.addColorStop(0,'rgba(0,0,0,0)');rim.addColorStop(.75,'hsla('+h+',85%,55%,'+(.2+L*.25)+')');rim.addColorStop(1,'hsla('+h+',95%,85%,.95)');
   bx.beginPath();bx.arc(cx,cy,R*1.015,0,6.283);bx.fillStyle=rim;bx.fill();
-  bx.beginPath();bx.arc(cx,cy,R*1.03,0,6.283);bx.lineWidth=1;bx.strokeStyle='hsla('+h+',100%,92%,'+(.45+L*.3)+')';bx.stroke();
+  /* the outline moves with the music: every part of the edge follows a slice of the sound */
+  {const n=(typeof bins!=='undefined'&&bins.length)?bins.length:0,seg=LITE?90:180,pts=[];
+    for(let i=0;i<=seg;i++){const f=i/seg,ang=f*6.283-Math.PI/2;let v=0;
+      if(n){const u=f<.5?f*2:(1-f)*2,k=u*(n-1),k0=Math.floor(k),k1=Math.min(n-1,k0+1),fr=k-k0;v=bins[k0]*(1-fr)+bins[k1]*fr}
+      const r=R*(1.02+v*.22*(audio.paused?.25:1)+pulse*.03);pts.push([cx+Math.cos(ang)*r,cy+Math.sin(ang)*r])}
+    const path=()=>{bx.beginPath();for(let i=0;i<pts.length;i++){const p=pts[i];i?bx.lineTo(p[0],p[1]):bx.moveTo(p[0],p[1])}bx.closePath()};
+    bx.save();bx.globalCompositeOperation='lighter';
+    path();bx.shadowColor='hsla('+h+',100%,65%,1)';bx.shadowBlur=14+L*30+pulse*25;bx.lineWidth=2.4+L*2.5+pulse*2;bx.strokeStyle='hsla('+h+',95%,75%,'+(.75+L*.25)+')';bx.stroke();
+    path();bx.shadowBlur=0;bx.lineWidth=1;bx.strokeStyle='hsla('+h+',100%,94%,.95)';bx.stroke();
+    /* a softer echo outline that trails behind */
+    bx.beginPath();for(let i=0;i<pts.length;i++){const p=pts[i],dx=p[0]-cx,dy=p[1]-cy,e=1+.05+L*.05;i?bx.lineTo(cx+dx*e,cy+dy*e):bx.moveTo(cx+dx*e,cy+dy*e)}bx.closePath();bx.lineWidth=1.2;bx.strokeStyle='hsla('+(h+20)+',90%,70%,'+(.18+L*.3)+')';bx.stroke();
+    bx.restore()}
   dust(fx2,R,h,L,true,t)}
 requestAnimationFrame(draw)})();
 </script>
