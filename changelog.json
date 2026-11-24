@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 118,
+   "date": "Nov 23",
+   "changes": [
+    "The black hole's ring and dust now take their colors from the album cover, blending smoothly between songs (black and white covers get a silver ring)",
+    "Fixed 'That local file is missing' stopping playback: songs without a file are skipped"
+   ]
+  },
+  {
    "version": 117,
    "date": "Nov 23",
    "changes": [
