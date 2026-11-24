@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="139">
+<meta name="abyss-version" content="140">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1327,7 +1327,11 @@ body.perf{background:#0b0910!important}
 #bPerf.on{color:#ffd24a}
 #lyrEd2{display:inline-flex;align-items:center;gap:5px;margin-left:6px}#lyrEd2 svg{width:13px;height:13px}
 .lyHit{display:block;margin-top:3px;font-size:12px;opacity:.75;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lyHit b{display:inline!important;font-size:inherit!important;font-weight:700;font-style:normal;color:#fff;background:color-mix(in srgb,var(--glow) 40%,transparent);border-radius:4px;padding:0 3px}
-#plWin.virt #plRen,#plWin.virt #plExp,#plWin.virt #plDel{display:none}.chip.vpl{border-color:color-mix(in srgb,var(--glow) 45%,transparent)}</style>
+#plWin.virt #plRen,#plWin.virt #plExp,#plWin.virt #plDel{display:none}.chip.vpl{border-color:color-mix(in srgb,var(--glow) 45%,transparent)}
+/* v140: play button breathes while a song is still loading */
+@keyframes bufp{50%{box-shadow:0 0 0 7px rgba(255,255,255,.16),0 0 24px -4px var(--glow)}}
+#pp.buf{animation:bufp 1s ease-in-out infinite}
+</style>
 </head>
 <body style="--art:none">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z" fill="currentColor" stroke="none"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4.2" height="15" rx="1.3" fill="currentColor" stroke="none"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.3" fill="currentColor" stroke="none"/></symbol><symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 5.5v13L9 12z" fill="currentColor" stroke="none"/><rect x="5" y="5.5" width="2.6" height="13" rx="1.1" fill="currentColor" stroke="none"/></symbol><symbol id="i-next" viewBox="0 0 24 24"><path d="M5 5.5v13L15 12z" fill="currentColor" stroke="none"/><rect x="16.4" y="5.5" width="2.6" height="13" rx="1.1" fill="currentColor" stroke="none"/></symbol><symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></symbol><symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol><symbol id="i-vol" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol><symbol id="i-radio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19.1 4.9a10 10 0 0 1 0 14.2M4.9 19.1a10 10 0 0 1 0-14.2"/></symbol><symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.4 3.6a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2.2"/><circle cx="9" cy="12" r="2.2"/><circle cx="17" cy="18" r="2.2"/></symbol><symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol><symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-9A5 5 0 0 1 12 6a5 5 0 0 1 9.2 5C19 15.6 12 20 12 20z"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol><symbol id="i-full" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h0"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol><symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol><symbol id="i-lyr" viewBox="0 0 24 24"><path d="M5 4.5h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7.5L7 21v-3.5H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2z"/><path d="M9 9.2c-.9 0-1.4.6-1.4 1.4s.6 1.3 1.3 1.3c0 .9-.5 1.4-1.2 1.6M14.2 9.2c-.9 0-1.4.6-1.4 1.4s.6 1.3 1.3 1.3c0 .9-.5 1.4-1.2 1.6"/></symbol><symbol id="i-lsearch" viewBox="0 0 24 24"><path d="M3.5 6h11M3.5 11h7M3.5 16h5"/><circle cx="16" cy="15" r="4"/><path d="M19 18l2.5 2.5"/></symbol><symbol id="i-pls" viewBox="0 0 24 24"><rect x="7" y="3" width="14" height="14" rx="2.5"/><path d="M4 7v11.5A2.5 2.5 0 0 0 6.5 21H17"/><path d="M15.5 6.5v6.2"/><circle cx="13.6" cy="12.8" r="1.9"/><path d="M15.5 6.5l2.2.8"/></symbol><symbol id="i-lplus" viewBox="0 0 24 24"><path d="M4 6h12M4 12h12M4 18h7M18 14v7M14.5 17.5h7"/></symbol><symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13l3 3 3-3"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol><symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol><symbol id="i-up" viewBox="0 0 24 24"><path d="M12 20V9M7 14l5-5 5 5M5 4h14"/></symbol><symbol id="i-queue" viewBox="0 0 24 24"><path d="M3 6h12M3 12h12M3 18h7"/><path d="M17 14v7l5-3.5z" fill="currentColor" stroke="none"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol></svg>
@@ -1954,7 +1958,7 @@ function onPlay(t){{const f=$('#flash');f.classList.remove('go');void f.offsetWi
   const p=plays[t.id]||{n:0,raw:t.raw};p.n++;p.raw=t.raw;plays[t.id]=p;store.set('plays',plays);
   store.set('last',{raw:t.raw,time:0});
   if('mediaSession' in navigator){try{const c=shownCover(t);navigator.mediaSession.metadata=new MediaMetadata({title:titleOf(t),artist:artistOf(t),album:isSC(t)?'SoundCloud era':subOf(t),artwork:c?[{src:c,sizes:'512x512'}]:[]})}catch{}}
-  const nx=queue[idx+1];if(nx){const i=new Image();i.referrerPolicy='no-referrer';i.src=coverOf(nx)||eraCover(nx);if(audio.setNext){if(!shuffle&&repeat!==2)audio.setNext(nx)}else if(cfg.pre!==false)pre.src=nx.src}}
+  const nx=queue[idx+1];if(nx){const i=new Image();i.referrerPolicy='no-referrer';i.src=coverOf(nx)||eraCover(nx);if(audio.setNext){if(!shuffle&&repeat!==2)audio.setNext(nx)}else if(cfg.pre!==false){/* wait until this song is actually playing, so the next one doesn't steal its bandwidth */const go=()=>setTimeout(()=>{if(cur()===t&&!audio.paused)pre.src=nx.src},5000);if(!audio.paused&&audio.readyState>=3)go();else audio.addEventListener('playing',go,{once:true})}}}
 if('mediaSession' in navigator){const ms=navigator.mediaSession;try{ms.setActionHandler('play',()=>audio.play());ms.setActionHandler('pause',()=>audio.pause());ms.setActionHandler('nexttrack',()=>step(1));ms.setActionHandler('previoustrack',()=>step(-1));ms.setActionHandler('seekto',e=>audio.currentTime=e.seekTime)}catch{}}
 let lastSave=0;const saveLast=()=>{const t=cur();if(t&&!document.body.classList.contains('cnRemote')&&isFinite(audio.currentTime)){lastSave=Date.now();store.set('last',{raw:t.raw,time:audio.currentTime,at:Date.now()})}};
 audio.addEventListener('timeupdate',()=>{if(Date.now()-lastSave>3000)saveLast()});audio.addEventListener('pause',saveLast);addEventListener('pagehide',saveLast);addEventListener('beforeunload',saveLast);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveLast()});
@@ -3347,6 +3351,19 @@ window.abyssSeAdmin=seAdmin;
 /* v107: rename the playing session edit from under the cover (slayer only) */
 (()=>{const b=$('#cRen');b.onclick=()=>{const t=cur();if(!t)return;if(t.raw.uzi){window.abyssUziRename&&abyssUziRename(t);return}if(window.abyssSeAdmin)abyssSeAdmin.rename(t)};
   setInterval(()=>{const t=cur();b.hidden=!(t&&(t.raw.category==='session_edit'||t.raw.uzi)&&window.abyssSeAdmin&&abyssSeAdmin.isAdmin())},800)})();
+
+/* ================= v140: a song that won't start gets retried, then skipped ================= */
+(()=>{if(NATIVE_PLAYER)return;const pp=$('#pp');let lastT=-1,since=Date.now(),tries=0,id=null,told=false;
+  audio.addEventListener('loadstart',()=>{const t=cur();if(t&&t.id!==id){id=t.id;tries=0;told=false}since=Date.now();lastT=audio.currentTime});
+  audio.addEventListener('playing',()=>pp.classList.remove('buf'));
+  setInterval(()=>{const t=cur();
+    if(!t||audio.paused||!audio.src||audio.ended||(t.raw&&t.raw.local)){pp.classList.remove('buf');since=Date.now();lastT=audio.currentTime;return}
+    if(audio.currentTime!==lastT){lastT=audio.currentTime;since=Date.now();pp.classList.remove('buf');return}
+    const w=Date.now()-since;if(w>1200)pp.classList.add('buf');
+    if(w>4000&&!told){told=true;toast('Still loading '+titleOf(t)+'...')}
+    if(w>7000){since=Date.now();
+      if(tries<2){tries++;const at=audio.currentTime;audio.load();audio.addEventListener('loadedmetadata',()=>{try{if(at)audio.currentTime=at}catch(e){}},{once:true});audio.play().catch(()=>{})}
+      else{tries=0;pp.classList.remove('buf');toast('Couldn\'t load '+titleOf(t)+', skipping it');try{step(1)}catch(e){}}}},500)})();
 
 /* ================= v138: Lil Uzi Vert clean-up, and names only @slayer can change ================= */
 (()=>{const Z=window.abyssUzi;if(!Z)return;

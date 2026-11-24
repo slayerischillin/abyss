@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 140,
+   "title": "Patch Note #4",
+   "date": "Nov 24, 2026",
+   "changes": [
+    "Songs start faster: the next song only starts downloading once the current one is playing",
+    "A song stuck at 0:00 gets retried automatically, and skipped if it still won't load",
+    "The play button pulses while a song is loading"
+   ]
+  },
+  {
    "version": 139,
    "title": "Patch Note #3",
    "date": "Nov 24, 2026",
