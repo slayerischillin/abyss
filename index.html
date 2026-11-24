@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="127">
+<meta name="abyss-version" content="128">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1326,6 +1326,7 @@ body.perf #card #coverWrap{box-shadow:none!important;transform:none!important}
 body.perf{background:#0b0910!important}
 #bPerf.on{color:#ffd24a}
 #lyrEd2{display:inline-flex;align-items:center;gap:5px;margin-left:6px}#lyrEd2 svg{width:13px;height:13px}
+.lyHit{display:block;margin-top:3px;font-size:12px;opacity:.75;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lyHit b{display:inline!important;font-size:inherit!important;font-weight:700;font-style:normal;color:#fff;background:color-mix(in srgb,var(--glow) 40%,transparent);border-radius:4px;padding:0 3px}
 </style>
 </head>
 <body style="--art:none">
@@ -3345,6 +3346,41 @@ requestAnimationFrame(draw)})();
 
 /* v127: an Edit lyrics button in the lyrics footer too, next to the timing buttons */
 (()=>{const off=$('#lyrOff');if(!off)return;const b=document.createElement('button');b.id='lyrEd2';b.innerHTML=ico('edit')+' Edit';b.title='Write or fix the lyrics (E)';b.onclick=()=>$('#lyrEd').click();off.appendChild(b)})();
+/* ================= v128: search by lyrics ================= */
+const lyrSearch=(()=>{let idx=null,building=null;const DB='abyssLyr';
+  const db=()=>new Promise((res,rej)=>{const q=indexedDB.open(DB,1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
+  const get=async k=>{const d=await db();return new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})};
+  const put=async(k,v)=>{const d=await db();return new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r})};
+  const clean=s=>String(s||'').replace(/\[\d+:[\d.]+\]/g,'').replace(/\r/g,'');
+  async function build(onProg){const c=await get('idx');if(c&&Date.now()-c.at<3*24*3600*1000){idx=c.items;return idx}
+    if(building)return building;building=(async()=>{const out=[];
+      for(let pg=1;pg<400;pg++){const u=new URL(cfg.base+'/songs/');u.searchParams.set('page',pg);u.searchParams.set('page_size',100);
+        const r=await fetch(u,{headers:api.headers()});if(!r.ok)throw new Error('HTTP '+r.status);const d=await r.json();
+        (d.results||[]).forEach(x=>{const ly=clean(x.lyrics||x.synced_lyrics);if(!ly.trim())return;if(!x.path)x.path=x.file_path||x.audio_path||x.filepath||x.file||api.pickAudio(x)||null;if(!x.path)return;
+          const raw=Object.assign({},x);delete raw.lyrics;delete raw.synced_lyrics;out.push({raw,ly})});
+        onProg&&onProg(out.length);if(!d.next)break}
+      idx=out;await put('idx',{at:Date.now(),items:out});building=null;return out})();return building}
+  async function search(q,onProg){const all=await build(onProg),n=q.toLowerCase().replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim();if(n.length<2)return[];
+    const mine=store.get('myLyrics',{}),hits=[];
+    const scan=(raw,ly)=>{const lines=ly.split('\n');for(const l of lines){const ln=l.toLowerCase().replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ');if(ln.includes(n)){hits.push({raw,line:l.trim()});return true}}return false};
+    all.forEach(e=>scan(e.raw,e.ly));
+    Object.entries(mine).forEach(([id,m])=>{const h=[...hist,...Object.values(likes)].find(r=>String(r.id)===id);if(h&&!hits.some(x=>String(x.raw.id)===id))scan(h,clean(m.txt))});
+    return hits.slice(0,200)}
+  return{search,build}})();
+window.abyssLyrSearch=lyrSearch;
+(()=>{const v=$('#view'),o=document.createElement('option');o.value='lyrics';o.textContent='🎤 Search lyrics';v.querySelector('option[value=lib]').insertAdjacentElement('afterend',o);
+  let lines={},seq=0;
+  const _ld=load;load=async function(reset){if($('#view').value!=='lyrics')return _ld.apply(this,arguments);
+    const q=$('#q').value.trim();page=1;hasMore=false;if(q.length<2){list=[];renderList();status('Type a line from a song, like "I still see your shadows in my room"');return}
+    const my=++seq;status('Searching lyrics...');
+    try{const hits=await lyrSearch.search(q,n=>{if(my===seq)status('Getting lyrics ready for searching... '+n+' songs (only the first time)')});if(my!==seq)return;
+      lines={};list=hits.map(h=>{const t=api.toTrack(h.raw);lines[t.id]=h.line;return t});renderList();status(list.length?'':'No song has that line')}
+    catch(e){if(my===seq)status('Could not search lyrics ('+e.message+')')}};
+  const _r=renderList;renderList=function(){_r.apply(this,arguments);if($('#view').value!=='lyrics')return;
+    $('#res').querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||!lines[t.id]||row.querySelector('.lyHit'))return;const m=row.querySelector('.meta, .m, div');if(!m)return;
+      const q=$('#q').value.trim(),l=lines[t.id],k=l.toLowerCase().indexOf(q.toLowerCase());const el=document.createElement('small');el.className='lyHit';
+      if(k>=0){el.append('“'+l.slice(0,k));const b=document.createElement('b');b.textContent=l.slice(k,k+q.length);el.append(b,l.slice(k+q.length)+'”')}else el.textContent='“'+l+'”';m.appendChild(el)})};
+  v.addEventListener('change',()=>{if(v.value==='lyrics'){$('#q').placeholder='Search a line from any song...';$('#q').focus()}else $('#q').placeholder='Search'})})();
 </script>
 </body>
 </html>
