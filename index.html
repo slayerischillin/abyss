@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="132">
+<meta name="abyss-version" content="133">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1536,7 +1536,7 @@ class NativeAudio extends EventTarget{
   _fallback(why){if(this._fb)return;this._fb=true;console.warn('native player failed, using built-in audio',why);try{const n=+(localStorage.getItem('nativeBad2')||0)+1;localStorage.setItem('nativeBad2',n);localStorage.setItem('nativeWhy',String(why&&why.message||why))}catch(e){}try{toast('Phone player didn\'t start ('+String(why&&why.message||why).slice(0,60)+'). Playing in the app instead.')}catch(e){}try{this.P.pause().catch(()=>{})}catch(e){}
     const a=this._elx(),u=this._src;a.volume=this._muted?0:this._vol;a.playbackRate=this._rate;a.src=u;if(!this._paused)a.play().catch(()=>{});this._fire('loadstart')}
   _fire(n){const ev=new Event(n);this.dispatchEvent(ev);const h=this._h[n];if(h)try{h.call(this,ev)}catch(e){console.error(e)}}
-  _meta(){try{const t=typeof cur==='function'&&cur();if(!t)return{};const c=coverOf(t)||eraCover(t);return{title:titleOf(t),artist:artistOf(t),sub:subOf(t),album:isSC(t)?'SoundCloud era':subOf(t),art:/^https:/.test(c)?c:''}}catch{return{}}}
+  _meta(){try{const t=typeof cur==='function'&&cur();if(!t)return{};const c=shownCover(t);return{title:titleOf(t),artist:artistOf(t),sub:subOf(t),album:isSC(t)?'SoundCloud era':subOf(t),art:/^https:/.test(c)?c:''}}catch{return{}}}
   _elx(){if(!this._el){const a=this._el=new Audio();a.preload='metadata';
       ['play','pause','ended','timeupdate','error','playing','loadedmetadata','seeked','ratechange','waiting','durationchange','canplay'].forEach(n=>a.addEventListener(n,()=>{if(this._localMode){if(n==='error')this.error=a.error;this._fire(n)}}))}
     return this._el}
@@ -1571,7 +1571,7 @@ class NativeAudio extends EventTarget{
   load(){}
   canPlayType(){return'probably'}
   setNext(t){if(this._localMode||!t||!t.src||this._isLocal(t.src)){this.P.setNext({url:''}).catch(()=>{});return}
-    let m={};try{const c=coverOf(t)||eraCover(t);m={title:titleOf(t),artist:artistOf(t),album:isSC(t)?'SoundCloud era':subOf(t),art:/^https:/.test(c)?c:''}}catch{}
+    let m={};try{const c=shownCover(t);m={title:titleOf(t),artist:artistOf(t),album:isSC(t)?'SoundCloud era':subOf(t),art:/^https:/.test(c)?c:''}}catch{}
     this.P.setNext(Object.assign({url:t.src},m)).catch(()=>{})}
   updateInfo(){if(!this._localMode&&this._native)this.P.updateInfo(this._meta()).catch(()=>{})}
   _on(e){if(this._localMode&&e.type!=='action')return;
@@ -1648,7 +1648,7 @@ function play(n,_skip){if(n<0||n>=queue.length)return;if(!queue[n].src){const q=
   idx=n;
   {const t0=queue[n],ec=eraCover(t0);if(!t0.raw.local&&covers[t0.id]===ERA_DEFAULT&&ec!==ERA_DEFAULT){covers[t0.id]=ec;store.set('covers',covers)}}const t=cur();clearTimeout(skipT);if(!ac)audio.crossOrigin='anonymous';audio.src=t.src;audio.playbackRate=rate;audio.play().catch(()=>{});paint('new');autoCover(t);onPlay(t)}
 function paint(mode){const t=cur();if(!t)return;const c=coverOf(t);
-  const swap=()=>{triedCov.clear();coverEl.crossOrigin='anonymous';if(c)coverEl.src=c;else coverEl.src=eraCover(t);$('#ct').textContent=titleOf(t);$('#cs').textContent=subOf(t);const a=t.raw.category==='session_edit'?'':akaOf(t);$('#ca').textContent=a?'Also: '+a:'';
+  const swap=()=>{triedCov.clear();coverEl.dataset.for=String(t.id);coverEl.crossOrigin='anonymous';if(c)coverEl.src=c;else coverEl.src=eraCover(t);$('#ct').textContent=titleOf(t);$('#cs').textContent=subOf(t);const a=t.raw.category==='session_edit'?'':akaOf(t);$('#ca').textContent=a?'Also: '+a:'';
     {const bc=document.getElementById('barCov');if(bc){bc.onerror=()=>{const f=eraCover(t);bc.onerror=()=>{bc.onerror=null;bc.src=ERA_DEFAULT};if(bc.getAttribute('src')!==f)bc.src=f;else bc.onerror()};bc.src=c||eraCover(t)}}document.body.style.setProperty('--art',c?'url("'+c.replace(/"/g,'%22')+'")':'none')};
   $('#mt').textContent=titleOf(t);$('#ms').textContent=subOf(t);document.title=titleOf(t)+' · Abyss';
   if(reduce||window.__noFlip){window.__noFlip=false;swap()}else{
@@ -1953,7 +1953,7 @@ function onPlay(t){{const f=$('#flash');f.classList.remove('go');void f.offsetWi
   hist=[t.raw,...hist.filter(x=>x.id!==t.id)].slice(0,100);store.set('hist',hist);
   const p=plays[t.id]||{n:0,raw:t.raw};p.n++;p.raw=t.raw;plays[t.id]=p;store.set('plays',plays);
   store.set('last',{raw:t.raw,time:0});
-  if('mediaSession' in navigator){try{const c=coverOf(t)||eraCover(t);navigator.mediaSession.metadata=new MediaMetadata({title:titleOf(t),artist:artistOf(t),album:isSC(t)?'SoundCloud era':subOf(t),artwork:c?[{src:c,sizes:'512x512'}]:[]})}catch{}}
+  if('mediaSession' in navigator){try{const c=shownCover(t);navigator.mediaSession.metadata=new MediaMetadata({title:titleOf(t),artist:artistOf(t),album:isSC(t)?'SoundCloud era':subOf(t),artwork:c?[{src:c,sizes:'512x512'}]:[]})}catch{}}
   const nx=queue[idx+1];if(nx){const i=new Image();i.referrerPolicy='no-referrer';i.src=coverOf(nx)||eraCover(nx);if(audio.setNext){if(!shuffle&&repeat!==2)audio.setNext(nx)}else if(cfg.pre!==false)pre.src=nx.src}}
 if('mediaSession' in navigator){const ms=navigator.mediaSession;try{ms.setActionHandler('play',()=>audio.play());ms.setActionHandler('pause',()=>audio.pause());ms.setActionHandler('nexttrack',()=>step(1));ms.setActionHandler('previoustrack',()=>step(-1));ms.setActionHandler('seekto',e=>audio.currentTime=e.seekTime)}catch{}}
 let lastSave=0;const saveLast=()=>{const t=cur();if(t&&!document.body.classList.contains('cnRemote')&&isFinite(audio.currentTime)){lastSave=Date.now();store.set('last',{raw:t.raw,time:audio.currentTime,at:Date.now()})}};
@@ -2287,6 +2287,9 @@ window.showPatchNotes=async(from,to)=>{const log=await changelog();const es=log.
 setTimeout(async()=>{const seen=+(store.get('seenVer',MY_VER-1)||0);if(seen&&MY_VER>seen)await showPatchNotes(seen,MY_VER);store.set('seenVer',MY_VER)},3500);
 /* ---- Discord Rich Presence (desktop app) ---- */
 const DISCORD_ID='1574027318245064757';
+/* Discord gets the cover the player actually shows, not one that failed to load */
+function shownCover(t){const u=coverEl.currentSrc||'';if(/^https:\/\//.test(u)&&coverEl.complete&&coverEl.naturalWidth>0&&coverEl.dataset.for===String(t.id))return u;return coverOf(t)||eraCover(t)}
+coverEl.addEventListener('load',()=>{try{presence(true)}catch(e){}try{const m=navigator.mediaSession&&navigator.mediaSession.metadata,u=coverEl.currentSrc;if(m&&/^https:/.test(u))m.artwork=[{src:u,sizes:'512x512'}]}catch(e){}});
 const ICONS='https://raw.githubusercontent.com/slayerischillin/abyss/main/icons/';
 let rpcT=0,rpcLast='',rpcLyricAt=0,dLyr={id:null,lines:[]};
 const clip=(x,n)=>{x=String(x||'');return x.length>n?x.slice(0,n-1)+'…':x.padEnd(2,' ')};
@@ -2296,7 +2299,7 @@ if(AD)document.body.classList.add('android');
 function sendPresence(){if(AD&&!window.abyssWin)return sendPresenceAndroid();const R=abyssWin.rpc;
   if(!DISCORD_ID||cfg.discord===false){R({clientId:DISCORD_ID||undefined,off:true});rpcLast='';return}
   const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){R({clientId:DISCORD_ID,activity:null});rpcLast='none'}return}
-  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=t.raw.unleaked?'':(coverOf(t)||eraCover(t));
+  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=t.raw.unleaked?'':shownCover(t);
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');
   if(cfg.discordLyric&&!audio.paused){if(dLyr.id!==t.id){dLyr={id:t.id,lines:[]};fetchLyrics(t).then(v=>{if(dLyr.id===t.id){dLyr.lines=v.synced||[];presence()}})}
@@ -2315,7 +2318,7 @@ setTimeout(()=>presence(true),3000);
 function sendPresenceAndroid(){
   if(!DISCORD_ID||cfg.discord===false){AD.clear().catch(()=>{});rpcLast='';return}
   const t=cur();if(!t||!audio.src||audio.paused){if(rpcLast!=='none'){AD.clear().catch(()=>{});rpcLast='none'}return}
-  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=t.raw.unleaked?'':(coverOf(t)||eraCover(t));
+  const era=isSC(t)?'SoundCloud era':subOf(t),art=artistOf(t),c=t.raw.unleaked?'':shownCover(t);
   const big=/^https:\/\//.test(c)&&c.length<=256?c:ICONS+'abyss.png';
   let state=art+(era&&era!==art?' · '+era:'');if(audio.paused)state='Paused · '+state;
   const o={appId:DISCORD_ID,details:clip(titleOf(t),128),state:clip(state,128),largeImage:big,largeText:clip(era||'Abyss',128),
@@ -2342,7 +2345,7 @@ if(window.abyssWin){if(abyssWin.onRpcState)abyssWin.onRpcState(paintDc);
   if(!abyssWin.rpc&&!store.get('dcOldWarned',0))setTimeout(()=>{toast('Discord status needs the new Windows download (see Settings)');store.set('dcOldWarned',1)},6000)}
 /* ---- Android: now-playing notification, lock screen controls, background playback ---- */
 (()=>{const M=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.AbyssMedia;if(!M)return;
-  let tm=0;const sync=()=>{clearTimeout(tm);tm=setTimeout(()=>{const t=cur();if(!t)return;const c=coverOf(t)||eraCover(t);
+  let tm=0;const sync=()=>{clearTimeout(tm);tm=setTimeout(()=>{const t=cur();if(!t)return;const c=shownCover(t);
     M.update({title:titleOf(t),artist:artistOf(t),art:/^https:/.test(c)?c:'',playing:!audio.paused,position:audio.currentTime||0,duration:isFinite(audio.duration)?audio.duration:0}).catch(()=>{})},250)};
   ['play','pause','seeked','loadedmetadata','ended'].forEach(ev=>audio.addEventListener(ev,sync));
   let lastPos=0;audio.addEventListener('timeupdate',()=>{if(Math.abs(audio.currentTime-lastPos)>15){lastPos=audio.currentTime;sync()}});
@@ -2661,7 +2664,7 @@ const connect=(()=>{const T=SUPA.url+'/rest/v1/connect_devices';
   const online=d=>Date.now()-new Date(d.seen).getTime()<(d.state&&!d.state.paused&&!d.state.idle?120000:30000);
   const activeDev=()=>{const on=devs.filter(d=>online(d)&&d.active_at);on.sort((a,b)=>new Date(b.active_at)-new Date(a.active_at));return on[0]||null};
   const remote=()=>{const a=activeDev();if(!a||a.id===me||!a.state||a.state.idle)return null;const st=a.state;if(st.paused&&Date.now()-(st.lastPlay||0)>120000)return null;if(st.paused&&Date.now()-(st.at||0)>30000)return null;return a};let lastPlay=0;
-  function myState(){const t=cur();if(!t)return{idle:true};if(!audio.paused)lastPlay=Date.now();return{lastPlay,raw:t.raw.local?null:t.raw,title:titleOf(t),artist:artistOf(t),cover:coverOf(t)||eraCover(t),pos:audio.currentTime||0,dur:audio.duration||0,paused:!!audio.paused,at:Date.now()}}
+  function myState(){const t=cur();if(!t)return{idle:true};if(!audio.paused)lastPlay=Date.now();return{lastPlay,raw:t.raw.local?null:t.raw,title:titleOf(t),artist:artistOf(t),cover:shownCover(t),pos:audio.currentTime||0,dur:audio.duration||0,paused:!!audio.paused,at:Date.now()}}
   async function send(id,cmd){cmd.id=Date.now()+Math.random().toString(36).slice(2,6);try{await sfetch(T+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:await hdr({Prefer:'return=minimal'}),body:JSON.stringify({cmd})});if(!wsUp)setTimeout(beat,400)}catch(e){toast('Could not reach that device')}}
   async function claim(){myClaim=Date.now();const a=new Date().toISOString();const m=devs.find(d=>d.id===me);if(m)m.active_at=a;paint();
     try{await sfetch(T+'?on_conflict=id',{method:'POST',headers:await hdr({Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify({id:me,user_id:acct.user.id,name:nameOf(),platform:kind,seen:a,active_at:a,state:myState()})})}catch(e){}}
