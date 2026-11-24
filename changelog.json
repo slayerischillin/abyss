@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 115,
+   "date": "Nov 23",
+   "changes": [
+    "The black hole's ring is now a glowing band of gas with lanes and gaps under the dust, brighter on the side spinning towards you"
+   ]
+  },
+  {
    "version": 114,
    "date": "Nov 23",
    "changes": [
