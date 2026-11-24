@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="143">
+<meta name="abyss-version" content="144">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1680,7 +1680,7 @@ function randomPool(){const seen=new Set(),out=[],c=cur();const add=x=>{if(!x)re
     if(!t||!t.src||seen.has(t.id)||badSongs.has(t.id)||(c&&t.id===c.id))return;seen.add(t.id);out.push(t)};
   list.forEach(add);hist.forEach(add);Object.values(likes).forEach(add);Object.values(plays).forEach(p=>add(p&&p.raw));
   try{if(window.abyssUzi&&abyssUzi.ok())abyssUzi.items().forEach(add)}catch(e){}return out}
-async function playRandom(why){const pool=randomPool();
+async function playRandom(why){const all=randomPool(),uz=all.filter(t=>t.raw.uzi),jw=all.filter(t=>!t.raw.uzi),pool=uz.length&&jw.length?(Math.random()<.5?uz:jw):all;
   if(pool.length){const t=pool[Math.floor(Math.random()*pool.length)];queue.push(t);play(queue.length-1);if(why)toast(why+' Playing '+titleOf(t)+' instead.');return}
   try{const t=await Promise.race([api.random(),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),8000))]);queue.push(t);play(queue.length-1)}catch(e){$('#ms').textContent='Could not get another song right now'}}
 audio.onended=()=>{if(repeat===2&&idx>=0&&queue[idx]){if(NATIVE_PLAYER){audio._src='';audio._native=''}else{try{audio.currentTime=0}catch(e){}}return play(idx)}step(1)};
@@ -3415,9 +3415,38 @@ window.abyssSeAdmin=seAdmin;
   function pump(){while(mOn<3&&mq.length){const r=mq.shift(),m=(window.__ulMap||{})[r.id];if(!m||!m.src)continue;mOn++;const a=new Audio();a.preload='metadata';let done=false;
     const fin=d=>{if(done)return;done=true;mOn--;a.removeAttribute('src');try{a.load()}catch(e){}if(note(r.id,d)){r.length=fmt(d);changed()}pump()};
     a.onloadedmetadata=()=>fin(a.duration);a.onerror=()=>fin(0);setTimeout(()=>fin(0),15000);a.src=m.src}}
-  const measure=rs=>{rs.forEach(r=>{if(r.uzi&&durs[r.id]===undefined&&!mq.includes(r))mq.push(r)});pump()};
+  const measure=window.abyssUzMeasure=rs=>{rs.forEach(r=>{if(r.uzi&&durs[r.id]===undefined&&!mq.includes(r))mq.push(r)});pump()};
   {const _ld=load;load=async function(){const r=await _ld.apply(this,arguments);try{measure(list.map(t=>t.raw))}catch(e){}return r}}
   audio.addEventListener('loadedmetadata',()=>{const t=cur();if(t&&t.raw.uzi&&note(t.id,audio.duration)&&audio.duration<60)changed()});
+})();
+/* ================= v144: Lil Uzi Vert all through the library (filters, eras, random) ================= */
+(()=>{const Z=window.abyssUzi;if(!Z)return;const PER=150;
+  const uzOn=()=>{try{return Z.ok()&&Z.items().length>0}catch(e){return false}};
+  function paintFilters(){const on=uzOn(),cat=$('#cat'),era=$('#era');
+    let o=cat.querySelector('option[value=uzi]');if(on&&!o){o=document.createElement('option');o.value='uzi';o.textContent='Lil Uzi Vert';cat.appendChild(o)}
+    if(!on&&o){if(cat.value==='uzi'){cat.value='';load(true)}o.remove()}
+    let g=era.querySelector('#uzEras');const eras=on?[...new Set(Z.items().map(r=>r.era.name))].sort((a,b)=>a.localeCompare(b)):[];
+    const sig=eras.join('|');if(g&&g.dataset.sig===sig)return;const was=era.value;if(g)g.remove();if(!eras.length)return;
+    g=document.createElement('optgroup');g.id='uzEras';g.label='Lil Uzi Vert';g.dataset.sig=sig;
+    eras.forEach(n=>{const x=document.createElement('option');x.value='uzi:'+n;x.textContent=n;g.appendChild(x)});era.appendChild(g);era.value=was}
+  setTimeout(paintFilters,1500);setInterval(paintFilters,3000);
+  const uzMode=()=>$('#view').value==='lib'&&($('#cat').value==='uzi'||$('#era').value.startsWith('uzi:'));
+  /* picking a Lil Uzi Vert era switches to his songs; leaving his songs clears his era */
+  $('#era').addEventListener('change',()=>{if($('#era').value.startsWith('uzi:'))$('#cat').value='uzi'},true);
+  $('#cat').addEventListener('change',()=>{const e=$('#era');if($('#cat').value==='uzi'){if(e.value&&!e.value.startsWith('uzi:'))e.value=''}else if(e.value.startsWith('uzi:'))e.value=''},true);
+  /* his songs come straight from memory, a page at a time, so the list stays quick */
+  const _ld=load;load=async function(reset){if(!uzMode())return _ld.apply(this,arguments);
+    if(reset)page=1;++loadSeq;const q=$('#q').value.trim(),ev=$('#era').value,e=ev.startsWith('uzi:')?ev.slice(4):'';
+    let all=q?Z.search(q):Z.items();if(e)all=all.filter(r=>r.era.name===e);
+    if(!q)all=all.slice().sort((a,b)=>String(a.era.name).localeCompare(b.era.name)||String(titleOf({raw:a,id:a.id})).localeCompare(titleOf({raw:b,id:b.id})));
+    list=all.slice(0,page*PER).map(api.toTrack);hasMore=all.length>list.length;if($('#sort').value)sortList();renderList();
+    status(list.length?'':Z.items().length?'No Lil Uzi Vert songs match that':'Loading Lil Uzi Vert...');
+    try{window.abyssUzMeasure&&abyssUzMeasure(list.map(t=>t.raw))}catch(x){}}
+  /* the dice button: half the time Juice WRLD, half the time Lil Uzi Vert */
+  $('#bRand').onclick=async()=>{const uz=uzOn()?Z.items():[];
+    if(uz.length&&Math.random()<.5){queue=[api.toTrack(uz[Math.floor(Math.random()*uz.length)])];play(0);return}
+    try{const t=await Promise.race([api.random(),new Promise((_,j)=>setTimeout(()=>j(new Error('timeout')),8000))]);queue=[t];play(0)}
+    catch(x){queue=[];idx=-1;playRandom()}};
 })();
 
 /* ================= v112: the black hole: a dark planet behind the cover with a detailed dust ring ================= */
