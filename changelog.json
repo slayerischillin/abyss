@@ -1,10 +1,10 @@
 {
  "versions": [
   {
-   "version": 113,
+   "version": 114,
    "date": "Nov 23",
    "changes": [
-    "The black hole's outline now moves with the music: every part of the edge follows a slice of the sound, glowing harder on the beat"
+    "The black hole's outline now ripples smoothly all the way round with the music, no more bump at the top"
    ]
   },
   {
