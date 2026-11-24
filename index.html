@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="103">
+<meta name="abyss-version" content="104">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1593,7 +1593,7 @@ const clean=x=>(x||'').replace(tagRe,'').replace(/\s+/g,' ').trim();
 let nm=store.get('nm',{});
 function namesOf(t){const s=t.raw,seen=new Set();return[s.name,...(s.track_titles||[]),fileName(t.path)].map(clean).filter(x=>{const k=x.toLowerCase();if(x.length<2||seen.has(k))return false;seen.add(k);return true})}
 const POPULAR=new Set(['smile','in my head','muddy','takeover','wraith','friends die','already dead','run','armed and dangerous','lean wit me','lose my mind','time','bel-air','chasing the dragon','compromise','pokemon','pokémon','codependent','hypnotic','runaway','dome','facetious','franklin','adore you','i go hard','toxic humans','never switch','westin','biscotti','bonjour','red moonlight','do the most','lovers lane','flintstones','haunted by real life','slenderman','tales of the toxic','nintendo','rich and blind','cigarettes','righteous','wishing well','bad energy','conversations','burn','fighting demons','party by myself','doom','girl of my dreams','man of the year','rockstar status','feline','black and white','hate me',"life's a mess",'come & go','lucid dreams','all girls are the same','legends','robbery','empty','wasted','ring ring','hear me calling','bandit','sometimes','go hard']);
-function titleOf(t){if(nm[t.id])return nm[t.id];const s=t.raw;
+function titleOf(t){if(nm[t.id])return nm[t.id];const s=t.raw;if(s.category==='session_edit')return s.name;
   if(cfg.names==='site')return s.name;if(cfg.names==='file')return fileName(t.path)||s.name;
   if(s.category==='released'&&s.name)return clean(s.name)||s.name;
   const all=namesOf(t),pop=all.find(x=>POPULAR.has(x.toLowerCase()));if(pop)return pop;
@@ -3170,6 +3170,31 @@ const _r=renderList;renderList=function(){_r.apply(this,arguments);try{$('#res')
 /* lyrics lookups never send the name out to other websites */
 const _fl=fetchLyrics;fetchLyrics=async function(t){if(ul(t)){const m=store.get('myLyrics',{})[t.id];if(m&&m.txt){const L=/\[\d+:\d+/.test(m.txt);return{synced:L?parseLRC(m.txt):null,plain:L?'':m.txt,mine:true}}return{none:true}}return _fl.apply(this,arguments)};
 })();
+/* ================= v104: Session Edits from the song server's "Session Edits" folder ================= */
+const sessionEdits=(()=>{const ROOT='Session Edits',KEY='seIndex';let idx=null,loading=null;
+  const norm=s=>String(s||'').toLowerCase().replace(/\.[a-z0-9]{2,4}$/,'').replace(/\[[^\]]*\]|\((?:ft|feat|with|prod)[^)]*\)/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+  const eraOf=f=>f.replace(/^\d+\.\s*/,'').replace(/\s*\(Sessions\)\s*$/i,'').trim();
+  async function browse(path){let out=[],pg=1;for(;;){const u=cfg.base+'/files/browse/?path='+encodeURIComponent(path)+'&page='+pg+'&page_size=500';const r=await fetch(u,{headers:api.hdr?api.hdr():{}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();out=out.concat(j.items||[]);if(!j.has_more||pg>20)break;pg++}return out}
+  async function index(){if(idx)return idx;const c=store.get(KEY,null);if(c&&Date.now()-c.at<12*3600*1000&&c.items&&c.items.length){idx=c.items;return idx}
+    if(loading)return loading;loading=(async()=>{const top=await browse(ROOT),items=[];
+      for(const d of top.filter(x=>x.type==='directory')){try{const fs=await browse(d.path);fs.filter(f=>f.type==='file'&&/\.(mp3|m4a|wav|flac|ogg|aac)$/i.test(f.name)).forEach(f=>items.push({id:'se:'+f.path,name:f.name.replace(/\.[a-z0-9]{2,4}$/i,''),path:f.path,category:'session_edit',era:{name:eraOf(d.name)},size:f.size_human||''}))}catch(e){}}
+      idx=items;store.set(KEY,{at:Date.now(),items});loading=null;return items})();return loading}
+  async function forSong(t){const all=await index(),keys=[titleOf(t),...namesOf(t)].map(norm).filter(k=>k.length>1);
+    return all.filter(x=>{const n=norm(x.name);return keys.some(k=>n===k||n.startsWith(k+' ')||k.startsWith(n+' '))})}
+  return{index,forSong}})();
+window.abyssSessions=sessionEdits;
+/* the Studio button looks in Session Edits first */
+const _os=openStudio;openStudio=async function(){const t=cur();if(!t)return _os();
+  try{$('#panel').classList.add('open');$('#bLib').classList.add('on');status('Looking for session edits...');const m=await sessionEdits.forSong(t);
+    if(m.length){$('#view').value='sessions';$('#q').value='';$('#cat').value='';$('#era').value='';page=1;hasMore=false;list=m.map(api.toTrack);renderList();status(m.length+' session edit'+(m.length>1?'s':'')+' of '+titleOf(t));return}}catch(e){}
+  return _os()};
+$('#cStudio').onclick=openStudio;
+/* and they get their own place in the library */
+(()=>{const v=$('#view'),o=document.createElement('option');o.value='sessions';o.textContent='🎚 Session edits';v.querySelector('option[value=local]').insertAdjacentElement('afterend',o)})();
+const _ld=load;load=async function(reset){if($('#view').value!=='sessions')return _ld.apply(this,arguments);
+  page=1;hasMore=false;status('Loading session edits...');try{const all=await sessionEdits.index(),q=$('#q').value.trim().toLowerCase(),era=$('#era').selectedOptions[0];
+    list=all.map(api.toTrack).filter(t=>!q||titleOf(t).toLowerCase().includes(q)||String(t.raw.era.name).toLowerCase().includes(q));sortList();renderList();status(list.length?'':'No session edits found')}
+  catch(e){status('Could not load session edits ('+e.message+')')}};
 </script>
 </body>
 </html>

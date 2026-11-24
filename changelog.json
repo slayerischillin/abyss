@@ -1,6 +1,14 @@
 {
  "versions": [
   {
+   "version": 104,
+   "date": "Nov 23",
+   "changes": [
+    "Session edits work: the Studio button finds the session edits of the song you're playing",
+    "New 'Session edits' view in the library with all of them, searchable"
+   ]
+  },
+  {
    "version": 103,
    "date": "Nov 23",
    "changes": [
