@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="120">
+<meta name="abyss-version" content="121">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2257,10 +2257,10 @@ const FEED_DEFAULT='https://raw.githubusercontent.com/slayerischillin/abyss/main
 const MY_VER=+((document.querySelector('meta[name=abyss-version]')||{}).content||0);
 async function feedUrl(){try{if(window.abyssWin&&abyssWin.upd){const g=await abyssWin.upd.get();if(g.feed)return g.feed.replace(/\/+$/,'')}}catch{}return FEED_DEFAULT}
 async function changelog(){try{const r=await fetch((await feedUrl())+'/changelog.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return[];const d=await r.json();return (d.versions||d).filter(x=>x&&x.version)}catch{return[]}}
-function fillList(ul,entries,withHeads){ul.innerHTML='';entries.forEach(e=>{if(withHeads){const h=document.createElement('li');h.className='wv';h.textContent='VERSION '+e.version+(e.date?' · '+e.date:'');ul.appendChild(h)}
+function fillList(ul,entries,withHeads){ul.innerHTML='';entries.forEach(e=>{if(withHeads){const h=document.createElement('li');h.className='wv';h.textContent=(e.title||'VERSION '+e.version)+(e.date?' · '+e.date:'');ul.appendChild(h)}
   (e.changes||[]).forEach(c=>{const li=document.createElement('li');li.textContent=c;ul.appendChild(li)})})}
 window.showPatchNotes=async(from,to)=>{const log=await changelog();const es=log.filter(e=>e.version>from&&e.version<=to).sort((a,b)=>b.version-a.version);if(!es.length)return false;
-  $('#wnTitle').textContent=es.length>1?'Changes since version '+from:'Version '+es[0].version;fillList($('#wnList'),es,es.length>1);$('#dNew').showModal();return true};
+  $('#wnTitle').textContent=es.length>1?'What\'s new':(es[0].title||'Version '+es[0].version);fillList($('#wnList'),es,es.length>1);$('#dNew').showModal();return true};
 /* after an update lands, show what changed once */
 setTimeout(async()=>{const seen=+(store.get('seenVer',MY_VER-1)||0);if(seen&&MY_VER>seen)await showPatchNotes(seen,MY_VER);store.set('seenVer',MY_VER)},3500);
 /* ---- Discord Rich Presence (desktop app) ---- */
