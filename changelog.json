@@ -1,6 +1,13 @@
 {
  "versions": [
   {
+   "version": 119,
+   "date": "Nov 23",
+   "changes": [
+    "The lyrics editor now opens with the song's lyrics already filled in, so you can just press Time it"
+   ]
+  },
+  {
    "version": 118,
    "date": "Nov 23",
    "changes": [

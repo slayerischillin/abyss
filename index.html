@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="118">
+<meta name="abyss-version" content="119">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1999,7 +1999,7 @@ async function showLyrics(){const t=cur(),body=$('#lyrBody'),msg=$('#lyrMsg');if
   if(lyrFor===t.id)return;lyrFor=t.id;lyrOn=-1;lyrLines=[];$('#lyrT').textContent=titleOf(t);$('#lyrA').textContent=artistOf(t);$('#lyrE').textContent=isSC(t)?'SoundCloud era':subOf(t);$('#lyrC').src=coverEl.currentSrc||coverOf(t)||eraCover(t);body.innerHTML='';body.className='';msg.textContent='Finding lyrics...';
   const v=await fetchLyrics(t);if(cur()!==t)return;$('#lyrOv').textContent=lyrOffs[t.id]?(lyrOffs[t.id]>0?'+':'')+lyrOffs[t.id]+'s':'';
   if(v.synced&&v.synced.length){msg.textContent='';lyrLines=gapify(v.synced);lyrLines.forEach((l,i)=>{const p=document.createElement('p');if(l.gap){p.className='gap';p.textContent='• • •'}else p.innerHTML=adlib(l.txt);p.onclick=()=>{audio.currentTime=Math.max(0,l.t-(lyrOffs[t.id]||0));if(audio.paused)audio.play()};body.appendChild(p)})}
-  else if(v.plain){msg.textContent='No timed lyrics for this one, showing the plain lyrics.';body.className='plain';v.plain.split(/\n/).forEach(l=>{const p=document.createElement('p');p.textContent=l||' ';body.appendChild(p)})}
+  else if(v.plain){msg.textContent='No timed lyrics for this one yet. Tap the pencil above to time them yourself.';body.className='plain';v.plain.split(/\n/).forEach(l=>{const p=document.createElement('p');p.textContent=l||' ';body.appendChild(p)})}
   else if(v.inst)msg.textContent='This one is an instrumental.';
   else msg.textContent='No lyrics found for this song. Most unreleased songs and sessions are not in the lyrics database yet.'}
 function syncLyrics(){if(!lyrOpen()||!lyrLines.length)return;const t=cur(),ct=audio.currentTime+(lyrOffs[t.id]||0)+.15;let i=-1;
@@ -3164,7 +3164,11 @@ d.innerHTML='<div class="shHead"><div><small>YOUR LYRICS</small><h3 id="mlT"></h
 let tId=null,lines=[],stamps=[],k=0;const fmt=x=>{const m=Math.floor(x/60),s=(x%60).toFixed(2).padStart(5,'0');return '['+String(m).padStart(2,'0')+':'+s+']'};
 const close=()=>{stopTap();d.close()};d.querySelector('[data-close]').onclick=close;
 function open(){const t=cur();if(!t){toast('Play a song first');return}tId=t.id;$('#mlT').textContent=titleOf(t);const m=get()[t.id];
-  let txt=m&&m.txt||'';if(!txt&&lyrLines&&lyrLines.length&&lyrFor===t.id)txt=lyrLines.map(l=>l.txt).filter(x=>x&&x!=='♪').join('\n');$('#mlTx').value=txt;$('#mlDel').hidden=!m;stopTap();d.showModal()}
+  let txt=m&&m.txt||'';const lc=lyrCache[t.id];
+  if(!txt&&lc&&lc.plain)txt=String(lc.plain).replace(/\r/g,'').trim();
+  if(!txt&&lc&&lc.synced&&lc.synced.length)txt=lc.synced.map(l=>l.txt).filter(x=>x&&x!=='♪').join('\n');
+  if(!txt&&lyrLines&&lyrLines.length&&lyrFor===t.id)txt=lyrLines.map(l=>l.txt).filter(x=>x&&x!=='♪').join('\n');
+  if(!txt){const ps=[...document.querySelectorAll('#lyrBody p')].map(p=>p.textContent.trim()).filter(x=>x&&x!=='♪'&&!/^•/.test(x));if(ps.length>2)txt=ps.join('\n')}$('#mlTx').value=txt;$('#mlDel').hidden=!m;stopTap();d.showModal()}
 eb.onclick=open;
 function save(txt){const all=get();if(txt&&txt.trim())all[tId]={txt:txt.trim(),at:Date.now()};else delete all[tId];store.set('myLyrics',all);delete lyrCache[tId];lyrFor=null;try{showLyrics()}catch(e){}}
 $('#mlSave').onclick=()=>{save($('#mlTx').value);toast('Lyrics saved');close()};
