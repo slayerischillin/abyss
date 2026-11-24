@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="124">
+<meta name="abyss-version" content="125">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1317,6 +1317,14 @@ body.perf #bhBack,body.perf #bhFront{display:none}
 #lyrBody{position:relative;z-index:1}
 #lyrEd{opacity:.9}
 .spOpts .tg:has([data-o=all]){grid-column:1/-1;font-weight:800;letter-spacing:.02em;background:radial-gradient(120% 120% at 0% 0%,rgba(30,215,96,.18),transparent 60%),var(--lg-in)}
+
+/* v125: Performance mode: everything heavy switched off */
+body.perf *,body.perf *::before,body.perf *::after{animation:none!important;transition-duration:0s!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body.perf #fx,body.perf #wash,body.perf #cSpot,body.perf #cGlow,body.perf #bhBack,body.perf #bhFront,body.perf .mHeart,body.perf .mSpark{display:none!important}
+body.perf dialog,body.perf .glass,body.perf #bar,body.perf .dock,body.perf #panel,body.perf #plWin,body.perf #qWin,body.perf #lyr,body.perf #ctx,body.perf .gmenu,body.perf #toast,body.perf #cnSheet .cnCard,body.perf #qk .qkBox{background:#15111d!important;box-shadow:0 10px 30px -10px #000!important}
+body.perf #card #coverWrap{box-shadow:none!important;transform:none!important}
+body.perf{background:#0b0910!important}
+#bPerf.on{color:#ffd24a}
 </style>
 </head>
 <body style="--art:none">
@@ -1351,7 +1359,7 @@ body.perf #bhBack,body.perf #bhFront{display:none}
   <button id="bLib" data-tip="Library (L)" aria-label="Library and search"><svg class="ic"><use href="#i-list"/></svg></button>
   <button id="bLyr" data-tip="Lyrics (Y)" aria-label="Lyrics"><svg class="ic"><use href="#i-lyr"/></svg></button><button id="bPls" data-tip="Playlists" aria-label="Playlists"><svg class="ic"><use href="#i-pls"/></svg></button><button id="bLocal" data-tip="Add your own files" aria-label="Add local files"><svg class="ic"><use href="#i-folder"/></svg></button><button id="bRand" data-tip="Random song" aria-label="Random song"><svg class="ic"><use href="#i-radio"/></svg></button>
   <button id="bCov" data-tip="Pick a cover" aria-label="Pick a cover by hand"><svg class="ic"><use href="#i-edit"/></svg></button>
-  <button id="bQueue" data-tip="Queue (Q)" aria-label="Queue"><svg class="ic"><use href="#i-queue"/></svg></button><button id="bSleep" data-tip="Sleep timer" aria-label="Sleep timer"><svg class="ic"><use href="#i-moon"/></svg></button><button id="bFull" data-tip="Fullscreen (F)" aria-label="Fullscreen"><svg class="ic"><use href="#i-full"/></svg></button><button id="bHelp" data-tip="Shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="ic"><use href="#i-help"/></svg></button><button id="bNews" data-tip="Patch notes" aria-label="Latest patch notes"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><i class="nDot"></i></button><button id="bSet" data-tip="Settings" aria-label="Settings"><svg class="ic"><use href="#i-sliders"/></svg></button>
+  <button id="bQueue" data-tip="Queue (Q)" aria-label="Queue"><svg class="ic"><use href="#i-queue"/></svg></button><button id="bSleep" data-tip="Sleep timer" aria-label="Sleep timer"><svg class="ic"><use href="#i-moon"/></svg></button><button id="bPerf" data-tip="Performance mode (Shift+P)" aria-label="Performance mode"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H12L11 22l8.5-11.5H12z"/></svg></button><button id="bFull" data-tip="Fullscreen (F)" aria-label="Fullscreen"><svg class="ic"><use href="#i-full"/></svg></button><button id="bHelp" data-tip="Shortcuts (?)" aria-label="Keyboard shortcuts"><svg class="ic"><use href="#i-help"/></svg></button><button id="bNews" data-tip="Patch notes" aria-label="Latest patch notes"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.6L12 15l-1.8-4.4L5.5 9l4.7-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg><i class="nDot"></i></button><button id="bSet" data-tip="Settings" aria-label="Settings"><svg class="ic"><use href="#i-sliders"/></svg></button>
 </div>
 
 <aside id="panel" aria-label="Library">
@@ -3313,6 +3321,13 @@ requestAnimationFrame(draw)})();
 /* v120: more ways to open the lyrics editor: E key, and right-click a song */
 (()=>{addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==='e'||e.key==='E'){const b=$('#lyrEd');if(b&&cur()){e.preventDefault();b.click()}}});
   const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(!cur()||t.id!==cur().id)return;const b=document.createElement('button');b.innerHTML=ico('edit')+'Edit lyrics';b.onclick=ev=>{ev.stopPropagation();closeCtx();$('#lyrEd').click()};ctx.appendChild(b)}})();
+
+/* v125: one-tap Performance mode (dock button or P key) */
+(()=>{const b=$('#bPerf');const apply=()=>{document.body.classList.toggle('perf',!!cfg.perf);b.classList.toggle('on',!!cfg.perf);try{const sp=$('#sPerf');if(sp)sp.checked=!!cfg.perf}catch(e){}};apply();
+  const tog=()=>{cfg.perf=!cfg.perf;store.set('cfg',cfg);apply();toast(cfg.perf?'Performance mode on: effects off, Abyss uses much less of your PC':'Performance mode off')};b.onclick=tog;
+  addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(e.shiftKey&&(e.key==='p'||e.key==='P')){e.preventDefault();e.stopImmediatePropagation();tog()}},true);
+  /* in Performance mode, background checks happen less often */
+  setInterval(()=>{if(cfg.perf&&document.hidden&&window.abyssLyrTimer)clearInterval(window.abyssLyrTimer)},60000)})();
 </script>
 </body>
 </html>

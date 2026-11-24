@@ -1,7 +1,7 @@
 {
  "versions": [
   {
-   "version": 124,
+   "version": 125,
    "title": "Patch Note #1 \u2014 RELEASE!!!",
    "date": "Nov 24, 2026",
    "changes": [
@@ -16,7 +16,8 @@
     "Downloads with the cover built in, and Link to Spotify Local Files",
     "Discord status on PC and Android, lock screen controls and background play on phones",
     "Updates install themselves, no reinstalling",
-    "Link to Spotify Local Files can copy EVERYTHING ON ABYSS"
+    "Link to Spotify Local Files can copy EVERYTHING ON ABYSS",
+    "Performance mode: one tap (lightning button or P) turns off every effect so Abyss barely uses your PC"
    ]
   }
  ]
