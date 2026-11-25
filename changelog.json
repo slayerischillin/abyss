@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 145,
+   "title": "Patch Note #9",
+   "date": "Nov 24, 2026",
+   "changes": [
+    "Fixed Abyss getting stuck on the 100% loading screen when Windows animations are turned off",
+    "If loading ever goes wrong, Abyss opens anyway after 25 seconds"
+   ]
+  },
+  {
    "version": 144,
    "title": "Patch Note #8",
    "date": "Nov 24, 2026",

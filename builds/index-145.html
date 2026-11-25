@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="144">
+<meta name="abyss-version" content="145">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -2390,8 +2390,12 @@ async function boot(){const steps=[],set=(p,m)=>{$('#loader').style.setProperty(
   const last=store.get('last',null);
   if(last&&last.raw&&cfg.resume!==false){set(92,'Restoring your last song...');const t=api.toTrack(last.raw);queue=[t];idx=0;audio.src=t.src;audio.playbackRate=rate;
     window.__restoring=Date.now();const seekTo=()=>{if(last.time&&Math.abs(audio.currentTime-last.time)>1)try{audio.currentTime=last.time}catch(e){}};try{if(last.time)audio.currentTime=last.time}catch(e){}audio.addEventListener('loadedmetadata',seekTo,{once:true});audio.addEventListener('canplay',seekTo,{once:true});paint('new');$('#like').classList.toggle('on',!!likes[t.id]);await img(coverOf(t)||eraCover(t))}
-  set(100,'Entering the abyss');const wait=Math.max(400,2300-(performance.now()-t0));await new Promise(r=>setTimeout(r,wait));ldStop.fast();await new Promise(r=>setTimeout(r,250));$('#loader').classList.add('done');setTimeout(()=>document.body.classList.add('go'),500);setTimeout(()=>ldStop.stop(),1300)}
-boot();
+  set(100,'Entering the abyss');const wait=Math.max(400,2300-(performance.now()-t0));await new Promise(r=>setTimeout(r,wait));ldStop.fast();await new Promise(r=>setTimeout(r,250));$('#loader').classList.add('done');setTimeout(()=>document.body.classList.add('go'),500);setTimeout(()=>{ldStop.stop();hideLoader()},1300)}
+/* the loading screen is removed for real once its fade is done. With Windows animations turned off the fade never runs,
+   which used to leave Abyss stuck on 100%. If anything at all goes wrong while loading, it still opens after 25 seconds */
+function hideLoader(){const L=$('#loader');if(!L||L.dataset.gone)return;L.dataset.gone=1;L.classList.add('done');L.style.display='none';document.body.classList.add('go');try{ldStop.stop()}catch(e){}}
+setTimeout(hideLoader,25000);
+boot().catch(e=>{console.error('boot',e);hideLoader()});
 if(!reduce){document.body.classList.add('fx');requestAnimationFrame(frame)}
 
 const dock=document.querySelector('.dock');if(!reduce){dock.addEventListener('pointermove',e=>dock.querySelectorAll('button').forEach(b=>{const r=b.getBoundingClientRect(),d=e.clientX-(r.left+r.width/2);b.style.setProperty('--s',(1+.5*Math.exp(-(d*d)/(2*55*55))).toFixed(3))}));dock.addEventListener('pointerleave',()=>dock.querySelectorAll('button').forEach(b=>b.style.setProperty('--s',1)))}
