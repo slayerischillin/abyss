@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 147,
+   "title": "Patch Note #11",
+   "date": "Nov 26, 2026",
+   "changes": [
+    "Lyric search now has its own full-screen tab (dock button or Shift+L), with exact timestamp jumps right to the bar you searched",
+    "Searching in the normal Library only matches songs, never lyrics",
+    "Songs with studio sessions now show a Session button right in the Library: play instantly, pick between multiple takes, and flip back and forth between the session and main song without losing your timestamp"
+   ]
+  },
+  {
    "version": 146,
    "title": "Patch Note #10",
    "date": "Nov 26, 2026",

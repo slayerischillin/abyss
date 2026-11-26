@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="146">
+<meta name="abyss-version" content="147">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1331,6 +1331,117 @@ body.perf{background:#0b0910!important}
 /* v140: play button breathes while a song is still loading */
 @keyframes bufp{50%{box-shadow:0 0 0 7px rgba(255,255,255,.16),0 0 24px -4px var(--glow)}}
 #pp.buf{animation:bufp 1s ease-in-out infinite}
+/* ===== v147: dedicated Lyric Library tab + advanced Session player ===== */
+#lyrTab{position:fixed;inset:0;z-index:8;display:none;flex-direction:column;color:#fff;overflow:hidden;
+  background:radial-gradient(65% 55% at 88% 8%,color-mix(in srgb,var(--glow) 22%,transparent),transparent 68%),radial-gradient(55% 50% at 8% 92%,color-mix(in srgb,var(--glow) 18%,transparent),transparent 68%),#07060b;
+  padding:26px clamp(18px,4vw,44px) 168px}
+body.app #lyrTab{padding-top:50px}
+#lyrTab.open{display:flex;animation:ltIn .32s cubic-bezier(.2,1.1,.3,1)}
+@keyframes ltIn{from{opacity:0;transform:scale(.985) translateY(8px)}}
+body.lyrTabOpen #stage,body.lyrTabOpen #queue,body.lyrTabOpen #acctBtn{opacity:0!important;pointer-events:none!important}
+body.lyrTabOpen #bar{z-index:12!important}
+body.lyrTabOpen .dock{z-index:13!important}
+body.perf #lyrTab{background:#09080f!important;animation:none!important}
+.ltTop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex:none}
+.ltTitle{display:flex;align-items:baseline;gap:12px;min-width:0}
+.ltTitle h1{margin:0;font:800 clamp(24px,2.6vw,32px)/1.05 Barlow,sans-serif;letter-spacing:-.02em;color:#fff}
+.ltTitle small{font-size:12.5px;color:rgba(255,255,255,.46);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ltClose{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--lg-in);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.75);cursor:pointer;flex:none;transition:background .2s,color .2s,transform .2s}
+.ltClose:hover{background:rgba(255,255,255,.16);color:#fff;transform:scale(1.06)}
+.ltClose .ic{width:16px;height:16px}
+.ltSearch{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;border-radius:999px;flex:none;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.08);transition:border-color .2s,box-shadow .2s,background .2s}
+.ltSearch:focus-within{border-color:color-mix(in srgb,var(--glow) 68%,rgba(255,255,255,.3));background:rgba(255,255,255,.065);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 3px color-mix(in srgb,var(--glow) 18%,transparent)}
+.ltSearch>.ic{width:18px;height:18px;color:rgba(255,255,255,.5);flex:none}
+.ltSearch:focus-within>.ic{color:color-mix(in srgb,var(--glow) 75%,#fff)}
+#ltQ{flex:1;min-width:0;border:0!important;outline:0;background:none!important;box-shadow:none!important;color:#fff;font:500 15px/1.3 inherit;padding:0;-webkit-user-select:text;user-select:text}
+#ltQ::placeholder{color:rgba(255,255,255,.38)}
+.ltSpin{display:none;width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.15);border-top-color:var(--glow);animation:spin .75s linear infinite;flex:none}
+.ltSearch.busy .ltSpin{display:block}
+#ltClr{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);cursor:pointer;flex:none}
+#ltClr:hover{background:rgba(255,255,255,.18);color:#fff}#ltClr .ic{width:13px;height:13px}
+#ltSub{font-size:12.5px;color:rgba(255,255,255,.48);margin:10px 4px 6px;min-height:18px;flex:none}
+#ltBody{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;padding-right:2px}
+.ltEmpty{min-height:min(52vh,420px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px 12px;color:rgba(255,255,255,.42)}
+.ltEmpty>.ic{width:40px;height:40px;opacity:.38;stroke-width:1.6}
+.ltEmpty p{margin:0;font-size:14.5px;color:rgba(255,255,255,.46)}
+.ltTries{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px;max-width:680px}
+.ltTries button{padding:7px 14px;border-radius:999px;font-size:12.5px;color:rgba(255,255,255,.74);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);cursor:pointer;transition:background .2s,border-color .2s,color .2s,transform .15s}
+.ltTries button:hover{background:color-mix(in srgb,var(--glow) 22%,rgba(255,255,255,.06));border-color:color-mix(in srgb,var(--glow) 55%,transparent);color:#fff;transform:translateY(-1px)}
+.ltGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(440px,100%),1fr));gap:10px;padding-bottom:18px;align-content:start}
+.ltCard{display:flex;flex-direction:column;gap:9px;padding:12px 14px;border-radius:16px;background:var(--lg-in);border:1px solid rgba(255,255,255,.11);box-shadow:var(--lg-in-shadow);transition:border-color .2s,background .2s;animation:shIn .32s cubic-bezier(.2,1.2,.3,1) backwards;animation-delay:calc(var(--i,0)*22ms)}
+.ltCard:hover{border-color:rgba(255,255,255,.22);background:linear-gradient(160deg,rgba(255,255,255,.15),rgba(255,255,255,.045))}
+.ltCard.now{border-color:color-mix(in srgb,var(--glow) 65%,rgba(255,255,255,.25));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--glow) 35%,transparent),var(--lg-in-shadow)}
+.ltHead{display:flex;align-items:center;gap:12px;min-width:0;cursor:pointer}
+.ltHead img{width:46px;height:46px;border-radius:10px;object-fit:cover;background:#1b1824;flex:none}
+.ltInfo{flex:1;min-width:0}
+.ltInfo b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ltInfo small{display:block;font-size:12px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.ltActs{display:flex;align-items:center;gap:4px;flex:none}
+.ltActs .ltIcon{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:rgba(255,255,255,.65);background:rgba(255,255,255,.05);cursor:pointer;transition:background .15s,color .15s}
+.ltActs .ltIcon:hover{background:rgba(255,255,255,.15);color:#fff}
+.ltActs .ltIcon.on{color:#ff5c8a}
+.ltActs .ltIcon .ic{width:15px;height:15px}
+.ltLines{display:grid;gap:5px}
+.ltLn{display:flex;align-items:baseline;gap:8px;width:100%;text-align:left;padding:7px 10px;border-radius:10px;background:rgba(0,0,0,.26);border:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.82);font-size:13px;line-height:1.4;cursor:pointer;transition:background .18s,border-color .18s}
+.ltLn:hover{background:color-mix(in srgb,var(--glow) 18%,rgba(0,0,0,.3));border-color:color-mix(in srgb,var(--glow) 45%,transparent);color:#fff}
+.ltLn .ltTs{flex:none;font:700 11px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;padding:3px 7px;border-radius:6px;color:color-mix(in srgb,var(--glow) 45%,#fff);background:color-mix(in srgb,var(--glow) 22%,rgba(255,255,255,.06));border:1px solid color-mix(in srgb,var(--glow) 35%,transparent)}
+.ltLn q{quotes:"“" "”";font-style:normal;min-width:0;overflow-wrap:anywhere}
+.ltLn mark{background:color-mix(in srgb,var(--glow) 42%,transparent);color:#fff;font-weight:700;padding:0 3px;border-radius:4px}
+
+/* Advanced inline Session button + Studio Session popover + Stage Studio switcher */
+.sesPill{display:inline-flex;align-items:stretch;flex:none;border-radius:999px;overflow:hidden;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--glow) 28%,rgba(255,255,255,.08)),rgba(255,255,255,.05));
+  border:1px solid color-mix(in srgb,var(--glow) 50%,rgba(255,255,255,.18));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 4px 14px -6px var(--glow);transition:transform .15s,border-color .2s,box-shadow .2s}
+.sesPill:hover{border-color:color-mix(in srgb,var(--glow) 80%,#fff);box-shadow:inset 0 1px 0 rgba(255,255,255,.32),0 6px 18px -4px var(--glow)}
+.sesPill.live{background:linear-gradient(135deg,color-mix(in srgb,var(--glow) 52%,#1ed760 22%),color-mix(in srgb,var(--glow) 25%,rgba(255,255,255,.1)));border-color:#7ef7b4;box-shadow:0 0 18px -3px rgba(78,230,138,.65)}
+.sesPlay,.sesMore{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;font:700 11px/1 Barlow,system-ui,sans-serif;letter-spacing:.02em;color:#fff;cursor:pointer;white-space:nowrap;user-select:none}
+.sesPlay:hover,.sesMore:hover{background:rgba(255,255,255,.12)}
+.sesPlay:active,.sesMore:active{transform:scale(.95)}
+.sesPlay .ic{width:12px;height:12px;color:color-mix(in srgb,var(--glow) 45%,#fff);flex:none}
+.sesPill.live .sesPlay .ic{color:#86efac}
+.sesMore{padding:4px 7px 4px 5px;border-left:1px solid rgba(255,255,255,.16);font-size:10.5px;color:rgba(255,255,255,.88)}
+.sesMore svg{width:11px;height:11px;opacity:.8}
+#res .row small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (min-width:701px){#res .row.hasSes .len{display:none}#res .row .sesPlay{padding:3.5px 7px;font-size:10.5px}#res .row .sesMore{padding:3.5px 5px;font-size:10px}}
+#sesPop{position:fixed;z-index:190;width:min(360px,calc(100vw - 16px));max-height:min(440px,74vh);display:none;flex-direction:column;border-radius:22px;overflow:hidden;color:#fff;
+  background:var(--lg-bg)!important;border:var(--lg-edge)!important;-webkit-backdrop-filter:var(--lg-blur)!important;backdrop-filter:var(--lg-blur)!important;box-shadow:var(--lg-shadow)!important}
+#sesPop.open{display:flex;animation:ctxIn .2s cubic-bezier(.2,1.3,.3,1)}
+.spTop{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.09)}
+.spTop img{width:40px;height:40px;border-radius:9px;object-fit:cover;flex:none;background:#1b1824}
+.spTop div{flex:1;min-width:0}
+.spTop small{display:block;font-size:10px;letter-spacing:.16em;font-weight:700;color:color-mix(in srgb,var(--glow) 55%,#fff)}
+.spTop b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spAll{padding:6px 11px;border-radius:999px;font:700 11.5px/1 inherit;background:#fff;color:#0b0a10;cursor:pointer;flex:none;box-shadow:0 6px 18px -6px var(--glow)}
+.spAll:hover{transform:scale(1.04)}
+.spList{overflow-y:auto;padding:6px;display:grid;gap:4px}
+.spRow{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:background .15s,border-color .15s}
+.spRow:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16)}
+.spRow.now{background:color-mix(in srgb,var(--glow) 24%,rgba(255,255,255,.05));border-color:color-mix(in srgb,var(--glow) 60%,#fff)}
+.spRow .spPlay{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1);flex:none}
+.spRow.now .spPlay{background:#4ee68a;color:#06150c}
+.spRow .spPlay .ic{width:13px;height:13px}
+.spRow .spMid{flex:1;min-width:0}
+.spRow .spMid b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spRow .spMid small{display:block;font-size:11px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.spRow .spMini{display:flex;gap:3px;flex:none}
+.spRow .spMini span{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:rgba(255,255,255,.65);background:rgba(255,255,255,.06)}
+.spRow .spMini span:hover{background:rgba(255,255,255,.16);color:#fff}
+.spRow .spMini .ic{width:13px;height:13px}
+.spBack{margin:4px 6px 6px;padding:8px 12px;border-radius:11px;font:600 12px/1.2 inherit;color:color-mix(in srgb,var(--glow) 45%,#fff);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);text-align:center;cursor:pointer}
+.spBack:hover{background:rgba(255,255,255,.11);color:#fff}
+#sesBar{display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:8px;transform:translateZ(22px)}
+#sesBar button{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;font:700 11.5px/1 Barlow,system-ui,sans-serif;color:#fff;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--glow) 34%,rgba(255,255,255,.1)),rgba(255,255,255,.05));border:1px solid color-mix(in srgb,var(--glow) 55%,rgba(255,255,255,.2));box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 6px 18px -6px var(--glow);cursor:pointer;transition:transform .15s,border-color .2s}
+#sesBar button:hover{transform:translateY(-1px);border-color:#fff}
+#sesBar button .ic{width:12px;height:12px}
+@media (max-width:700px){
+  #lyrTab{z-index:18;padding:calc(env(safe-area-inset-top) + 14px) 14px calc(var(--nav) + var(--mini) + 22px + env(safe-area-inset-bottom))}
+  body.lyrTabOpen #bar{z-index:22!important}
+  body.lyrTabOpen .dock{z-index:23!important}
+  .ltGrid{grid-template-columns:1fr}
+  #sesPop{left:8px!important;right:8px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;top:auto!important;width:auto!important;border-radius:22px;background-color:rgba(18,14,28,.97)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
 </style>
 </head>
 <body style="--art:none">
@@ -1354,6 +1465,7 @@ body.perf{background:#0b0910!important}
     <h2 id="ct" title="Click to switch to another name for this song" tabindex="0" role="button">Nothing playing</h2>
     <p id="cs">Open the library to pick a song</p>
     <p id="ca"></p>
+    <div id="sesBar" hidden></div>
     <div class="arrows"><button id="cPrev" title="Previous cover" aria-label="Previous cover"><svg class="ic"><use href="#i-left"/></svg></button><button id="cNext" title="Another cover" aria-label="Another cover"><svg class="ic"><use href="#i-right"/></svg></button><button id="cStudio" title="Studio sessions (T)" aria-label="Studio sessions"><svg class="ic"><use href="#i-mic"/></svg></button><button id="cEra" title="Use the era cover" aria-label="Use the era cover"><svg class="ic"><use href="#i-radio"/></svg></button><button id="cOrig" title="Original cover" aria-label="Original cover"><svg class="ic"><use href="#i-undo"/></svg></button><button id="cDl" title="Download with this cover" aria-label="Download"><svg class="ic"><use href="#i-dl"/></svg></button><button id="cRen" title="Rename for everyone" aria-label="Rename for everyone" hidden><svg class="ic"><use href="#i-edit"/></svg></button></div>
   </section>
 </main>
@@ -3323,21 +3435,45 @@ window.abyssUzi=uzi;setTimeout(()=>uzi.refresh(),4500);setInterval(()=>uzi.refre
     if(add.length){list=add.concat(list);renderList();status('')}}
   return r}}
 /* ================= v104: Session Edits from the song server's "Session Edits" folder ================= */
-const sessionEdits=(()=>{const ROOT='Session Edits',KEY='seIndex';let idx=null,loading=null;
-  const norm=s=>String(s||'').toLowerCase().replace(/\.[a-z0-9]{2,4}$/,'').replace(/\[[^\]]*\]|\((?:ft|feat|with|prod)[^)]*\)/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+const sessionEdits=(()=>{const ROOT='Session Edits',KEY='seIndex';let idx=null,loading=null,byKey=null;
+  const seDur=store.get('seDur',{});
+  const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/\bu\b/g,'you').replace(/\bluv\b/g,'love').replace(/['’]/g,'').replace(/\.[a-z0-9]{2,5}$/,'').replace(/\[[^\]]*\]|\((?:ft|feat|with|prod|session|sessions|studio)[^)]*\)/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+  const META=/^(?:ft|feat|with|prod|session|sessions|session\s*edit|studio|studio\s*session|v\d+|ver(?:sion)?\s*\d+|edit|mix|remaster|og|demo|snippet|snip|leak|unreleased|released|official|audio|raw|full|take\s*\d+|\d{4})\b/i;
+  const ALIAS={'all girls are the same':['all the same'],'all the same':['all girls are the same'],'lucid dreams':['forget me'],'forget me':['lucid dreams']};
+  function keysOf(raw){const out=new Set(),add=x=>{const k=norm(x);if(k&&k.length>=2&&!/^(session|sessions|session edit|studio|juice wrld|juicethekidd)$/.test(k)){out.add(k);(ALIAS[k]||[]).forEach(a=>out.add(a))}};
+    const s=String(raw||'').replace(/\.[a-z0-9]{2,5}$/i,'').replace(/^\d{1,3}[\s._-]+/,'').trim();
+    for(const m of s.matchAll(/[\(\[]([^)\]]+)[\)\]]/g)){const inn=m[1].trim();if(!META.test(inn))inn.split(/\s*[/|,]\s*/).forEach(add)}
+    const main=s.replace(/[\(\[][^\)\]]*[\)\]]/g,' ').trim();add(main);main.split(/\s+(?:\/|\||—|–|-\s+)\s*/).forEach(add);
+    return[...out]}
   const eraOf=f=>f.replace(/^\d+\.\s*/,'').replace(/\s*[\[(]\s*sessions?\s*[\])]\s*/ig,' ').trim();
+  const mbOf=x=>{const m=/([\d.]+)\s*(gb|mb|kb)/i.exec(x&&x.size||'');if(!m)return 0;const n=+m[1]||0,u=m[2].toLowerCase();return u==='gb'?n*1024:u==='kb'?n/1024:n};
+  function rebuild(){if(!idx)return;byKey=new Map();
+    idx.forEach(x=>{if(seDur[x.id]&&!x.length)x.length=fmt(seDur[x.id]);
+      const ks=new Set([...keysOf(x.name),...(typeof seNames!=='undefined'&&seNames[x.path]?keysOf(seNames[x.path]):[])]);
+      ks.forEach(k=>{let a=byKey.get(k);if(!a)byKey.set(k,a=[]);if(!a.includes(x))a.push(x)})});
+    byKey.forEach(a=>a.sort((x,y)=>mbOf(y)-mbOf(x)||String(x.name).localeCompare(y.name)))}
   async function browse(path){let out=[],pg=1;for(;;){const u=cfg.base+'/files/browse/?path='+encodeURIComponent(path)+'&page='+pg+'&page_size=500',ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),12000);
     let r;try{r=await sfetch(u,{headers:api.headers?api.headers():{},signal:ctl.signal})}catch(e){throw e&&e.name==='AbortError'?new Error('the song server took too long'):e}finally{clearTimeout(tm)}
     if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();out=out.concat(j.items||[]);if(!j.has_more||pg>20)break;pg++}return out}
-  async function index(){if(idx)return idx;const c=store.get(KEY,null);if(c&&Date.now()-c.at<12*3600*1000&&c.items&&c.items.length){idx=c.items.map(x=>Object.assign(x,{era:{name:eraOf(String(x.era&&x.era.name||''))}}));return idx}
+  async function index(){if(idx){if(!byKey)rebuild();return idx}
+    const c=store.get(KEY,null);if(c&&Date.now()-c.at<12*3600*1000&&c.items&&c.items.length){idx=c.items.map(x=>Object.assign(x,{era:{name:eraOf(String(x.era&&x.era.name||''))}}));rebuild();return idx}
     if(loading)return loading;loading=(async()=>{try{const top=await browse(ROOT),dirs=top.filter(x=>x.type==='directory'),items=[];let okDir=0;
       await Promise.all(dirs.map(async d=>{try{const fs=await browse(d.path);okDir++;fs.filter(f=>f.type==='file'&&/\.(mp3|m4a|wav|flac|ogg|aac)$/i.test(f.name)).forEach(f=>items.push({id:'se:'+f.path,name:f.name.replace(/\.[a-z0-9]{2,4}$/i,''),path:f.path,category:'session_edit',era:{name:eraOf(d.name)},size:f.size_human||''}))}catch(e){}}));
       if(dirs.length&&!okDir)throw new Error('the song server did not answer');
-      if(items.length){idx=items;store.set(KEY,{at:Date.now(),items})}return items}finally{loading=null}})();return loading}
-  async function forSong(t){const all=await index(),keys=[titleOf(t),...namesOf(t)].map(norm).filter(k=>k.length>1);
-    return all.filter(x=>{const n=norm(x.name);return keys.some(k=>n===k||n.startsWith(k+' ')||k.startsWith(n+' '))})}
-  return{index,forSong}})();
+      if(items.length){idx=items;rebuild();store.set(KEY,{at:Date.now(),items})}return items}finally{loading=null}})();return loading}
+  function syncFor(t){if(!t||!t.raw||t.raw.uzi||t.raw.local||t.raw.category==='session_edit'||t.raw.category==='recording_session')return[];
+    if(!byKey){if(idx)rebuild();else{index().then(()=>{try{if($('#panel').classList.contains('open'))renderList();window.abyssPaintLyrTab&&abyssPaintLyrTab()}catch(e){}}).catch(()=>{});return[]}}
+    const s=t.raw,cands=[titleOf(t),s.name,...(s.track_titles||[]),fileName(t.path)].filter(Boolean),seen=new Set(),out=[];
+    cands.forEach(c=>keysOf(c).forEach(k=>(byKey.get(k)||[]).forEach(x=>{if(!seen.has(x.id)){seen.add(x.id);out.push(x)}})));
+    return out.sort((x,y)=>mbOf(y)-mbOf(x))}
+  async function forSong(t){await index();return syncFor(t)}
+  const probing=new Set();
+  function probe(x,cb){if(!x||x.length||seDur[x.id]||probing.has(x.id))return;const tr=api.toTrack(x);if(!tr||!tr.src)return;probing.add(x.id);
+    const a=new Audio();a.preload='metadata';const fin=d=>{probing.delete(x.id);a.removeAttribute('src');try{a.load()}catch(e){}if(d>0&&isFinite(d)){seDur[x.id]=Math.round(d);x.length=fmt(seDur[x.id]);store.set('seDur',seDur);cb&&cb(x.length)}};
+    a.onloadedmetadata=()=>fin(a.duration);a.onerror=()=>fin(0);setTimeout(()=>fin(0),12000);a.src=tr.src}
+  return{index,forSong,syncFor,rebuild,probe,durOf:x=>x.length||(seDur[x.id]?fmt(seDur[x.id]):'')}})();
 window.abyssSessions=sessionEdits;
+setTimeout(()=>sessionEdits.index().then(()=>{try{if(list.length)renderList()}catch(e){}}).catch(()=>{}),2200);
 /* the Studio button looks in Session Edits first */
 const _os=openStudio;openStudio=async function(){const t=cur();if(!t)return _os();
   try{$('#panel').classList.add('open');$('#bLib').classList.add('on');status('Looking for session edits...');const m=await sessionEdits.forSong(t);
@@ -3353,7 +3489,7 @@ const _ld=load;load=async function(reset){if($('#view').value!=='sessions')retur
 /* ================= v105: session edit names (set by @slayer, seen by everyone) ================= */
 var seNames={};try{seNames=JSON.parse(localStorage.getItem('seNames')||'{}')}catch(e){}
 const seAdmin=(()=>{let admin=false;
-  async function loadNames(){if(!supaOn())return;try{const r=await fetch(SUPA.url+'/rest/v1/session_names?select=path,name',{headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key}});if(!r.ok)return;const m={};(await r.json()).forEach(x=>m[x.path]=x.name);seNames=m;localStorage.setItem('seNames',JSON.stringify(m));if($('#view').value==='sessions')renderList()}catch(e){}}
+  async function loadNames(){if(!supaOn())return;try{const r=await fetch(SUPA.url+'/rest/v1/session_names?select=path,name',{headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key}});if(!r.ok)return;const m={};(await r.json()).forEach(x=>m[x.path]=x.name);seNames=m;localStorage.setItem('seNames',JSON.stringify(m));sessionEdits.rebuild&&sessionEdits.rebuild();if($('#view').value==='sessions'||$('#panel').classList.contains('open'))renderList()}catch(e){}}
   async function check(){admin=false;try{const a=store.get('acct',null);if(!a||!a.access_token)return;const r=await fetch(SUPA.url+'/rest/v1/rpc/is_abyss_admin',{method:'POST',headers:{apikey:SUPA.key,Authorization:'Bearer '+a.access_token,'Content-Type':'application/json'},body:'{}'});admin=r.ok&&(await r.json())===true}catch(e){}}
   async function rename(t){if(!admin)return;const cur0=titleOf(t);const n=await ask('Rename this session edit for everyone',{value:cur0,ok:'Save'});if(n===null||n===undefined)return;const name=String(n).trim();
     const a=store.get('acct',null);const h={apikey:SUPA.key,Authorization:'Bearer '+a.access_token,'Content-Type':'application/json'};
@@ -3534,57 +3670,279 @@ requestAnimationFrame(draw)})();
 
 /* v127: an Edit lyrics button in the lyrics footer too, next to the timing buttons */
 (()=>{const off=$('#lyrOff');if(!off)return;const b=document.createElement('button');b.id='lyrEd2';b.innerHTML=ico('edit')+' Edit';b.title='Write or fix the lyrics (E)';b.onclick=()=>$('#lyrEd').click();off.appendChild(b)})();
-/* ================= v128: search by lyrics ================= */
+/* ================= v147: Dedicated Lyric Library Tab + Advanced Session Player ================= */
 const lyrSearch=(()=>{let idx=null,building=null;const DB='abyssLyr';
   const db=()=>new Promise((res,rej)=>{const q=indexedDB.open(DB,1);q.onupgradeneeded=()=>q.result.createObjectStore('kv');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
-  const get=async k=>{const d=await db();return new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})};
-  const put=async(k,v)=>{const d=await db();return new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r})};
-  const clean=s=>String(s||'').replace(/\[\d+:[\d.]+\]/g,'').replace(/\r/g,'');
-  async function build(onProg){const c=await get('idx');if(c&&Date.now()-c.at<3*24*3600*1000){idx=c.items;return idx}
-    if(building)return building;building=(async()=>{const out=[];
-      const one=async pg=>{const u=new URL(cfg.base+'/songs/');u.searchParams.set('page',pg);u.searchParams.set('page_size',100);
-        for(let a=0;;a++){try{const r=await fetch(u,{headers:api.headers()});if(r.status===404)return{results:[],next:null};if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}catch(e){if(a>=2)throw e;await new Promise(z=>setTimeout(z,800*(a+1)))}}};
-      const take=d=>(d.results||[]).forEach(x=>{const ly=clean(x.lyrics||x.synced_lyrics);if(!ly.trim())return;if(!x.path)x.path=x.file_path||x.audio_path||x.filepath||x.file||api.pickAudio(x)||null;if(!x.path)return;
-          const raw=Object.assign({},x);delete raw.lyrics;delete raw.synced_lyrics;out.push({raw,ly})});
-      const first=await one(1);take(first);onProg&&onProg(out.length);
-      const pages=Math.min(400,Math.ceil((first.count||0)/100));let nx=2;
-      const worker=async()=>{while(nx<=pages){const pg=nx++;take(await one(pg));onProg&&onProg(out.length)}};
-      if(first.next)await Promise.all([worker(),worker(),worker(),worker()]);
-      idx=out;await put('idx',{at:Date.now(),items:out});building=null;return out})();building.catch(()=>{building=null});return building}
-  async function search(q,onProg){const all=await build(onProg),n=q.toLowerCase().replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ').trim();if(n.length<2)return[];
-    const mine=store.get('myLyrics',{}),hits=[];
-    const scan=(raw,ly)=>{const lines=ly.split('\n');for(const l of lines){const ln=l.toLowerCase().replace(/[^a-z0-9' ]+/g,' ').replace(/\s+/g,' ');if(ln.includes(n)){hits.push({raw,line:l.trim()});return true}}return false};
-    all.forEach(e=>scan(e.raw,e.ly));
-    Object.entries(mine).forEach(([id,m])=>{const h=[...hist,...Object.values(likes)].find(r=>String(r.id)===id);if(h&&!hits.some(x=>String(x.raw.id)===id))scan(h,clean(m.txt))});
-    return hits.slice(0,200)}
-  return{search,build}})();
+  const get=async k=>{try{const d=await db();return await new Promise(r=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})}catch(e){return null}};
+  const put=async(k,v)=>{try{const d=await db();await new Promise(r=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=r;t.onerror=r})}catch(e){}};
+  const normL=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' and ').replace(/\bcan'?t\b/g,'cannot').replace(/\bwanna\b/g,'want to').replace(/\bgonna\b/g,'going to').replace(/\b'?cause\b/g,'because').replace(/\bu\b/g,'you').replace(/\bluv\b/g,'love').replace(/in'\b/g,'ing').replace(/['’]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+  /* pack synced or plain lyrics into compact lines ("seconds|text" or "text") so every line keeps its timestamp */
+  function packLyrics(x){const sy=x&&x.synced_lyrics,pl=x&&x.lyrics;
+    if(sy){try{if(typeof sy==='string'&&/\[\d+:\d+/.test(sy)){const ls=parseLRC(sy).filter(l=>l.txt&&l.txt!=='♪');if(ls.length)return ls.map(l=>l.t.toFixed(1)+'|'+l.txt).join('\n')}
+      else{const a=typeof sy==='string'&&sy.trim().startsWith('[')?JSON.parse(sy):Array.isArray(sy)?sy:null;
+        if(a&&a.length){const ls=a.map(o=>({t:+(o.time??o.t??o.start??(o.startTimeMs!=null?o.startTimeMs/1000:NaN)),txt:String(o.text??o.line??o.words??o.txt??'').trim()})).filter(l=>!isNaN(l.t)&&l.txt&&l.txt!=='♪').sort((p,q)=>p.t-q.t);
+          if(ls.length)return ls.map(l=>l.t.toFixed(1)+'|'+l.txt).join('\n')}}}catch(e){}}
+    return String(pl||sy||'').replace(/\[\d+:[\d.]+\]/g,'').replace(/\r/g,'').split('\n').map(l=>l.trim()).filter(Boolean).join('\n')}
+  function unpack(ly,timed){return String(ly||'').split('\n').map(l=>{if(timed){const p=l.indexOf('|');if(p>0&&p<10){const t=+l.slice(0,p);if(isFinite(t))return{t,txt:l.slice(p+1)}}}return{t:null,txt:l}}).filter(l=>l.txt)}
+  async function build(onProg){if(idx)return idx;
+    const c2=await get('idx2');if(c2&&Date.now()-c2.at<3*24*3600*1000&&c2.items&&c2.items.length){idx=c2.items;return idx}
+    const c1=await get('idx');if(c1&&c1.items&&c1.items.length&&!idx){idx=c1.items;/* upgrade to timestamped index quietly in background */setTimeout(()=>rebuildFresh().catch(()=>{}),1500);return idx}
+    return rebuildFresh(onProg)}
+  function rebuildFresh(onProg){if(building)return building;building=(async()=>{const out=[];
+    const one=async pg=>{const u=new URL(cfg.base+'/songs/');u.searchParams.set('page',pg);u.searchParams.set('page_size',100);
+      for(let a=0;;a++){try{const r=await sfetch(u,{headers:api.headers()});if(r.status===404)return{results:[],next:null};if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}catch(e){if(a>=2)throw e;await new Promise(z=>setTimeout(z,800*(a+1)))}}};
+    const take=d=>(d.results||[]).forEach(x=>{const hasSy=!!(x.synced_lyrics&&String(x.synced_lyrics).trim()),ly=packLyrics(x);if(!ly.trim())return;
+      if(!x.path)x.path=x.file_path||x.audio_path||x.filepath||x.file||api.pickAudio(x)||null;if(!x.path)return;
+      const raw=Object.assign({},x);delete raw.lyrics;delete raw.synced_lyrics;out.push({raw,ly,tm:hasSy&&ly.includes('|')?1:0})});
+    const first=await one(1);take(first);onProg&&onProg(out.length);
+    const pages=Math.min(400,Math.ceil((first.count||0)/100));let nx=2;
+    const worker=async()=>{while(nx<=pages){const pg=nx++;take(await one(pg));onProg&&onProg(out.length)}};
+    if(first.next)await Promise.all([worker(),worker(),worker(),worker()]);
+    if(out.length){idx=out;await put('idx2',{at:Date.now(),items:out})}return idx||out})();building.finally(()=>{building=null});return building}
+  async function search(q,onProg){const all=await build(onProg),nq=normL(q);if(nq.length<2)return[];
+    const toks=nq.split(' ').filter(w=>w.length>=2),hits=[],seen=new Set();
+    const scan=(raw,ly,timed)=>{if(!raw||seen.has(String(raw.id)))return;const ls=unpack(ly,timed);if(!ls.length)return;
+      const norms=ls.map(l=>normL(l.txt)),matched=[];let bestTier=99;
+      for(let i=0;i<ls.length;i++){const nl=norms[i];if(!nl)continue;let tier=0;
+        if(nl.includes(nq))tier=1;
+        else if(i+1<ls.length&&!norms[i+1].includes(nq)&&(nl+' '+norms[i+1]).includes(nq))tier=2;
+        else if(toks.length>=2&&toks.every(w=>nl.includes(w)))tier=3;
+        if(tier){bestTier=Math.min(bestTier,tier);const txt=tier===2?ls[i].txt+' / '+ls[i+1].txt:ls[i].txt;
+          if(!matched.some(m=>normL(m.txt)===normL(txt)))matched.push({t:ls[i].t,txt,tier});if(matched.length>=6)break}}
+      if(!matched.length)return;seen.add(String(raw.id));
+      matched.sort((a,b)=>a.tier-b.tier);
+      const tScore=(10-bestTier*2)+Math.min(matched.length,3)+(matched[0].t!=null?.4:0)+(normL(raw.name||'').includes(nq)?2:0);
+      hits.push({raw,lines:matched.slice(0,3),line:matched[0].txt,score:tScore})};
+    const mine=store.get('myLyrics',{});
+    const known=[...locals,...hist,...Object.values(likes),...pls.flatMap(p=>p.songs||[]),...(window.abyssUzi&&abyssUzi.ok()?abyssUzi.items():[])];
+    Object.entries(mine).forEach(([id,m])=>{if(!m||!m.txt)return;const r=known.find(x=>x&&String(x.id)===id)||(all.find(e=>String(e.raw.id)===id)||{}).raw;
+      if(r){const isL=/\[\d+:\d+/.test(m.txt);scan(r,packLyrics(isL?{synced_lyrics:m.txt}:{lyrics:m.txt}),isL)}});
+    all.forEach(e=>scan(e.raw,e.ly,!!e.tm));
+    return hits.sort((a,b)=>b.score-a.score).slice(0,180)}
+  return{search,build,count:()=>idx?idx.length:0}})();
 window.abyssLyrSearch=lyrSearch;
-(()=>{const v=$('#view'),o=document.createElement('option');o.value='lyrics';o.textContent='Search lyrics';v.querySelector('option[value=lib]').insertAdjacentElement('afterend',o);
-  let lines={},seq=0;
-  let auto=false;
-  const _ld=load;load=async function(reset){if($('#view').value!=='lyrics'){if(reset)auto=false;const r=await _ld.apply(this,arguments);
-      const q=$('#q').value.trim(),v0=$('#view').value;if(v0!=='lib'||!reset||q.length<4)return r;const words=q.split(/\s+/).length;if(list.length&&words<3)return r;
-      const my=++seq,had=list.length,q0=q;if(!had)status('Searching lyrics...');
-      try{const hits=await lyrSearch.search(q,n=>{if(my===seq&&!had)status('Getting lyrics ready for searching... '+n+' songs (only the first time)')});
-        if(my!==seq||$('#q').value.trim()!==q0||$('#view').value!=='lib')return r;
-        const have=new Set(list.map(t=>String(t.id)));lines={};const add=[];hits.forEach(h=>{const t=api.toTrack(h.raw);if(have.has(String(t.id)))lines[t.id]=h.line;else{lines[t.id]=h.line;add.push(t)}});
-        if(!Object.keys(lines).length){if(!had)status('No songs found, and no lyrics have that line');return r}
-        auto=true;list=had?list.concat(add):add;if(!had)hasMore=false;renderList();status('')}catch(e){if(my===seq&&!had)status('No song titles match, and lyrics could not load ('+e.message+'). Try again in a moment.')}
-      return r}
-    const q=$('#q').value.trim();page=1;hasMore=false;if(q.length<2){list=[];renderList();status('Type a line from a song, like "I still see your shadows in my room"');return}
-    const my=++seq;status('Searching lyrics...');
-    try{const hits=await lyrSearch.search(q,n=>{if(my===seq)status('Getting lyrics ready for searching... '+n+' songs (only the first time)')});if(my!==seq)return;
-      lines={};list=hits.map(h=>{const t=api.toTrack(h.raw);lines[t.id]=h.line;return t});renderList();status(list.length?'':'No song has that line')}
-    catch(e){if(my===seq)status('Could not search lyrics ('+e.message+')')}};
-  const _r=renderList;renderList=function(){_r.apply(this,arguments);if($('#view').value!=='lyrics'&&!(auto&&$('#view').value==='lib'))return;
-    $('#res').querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||!lines[t.id]||row.querySelector('.lyHit'))return;const m=row.querySelector('.meta, .m, div');if(!m)return;
-      const q=$('#q').value.trim(),l=lines[t.id],k=l.toLowerCase().indexOf(q.toLowerCase());const el=document.createElement('small');el.className='lyHit';
-      if(k>=0){el.append('“'+l.slice(0,k));const b=document.createElement('b');b.textContent=l.slice(k,k+q.length);el.append(b,l.slice(k+q.length)+'”')}else el.textContent='“'+l+'”';m.appendChild(el)})};
-  const openLyr=()=>{openPanel();v.value='lyrics';v.dispatchEvent(new Event('change'));load(true);setTimeout(()=>$('#q').focus(),60)};
-  $('#bLyrS').onclick=openLyr;
-  addEventListener('keydown',e=>{if(e.shiftKey&&!e.ctrlKey&&!e.metaKey&&e.key.toLowerCase()==='l'&&!/INPUT|TEXTAREA/.test((document.activeElement||{}).tagName||'')&&!(document.activeElement||{}).isContentEditable){e.preventDefault();openLyr()}});
-  setTimeout(()=>{if(!document.hidden)lyrSearch.build().catch(()=>{})},20000);
-  v.addEventListener('change',()=>{if(v.value==='lyrics'){$('#q').placeholder='Search a line from any song...';$('#q').focus()}else $('#q').placeholder='Search'})})();
+
+/* ---- Advanced Session Player: row button, multi-take popover, and stage A/B Studio Switcher ---- */
+(()=>{
+  const pop=document.createElement('div');pop.id='sesPop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','Studio sessions');document.body.appendChild(pop);
+  const sesBar=$('#sesBar');
+  /* remembers the pairing between a song and its sessions + exact timestamp bookmarks when flipping A/B */
+  let ctxState=null; /* { mainTrack, sessions:[raw...], mainPos:0, sesPos:{} } */
+  const closePop=()=>pop.classList.remove('open');
+  addEventListener('pointerdown',e=>{if(pop.classList.contains('open')&&!pop.contains(e.target)&&!e.target.closest('.sesPill'))closePop()},true);
+  addEventListener('resize',closePop);addEventListener('keydown',e=>{if(e.key==='Escape'&&pop.classList.contains('open'))closePop()});
+
+  function playSession(mainT,sessions,pickIdx){if(!sessions||!sessions.length)return;
+    const raw=sessions[pickIdx||0],tr=api.toTrack(raw);if(!tr||!tr.src){toast('Session audio is unavailable');return}
+    const c=cur();
+    const prevPos=(ctxState&&ctxState.sesPos)||{};
+    let mainPos=ctxState&&ctxState.mainTrack&&mainT&&ctxState.mainTrack.id===mainT.id?ctxState.mainPos:0;
+    if(c&&mainT&&c.id===mainT.id&&isFinite(audio.currentTime))mainPos=audio.currentTime;
+    if(c&&c.raw&&c.raw.category==='session_edit'&&isFinite(audio.currentTime))prevPos[c.id]=audio.currentTime;
+    ctxState={mainTrack:mainT||(ctxState&&ctxState.mainTrack)||null,sessions,mainPos,sesPos:prevPos};
+    const rest=sessions.map(api.toTrack).filter(x=>x&&x.src&&x.id!==tr.id);
+    queue=[tr,...rest,...queue.slice(Math.max(0,idx+1)).filter(x=>x.id!==tr.id)];
+    play(0);
+    const savedAt=prevPos[tr.id];
+    if(savedAt>3){const seek=()=>{try{audio.currentTime=savedAt}catch(e){}};audio.addEventListener('loadedmetadata',seek,{once:true})}
+    toast('Playing session · '+titleOf(tr)+(raw.size?' ('+raw.size+')':''));
+    paintStageBar();renderList();window.abyssPaintLyrTab&&abyssPaintLyrTab()}
+
+  function backToMain(){if(!ctxState||!ctxState.mainTrack)return;
+    const c=cur();if(c&&c.raw&&c.raw.category==='session_edit'&&isFinite(audio.currentTime))ctxState.sesPos[c.id]=audio.currentTime;
+    const mt=ctxState.mainTrack,at=ctxState.mainPos||0;
+    queue=[mt,...queue.slice(Math.max(0,idx+1)).filter(x=>x.id!==mt.id)];
+    play(0);
+    if(at>2){const seek=()=>{try{audio.currentTime=at}catch(e){}};audio.addEventListener('loadedmetadata',seek,{once:true})}
+    toast('Back to main song · '+titleOf(mt));paintStageBar();renderList();window.abyssPaintLyrTab&&abyssPaintLyrTab()}
+
+  function openSesPop(anchorEl,mainT,sessions){if(!sessions||!sessions.length)return;
+    pop.innerHTML='';
+    const top=document.createElement('div');top.className='spTop';
+    const cov=coverOf(mainT)||eraCover(mainT);
+    top.innerHTML='<img alt="" referrerpolicy="no-referrer"><div><small>STUDIO SESSIONS · '+sessions.length+'</small><b></b></div>'+(sessions.length>1?'<button type="button" class="spAll">Play all</button>':'');
+    const im=top.querySelector('img');im.onerror=()=>{im.onerror=null;im.src=eraCover(mainT)};im.src=cov;
+    top.querySelector('b').textContent=titleOf(mainT);
+    const allB=top.querySelector('.spAll');if(allB)allB.onclick=()=>{closePop();playSession(mainT,sessions,0)};
+    pop.appendChild(top);
+    const ul=document.createElement('div');ul.className='spList';
+    sessions.forEach((raw,k)=>{const tr=api.toTrack(raw),isNow=!!(cur()&&cur().id===tr.id);
+      const r=document.createElement('div');r.className='spRow'+(isNow?' now':'');
+      const subParts=[raw.era&&raw.era.name,sessionEdits.durOf(raw),raw.size].filter(Boolean);
+      r.innerHTML='<span class="spPlay">'+ico(isNow&&!audio.paused?'pause':'play')+'</span><div class="spMid"><b></b><small></small></div><div class="spMini"><span data-sp="next" title="Play next">'+ico('plus')+'</span><span data-sp="pl" title="Add to playlist">'+ico('lplus')+'</span></div>';
+      r.querySelector('b').textContent=titleOf(tr);
+      const sm=r.querySelector('small');sm.textContent=subParts.join(' · ')||'Session edit';
+      sessionEdits.probe(raw,len=>{if(pop.classList.contains('open'))sm.textContent=[raw.era&&raw.era.name,len,raw.size].filter(Boolean).join(' · ')});
+      r.onclick=ev=>{const act=ev.target.closest('[data-sp]');
+        if(act){ev.stopPropagation();if(act.dataset.sp==='next')playNext(tr);else openAddTo(tr);return}
+        closePop();if(isNow){audio.paused?audio.play():audio.pause();return}playSession(mainT,sessions,k)};
+      ul.appendChild(r)});
+    pop.appendChild(ul);
+    if(cur()&&sessions.some(s=>'se:'+s.path===cur().id||s.id===cur().id)&&mainT){
+      const bk=document.createElement('button');bk.type='button';bk.className='spBack';bk.textContent='↺ Switch back to main song ('+titleOf(mainT)+')';
+      bk.onclick=()=>{closePop();backToMain()};pop.appendChild(bk)}
+    pop.classList.add('open');
+    if(innerWidth>700&&anchorEl){const rc=anchorEl.getBoundingClientRect(),W=Math.min(360,innerWidth-16),H=pop.offsetHeight||240;
+      pop.style.left=Math.max(8,Math.min(rc.right-W,innerWidth-W-8))+'px';
+      const below=innerHeight-rc.bottom-12;pop.style.top=(below<H&&rc.top>below?Math.max(8,rc.top-H-6):rc.bottom+6)+'px'}
+    else{pop.style.left='';pop.style.top=''}}
+
+  function makeSesPill(t){const ms=sessionEdits.syncFor(t);if(!ms.length)return null;
+    const c=cur(),liveIdx=c?ms.findIndex(s=>s.id===c.id):-1,isLive=liveIdx>=0;
+    const pill=document.createElement('span');pill.className='sesPill'+(isLive?' live':'');
+    const playB=document.createElement('span');playB.className='sesPlay';playB.setAttribute('role','button');playB.tabIndex=0;
+    const dur=sessionEdits.durOf(ms[0]);
+    playB.title=(isLive?'Playing session: ':'Play session: ')+titleOf(api.toTrack(ms[0]))+(dur?' ('+dur+')':ms[0].size?' ('+ms[0].size+')':'');
+    playB.innerHTML=ico('mic')+'<span>'+(isLive?'In Session':'Session')+'</span>';
+    playB.onclick=ev=>{ev.stopPropagation();ev.preventDefault();
+      if(isLive&&ms.length>1){playSession(t,ms,(liveIdx+1)%ms.length);return}
+      if(isLive){audio.paused?audio.play():audio.pause();return}
+      playSession(t,ms,0)};
+    playB.oncontextmenu=ev=>{ev.preventDefault();ev.stopPropagation();openSesPop(pill,t,ms)};
+    pill.appendChild(playB);
+    if(ms.length>1){const more=document.createElement('span');more.className='sesMore';more.setAttribute('role','button');more.tabIndex=0;more.title='Choose from '+ms.length+' studio sessions';
+      more.innerHTML=ms.length+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+      more.onclick=ev=>{ev.stopPropagation();ev.preventDefault();openSesPop(pill,t,ms)};
+      pill.appendChild(more)}
+    return pill}
+  window.abyssMakeSesPill=makeSesPill;
+  window.abyssOpenSesPop=openSesPop;
+  window.abyssPlaySession=playSession;
+
+  /* inject the Session button onto every matching song row in the normal Library */
+  const _rl=renderList;renderList=function(){_rl.apply(this,arguments);
+    try{const v=$('#view').value;if(v==='sessions')return;
+      $('#res').querySelectorAll('.row').forEach((row,i)=>{const t=list[i];if(!t||row.querySelector('.sesPill'))return;
+        const pill=makeSesPill(t);if(!pill)return;row.classList.add('hasSes');
+        const anchor=row.querySelector('.len')||row.querySelector('.acts');
+        if(anchor)row.insertBefore(pill,anchor);else row.appendChild(pill)})}catch(e){}};
+
+  /* also add "Play studio session" to right-click menu when sessions exist */
+  const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);const ms=sessionEdits.syncFor(t);if(!ms.length)return;
+    const b=document.createElement('button');b.innerHTML=ico('mic')+(ms.length>1?'Studio sessions ('+ms.length+')…':'Play studio session');
+    const st=ctx.querySelector('[data-c=studio]');if(st)st.replaceWith(b);else ctx.appendChild(b);
+    b.onclick=ev=>{ev.stopPropagation();closeCtx();if(ms.length>1)openSesPop($('#card'),t,ms);else playSession(t,ms,0)}};
+
+  /* Stage A/B Studio Switcher under the cover art */
+  function paintStageBar(){if(!sesBar)return;const c=cur();if(!c){sesBar.hidden=true;sesBar.innerHTML='';return}
+    sesBar.innerHTML='';
+    if(c.raw&&c.raw.category==='session_edit'&&ctxState&&ctxState.sessions&&ctxState.sessions.some(s=>s.id===c.id)){
+      const sIdx=ctxState.sessions.findIndex(s=>s.id===c.id);
+      if(ctxState.mainTrack){const b=document.createElement('button');b.type='button';b.innerHTML=ico('undo')+'Main song';b.title='Switch back to '+titleOf(ctxState.mainTrack);b.onclick=backToMain;sesBar.appendChild(b)}
+      if(ctxState.sessions.length>1){const b2=document.createElement('button');b2.type='button';b2.innerHTML=ico('mic')+'Take '+(sIdx+1)+'/'+ctxState.sessions.length;b2.title='Cycle studio takes';b2.onclick=()=>openSesPop(b2,ctxState.mainTrack||c,ctxState.sessions);sesBar.appendChild(b2)}
+      sesBar.hidden=!sesBar.children.length;return}
+    const ms=sessionEdits.syncFor(c);
+    if(ms.length){const b=document.createElement('button');b.type='button';
+      const saved=ctxState&&ctxState.mainTrack&&ctxState.mainTrack.id===c.id&&ctxState.sesPos&&ctxState.sesPos[ms[0].id];
+      b.innerHTML=ico('mic')+(saved>3?'Resume session ('+fmt(saved)+')':ms.length>1?'Play session ('+ms.length+')':'Play session');
+      b.onclick=()=>playSession(c,ms,0);sesBar.appendChild(b);
+      if(ms.length>1){const b2=document.createElement('button');b2.type='button';b2.textContent='All '+ms.length+' ▾';b2.onclick=()=>openSesPop(b2,c,ms);sesBar.appendChild(b2)}
+      sesBar.hidden=false;return}
+    sesBar.hidden=true}
+  const _pt=paint;paint=function(){const r=_pt.apply(this,arguments);try{paintStageBar()}catch(e){}return r};
+  audio.addEventListener('play',()=>{if($('#panel').classList.contains('open'))renderList();window.abyssPaintLyrTab&&abyssPaintLyrTab()});
+  audio.addEventListener('pause',()=>{if($('#panel').classList.contains('open'))renderList();window.abyssPaintLyrTab&&abyssPaintLyrTab()});
+})();
+
+/* ---- Dedicated Full-Screen Lyric Library Tab (dock button + Shift+L, separate from normal Library) ---- */
+(()=>{
+  const sec=document.createElement('section');sec.id='lyrTab';sec.setAttribute('aria-label','Lyric search');
+  sec.innerHTML='<div class="ltTop"><div class="ltTitle"><h1>Lyrics</h1><small id="ltMeta"></small></div><button type="button" class="ltClose" id="ltX" title="Close (Esc)" aria-label="Close lyric search"><svg class="ic"><use href="#i-x"/></svg></button></div>'+
+    '<div class="ltSearch" id="ltBox"><svg class="ic"><use href="#i-mic"/></svg><input id="ltQ" type="search" placeholder="Search lyrics..." spellcheck="false" autocomplete="off"><i class="ltSpin"></i><button type="button" id="ltClr" hidden aria-label="Clear search"><svg class="ic"><use href="#i-x"/></svg></button></div>'+
+    '<div id="ltSub"></div><div id="ltBody"></div>';
+  document.body.appendChild(sec);
+  const inp=$('#ltQ'),box=$('#ltBox'),sub=$('#ltSub'),body=$('#ltBody'),meta=$('#ltMeta'),clr=$('#ltClr'),dockBtn=$('#bLyrS');
+  const TRIES=['I still see your shadows in my room','all girls are the same','wishing well','empty','lean wit me'];
+  let curHits=[],seq=0,deb=0;
+
+  const escRx=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  function hiLine(text,q){const el=document.createElement('q');const words=q.trim().split(/\s+/).filter(w=>w.length>=2);
+    if(!words.length){el.textContent=text;return el}
+    const rx=new RegExp('('+escRx(q.trim())+'|'+words.map(escRx).join('|')+')','ig');
+    let last=0,m;while((m=rx.exec(text))!==null){if(m.index>last)el.append(text.slice(last,m.index));const mk=document.createElement('mark');mk.textContent=m[0];el.appendChild(mk);last=m.index+m[0].length;if(!m[0].length)rx.lastIndex++}
+    if(last<text.length)el.append(text.slice(last));return el}
+
+  function paintEmpty(){sub.textContent='';const n=lyrSearch.count();meta.textContent=n?n.toLocaleString()+' songs indexed':'';
+    body.innerHTML='<div class="ltEmpty"><svg class="ic"><use href="#i-mic"/></svg><p>Search for a lyric to find matching songs</p><div class="ltTries">'+TRIES.map(t=>'<button type="button" data-try="'+esc(t)+'">“'+esc(t)+'”</button>').join('')+'</div></div>';
+    body.querySelectorAll('[data-try]').forEach(b=>b.onclick=()=>{inp.value=b.dataset.try;clr.hidden=false;runSearch(true);inp.focus()})}
+
+  function playAt(hitIdx,atSec){const tracks=curHits.map(h=>api.toTrack(h.raw)).filter(t=>t&&t.src),target=api.toTrack(curHits[hitIdx].raw);
+    if(!target||!target.src){toast('Audio unavailable for this song');return}
+    const pos=Math.max(0,tracks.findIndex(t=>t.id===target.id));queue=tracks;play(pos);
+    if(atSec!=null&&isFinite(atSec)){const dest=Math.max(0,atSec-.7);const go=()=>{try{audio.currentTime=dest}catch(e){}};
+      if(audio.readyState>=1)go();else audio.addEventListener('loadedmetadata',go,{once:true});
+      toast('Jumped to '+fmt(atSec)+' · '+titleOf(target))}
+    paintHits()}
+
+  function paintHits(){const q=inp.value.trim();if(q.length<2){paintEmpty();return}
+    const n=lyrSearch.count();meta.textContent=n?n.toLocaleString()+' songs indexed':'';
+    if(!curHits.length){sub.textContent='';body.innerHTML='<div class="ltEmpty"><svg class="ic"><use href="#i-mic"/></svg><p>No songs match “'+esc(q)+'”</p></div>';return}
+    const lineTotal=curHits.reduce((a,h)=>a+(h.lines?h.lines.length:1),0);
+    sub.textContent=curHits.length+' song'+(curHits.length===1?'':'s')+' · '+lineTotal+' matching line'+(lineTotal===1?'':'s');
+    const grid=document.createElement('div');grid.className='ltGrid';
+    curHits.forEach((h,i)=>{const t=api.toTrack(h.raw),isNow=!!(cur()&&cur().id===t.id);
+      const card=document.createElement('div');card.className='ltCard'+(isNow?' now':'');card.style.setProperty('--i',Math.min(i,24));
+      const head=document.createElement('div');head.className='ltHead';
+      head.innerHTML='<img alt="" loading="lazy" referrerpolicy="no-referrer"><div class="ltInfo"><b></b><small></small></div><div class="ltActs"></div>';
+      const im=head.querySelector('img');im.onerror=()=>{im.onerror=null;im.src=eraCover(t)};im.src=coverOf(t)||eraCover(t);
+      head.querySelector('b').textContent=titleOf(t);
+      head.querySelector('small').textContent=[artistOf(t),subOf(t),t.raw.length?String(t.raw.length).replace(/^0(\d:)/,'$1'):''].filter((x,k,a)=>x&&a.indexOf(x)===k).join(' · ');
+      const acts=head.querySelector('.ltActs');
+      const sesPill=window.abyssMakeSesPill&&abyssMakeSesPill(t);if(sesPill)acts.appendChild(sesPill);
+      const mkAct=(ic,title,on,fn)=>{const s=document.createElement('span');s.className='ltIcon'+(on?' on':'');s.title=title;s.innerHTML=ico(ic);s.onclick=ev=>{ev.stopPropagation();fn(s)};acts.appendChild(s)};
+      mkAct('heart','Like',!!likes[t.id],s=>{toggleLike(t);s.classList.toggle('on',!!likes[t.id])});
+      mkAct('plus','Play next',false,()=>playNext(t));
+      mkAct('lplus','Add to playlist',false,()=>openAddTo(t));
+      head.onclick=()=>playAt(i,null);
+      card.oncontextmenu=e=>{e.preventDefault();openCtx(e,t)};
+      card.appendChild(head);
+      const lns=document.createElement('div');lns.className='ltLines';
+      (h.lines||[{t:null,txt:h.line}]).forEach(ln=>{const b=document.createElement('button');b.type='button';b.className='ltLn';
+        if(ln.t!=null){const ts=document.createElement('span');ts.className='ltTs';ts.textContent=fmt(ln.t);ts.title='Play from '+fmt(ln.t);b.appendChild(ts)}
+        b.appendChild(hiLine(ln.txt,q));
+        b.onclick=ev=>{ev.stopPropagation();playAt(i,ln.t)};lns.appendChild(b)});
+      card.appendChild(lns);grid.appendChild(card)});
+    const st=body.scrollTop;body.innerHTML='';body.appendChild(grid);body.scrollTop=st}
+  window.abyssPaintLyrTab=()=>{if(sec.classList.contains('open')&&inp.value.trim().length>=2)paintHits()};
+
+  async function runSearch(){const q=inp.value.trim();if(q.length<2){curHits=[];box.classList.remove('busy');paintEmpty();return}
+    const my=++seq;box.classList.add('busy');
+    if(!lyrSearch.count())sub.textContent='Indexing lyrics...';
+    try{const hits=await lyrSearch.search(q,n=>{if(my===seq)sub.textContent='Indexing lyrics for the first time… '+n.toLocaleString()+' songs'});
+      if(my!==seq)return;curHits=hits;paintHits()}
+    catch(e){if(my===seq){sub.textContent='Could not load lyrics ('+e.message+'). Try again in a moment.'}}
+    finally{if(my===seq)box.classList.remove('busy')}}
+
+  inp.addEventListener('input',()=>{clr.hidden=!inp.value.length;clearTimeout(deb);deb=setTimeout(runSearch,inp.value.trim().length<2?0:160)});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&curHits.length){e.preventDefault();playAt(0,curHits[0].lines&&curHits[0].lines[0]?curHits[0].lines[0].t:null)}else if(e.key==='Escape'){if(inp.value){inp.value='';clr.hidden=true;runSearch()}else closeTab()}});
+  clr.onclick=()=>{inp.value='';clr.hidden=true;runSearch();inp.focus()};
+
+  function openTab(){if(sec.classList.contains('open'))return;
+    $('#panel').classList.remove('open');$('#bLib').classList.remove('on');
+    try{if(openPl)closePl()}catch(e){}
+    $('#qWin').classList.remove('open');$('#bQueue').classList.remove('on');
+    $('#lyr').classList.remove('open','full');$('#bLyr').classList.remove('on');
+    try{window.abyssFull&&abyssFull.close()}catch(e){}
+    document.body.classList.add('lyrTabOpen');sec.classList.add('open');dockBtn.classList.add('on');
+    if(!inp.value.trim())paintEmpty();else paintHits();
+    lyrSearch.build(n=>{if(sec.classList.contains('open')&&!inp.value.trim())meta.textContent='Indexing '+n.toLocaleString()+' songs…'}).then(()=>{if(sec.classList.contains('open'))meta.textContent=lyrSearch.count()?lyrSearch.count().toLocaleString()+' songs indexed':''}).catch(()=>{});
+    setTimeout(()=>inp.focus(),40)}
+  function closeTab(){if(!sec.classList.contains('open'))return;sec.classList.remove('open');document.body.classList.remove('lyrTabOpen');dockBtn.classList.remove('on')}
+  const toggleTab=()=>sec.classList.contains('open')?closeTab():openTab();
+  window.abyssLyrTab={open:openTab,close:closeTab,toggle:toggleTab};
+
+  /* opening any other dock panel closes the Lyric Library tab cleanly */
+  const _op=openPanel;openPanel=function(){closeTab();const r=_op.apply(this,arguments);try{if(list.length)renderList()}catch(e){}return r};$('#bLib').onclick=openPanel;
+  const _tl=toggleLyr;toggleLyr=function(){closeTab();return _tl.apply(this,arguments)};$('#bLyr').onclick=toggleLyr;
+  const _tq=toggleQ;toggleQ=function(o){if(o===undefined?!$('#qWin').classList.contains('open'):o)closeTab();return _tq.apply(this,arguments)};$('#bQueue').onclick=()=>toggleQ();
+  const _sp=showPl;showPl=function(p){closeTab();return _sp.apply(this,arguments)};
+
+  dockBtn.onclick=toggleTab;$('#ltX').onclick=closeTab;
+  addEventListener('keydown',e=>{
+    if(e.shiftKey&&!e.ctrlKey&&!e.metaKey&&e.key.toLowerCase()==='l'&&!/INPUT|TEXTAREA/.test((document.activeElement||{}).tagName||'')&&!(document.activeElement||{}).isContentEditable){e.preventDefault();toggleTab();return}
+    if(e.key==='Escape'&&sec.classList.contains('open')&&!document.querySelector('dialog[open]')&&!$('#qk').classList.contains('open')&&!$('#ctx').classList.contains('show')&&!$('#sesPop').classList.contains('open')&&document.activeElement!==inp)closeTab()});
+  setTimeout(()=>{if(!document.hidden)lyrSearch.build().catch(()=>{})},18000);
+})();
 
 /* ================= v135: Lil Uzi Vert and Unleaked are real playlists (private, built from their sources, never saved or shared) ================= */
 window.vPls=(()=>{const U=()=>window.abyssUnleaked,Z=()=>window.abyssUzi;
