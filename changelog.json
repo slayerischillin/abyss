@@ -1,6 +1,16 @@
 {
  "versions": [
   {
+   "version": 146,
+   "title": "Patch Note #10",
+   "date": "Nov 26, 2026",
+   "changes": [
+    "Fixed \"Maximum call stack size exceeded\" on iPhone when opening Session edits",
+    "Session edits load all era folders at once instead of one by one",
+    "Library filters no longer get cut off at the bottom when opened on phones"
+   ]
+  },
+  {
    "version": 145,
    "title": "Patch Note #9",
    "date": "Nov 24, 2026",

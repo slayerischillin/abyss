@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="145">
+<meta name="abyss-version" content="146">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -395,12 +395,12 @@ html,body{overflow:hidden}
 .btn.ib .ic{width:16px;height:16px}
 #fBtn.on{background:color-mix(in srgb,var(--glow) 35%,transparent)}
 #fBtn.dot::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--glow)}
-#filters{display:grid;gap:6px;max-height:0;overflow:hidden;opacity:0;transition:max-height .35s var(--ease),opacity .25s}
-#filters.open{max-height:120px;opacity:1}
+#filters{flex:none;display:grid;gap:6px;max-height:0;overflow:hidden;opacity:0;transition:max-height .35s var(--ease),opacity .25s}
+#filters.open{max-height:220px;opacity:1}
 #filters .three,#filters .two{grid-template-columns:1fr 1fr}
-#filters .three select:first-child{grid-column:span 2}
+#filters .three select:first-child,#filters .three .gsel:first-of-type{grid-column:span 2}
 #panel select{padding:6px 9px;font-size:12px;border-radius:9px}
-#plBar{gap:4px}
+#plBar{flex:none;gap:4px}
 .chip{padding:4px 10px;font-size:11px;gap:4px}
 .chip .ic{width:12px;height:12px}
 #status{font-size:12px;min-height:0}
@@ -1520,6 +1520,12 @@ body.perf{background:#0b0910!important}
 </script>
 <script>
 const $=s=>document.querySelector(s);
+/* phones: Capacitor's patched fetch can loop forever on iOS after document.write, so every request uses a clean fetch from a hidden frame */
+const _origFetch=window.fetch.bind(window);let _cleanFetch=null;
+const sfetch=(u,o)=>{if(window.Capacitor){if(!_cleanFetch){try{const f=document.createElement('iframe');f.style.display='none';f.src='about:blank';(document.body||document.documentElement).appendChild(f);const w=f.contentWindow;if(w&&w.fetch&&w.fetch!==window.fetch)_cleanFetch=w.fetch.bind(w)}catch(e){}if(!_cleanFetch)_cleanFetch=_origFetch}
+  const uu=u instanceof URL?u.href:u;let p;try{p=_cleanFetch(uu,o)}catch(e){p=Promise.reject(e)}
+  return p.catch(async e=>{if(/call stack/i.test(e&&e.message||'')||e instanceof RangeError){const H=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.CapacitorHttp;if(H&&H.request&&typeof uu==='string'&&/^https?:/.test(uu)){const m=((o&&o.method)||'GET').toUpperCase(),hd=Object.assign({},o&&o.headers||{});let data=o&&o.body;if(typeof data==='string'){try{data=JSON.parse(data)}catch(x){}}const nr=await H.request({url:uu,method:m,headers:hd,data}),st=nr.status||200,nul=st===204||st===205||st===304;return new Response(nul?null:(typeof nr.data==='string'?nr.data:JSON.stringify(nr.data??'')),{status:st,headers:nr.headers||{}})}return _origFetch(uu,o)}throw e})}return _origFetch(u,o)};
+if(window.Capacitor)window.fetch=sfetch;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 let cfg=Object.assign({base:'https://juicewrldapi.com/juicewrld',token:'',skey:'',names:'orig',auto:true},store.get('cfg',{}));
 if(cfg.v!==2){cfg.names='orig';cfg.v=2}
@@ -1797,9 +1803,7 @@ async function releasedCover(t){if(relCache[t.id]!==undefined)return relCache[t.
   if(!u&&s.image_url)u=s.image_url;relCache[t.id]=u;store.set('relc',relCache);return u}
 /* ---- shared fan-made covers (Supabase) ---- */
 const SUPA={url:'https://zatflznpjjketcannyih.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphdGZsem5wamprZXRjYW5ueWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNDU1NjAsImV4cCI6MjExMDkyMTU2MH0.FF3GKKzok5xu3EPqG3de_NeEG4csuRGWLAhhV-VDyEA'};
-/* phones: Capacitor's patched fetch can loop forever on iOS, so Supabase calls use a clean fetch from a hidden frame */
-let _cleanFetch=null;const sfetch=(...a)=>{if(window.Capacitor){if(!_cleanFetch){try{const f=document.createElement('iframe');f.style.display='none';f.src='about:blank';document.documentElement.appendChild(f);const w=f.contentWindow;_cleanFetch=w.fetch.bind(w)}catch(e){_cleanFetch=window.fetch.bind(window)}}
-  let p;try{p=_cleanFetch(...a)}catch(e){p=Promise.reject(e)}return p.catch(e=>{if(/call stack/i.test(e&&e.message||'')||e instanceof RangeError)return window.fetch(...a);throw e})}return window.fetch(...a)};
+/* (sfetch is set up at the top of the script so every request on phones uses a clean fetch) */
 const supaOn=()=>!!(SUPA.url&&SUPA.key);
 const commCache={};const myPicks=store.get('myPicks',{});
 async function communityCovers(t){if(!supaOn()||!t||t.raw.local)return[];const id=String(t.id),c=commCache[id];if(c&&Date.now()-c.at<600000)return c.list;
@@ -1954,8 +1958,8 @@ let toastT;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add
   const mine=+((document.querySelector('meta[name=abyss-version]')||{}).content||0);
   const save=h=>{try{localStorage.setItem('abyss.page',h);return true}catch(e){}
     ['cands','relc','abyss.page'].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}});try{localStorage.setItem('abyss.page',h);return true}catch(e){return false}};
-  const run=async()=>{try{const v=+(await (await fetch(FEED+'/version.json?t='+Date.now(),{cache:'no-store'})).json()).version;if(!(v>mine))return;
-    const h=await (await fetch(FEED+'/index.html?t='+Date.now(),{cache:'no-store'})).text();
+  const run=async()=>{try{const d=await (await sfetch(FEED+'/version.json?t='+Date.now(),{cache:'no-store'})).json(),v=+d.version;if(!(v>mine))return;
+    const h=await (await sfetch(FEED+'/'+(d.file||'index.html')+'?t='+Date.now(),{cache:'no-store'})).text();
     const hv=+((/name="abyss-version" content="([\d.]+)"/.exec(h)||[])[1]||0);if(hv!==v||!h.includes('<title>'))return;
     const ok1=await new Promise(res=>{try{const r=indexedDB.open('abyss',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onerror=()=>res(false);r.onsuccess=()=>{try{const t=r.result.transaction('kv','readwrite');t.objectStore('kv').put(h,'page');t.oncomplete=()=>res(true);t.onerror=()=>res(false)}catch(e){res(false)}}}catch(e){res(false)}});if(ok1){try{localStorage.removeItem('abyss.page')}catch(e){}}if(!ok1&&!save(h))return;const go=()=>{const a=typeof audio!=='undefined'&&audio;if(a&&!a.paused){setTimeout(go,5000);return}location.reload()};go()}catch(e){}};
   setTimeout(run,4000);setInterval(run,15*60*1000)})();
@@ -3322,11 +3326,14 @@ window.abyssUzi=uzi;setTimeout(()=>uzi.refresh(),4500);setInterval(()=>uzi.refre
 const sessionEdits=(()=>{const ROOT='Session Edits',KEY='seIndex';let idx=null,loading=null;
   const norm=s=>String(s||'').toLowerCase().replace(/\.[a-z0-9]{2,4}$/,'').replace(/\[[^\]]*\]|\((?:ft|feat|with|prod)[^)]*\)/g,'').replace(/[^a-z0-9]+/g,' ').trim();
   const eraOf=f=>f.replace(/^\d+\.\s*/,'').replace(/\s*[\[(]\s*sessions?\s*[\])]\s*/ig,' ').trim();
-  async function browse(path){let out=[],pg=1;for(;;){const u=cfg.base+'/files/browse/?path='+encodeURIComponent(path)+'&page='+pg+'&page_size=500';const r=await fetch(u,{headers:api.hdr?api.hdr():{}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();out=out.concat(j.items||[]);if(!j.has_more||pg>20)break;pg++}return out}
+  async function browse(path){let out=[],pg=1;for(;;){const u=cfg.base+'/files/browse/?path='+encodeURIComponent(path)+'&page='+pg+'&page_size=500',ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),12000);
+    let r;try{r=await sfetch(u,{headers:api.headers?api.headers():{},signal:ctl.signal})}catch(e){throw e&&e.name==='AbortError'?new Error('the song server took too long'):e}finally{clearTimeout(tm)}
+    if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();out=out.concat(j.items||[]);if(!j.has_more||pg>20)break;pg++}return out}
   async function index(){if(idx)return idx;const c=store.get(KEY,null);if(c&&Date.now()-c.at<12*3600*1000&&c.items&&c.items.length){idx=c.items.map(x=>Object.assign(x,{era:{name:eraOf(String(x.era&&x.era.name||''))}}));return idx}
-    if(loading)return loading;loading=(async()=>{const top=await browse(ROOT),items=[];
-      for(const d of top.filter(x=>x.type==='directory')){try{const fs=await browse(d.path);fs.filter(f=>f.type==='file'&&/\.(mp3|m4a|wav|flac|ogg|aac)$/i.test(f.name)).forEach(f=>items.push({id:'se:'+f.path,name:f.name.replace(/\.[a-z0-9]{2,4}$/i,''),path:f.path,category:'session_edit',era:{name:eraOf(d.name)},size:f.size_human||''}))}catch(e){}}
-      idx=items;store.set(KEY,{at:Date.now(),items});loading=null;return items})();return loading}
+    if(loading)return loading;loading=(async()=>{try{const top=await browse(ROOT),dirs=top.filter(x=>x.type==='directory'),items=[];let okDir=0;
+      await Promise.all(dirs.map(async d=>{try{const fs=await browse(d.path);okDir++;fs.filter(f=>f.type==='file'&&/\.(mp3|m4a|wav|flac|ogg|aac)$/i.test(f.name)).forEach(f=>items.push({id:'se:'+f.path,name:f.name.replace(/\.[a-z0-9]{2,4}$/i,''),path:f.path,category:'session_edit',era:{name:eraOf(d.name)},size:f.size_human||''}))}catch(e){}}));
+      if(dirs.length&&!okDir)throw new Error('the song server did not answer');
+      if(items.length){idx=items;store.set(KEY,{at:Date.now(),items})}return items}finally{loading=null}})();return loading}
   async function forSong(t){const all=await index(),keys=[titleOf(t),...namesOf(t)].map(norm).filter(k=>k.length>1);
     return all.filter(x=>{const n=norm(x.name);return keys.some(k=>n===k||n.startsWith(k+' ')||k.startsWith(n+' '))})}
   return{index,forSong}})();
