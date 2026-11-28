@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 148,
+   "title": "Patch Note #12",
+   "date": "Nov 28, 2026",
+   "changes": [
+    "Lil Uzi Vert songs download like any other song, tagged with Lil Uzi Vert as the artist",
+    "Unleaked songs still stay inside Abyss"
+   ]
+  },
+  {
    "version": 147,
    "title": "Patch Note #11",
    "date": "Nov 26, 2026",

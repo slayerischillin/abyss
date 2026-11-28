@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="147">
+<meta name="abyss-version" content="148">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -3181,7 +3181,7 @@ async function build(t,onProg){let audio;
   const ext=extOf(t,audio);if(ext!=='mp3')return{bytes:audio,name:fileBase(t)+'.'+ext,ext};
   onProg&&onProg('Adding cover');const pic=await coverJpeg(t),r=t.raw;
   const yr=(String(r.release_date||r.record_dates||'').match(/(19|20)\d\d/)||[])[0]||'';
-  const tag=id3({TIT2:titleOf(t),TPE1:artistOf(t),TALB:r.album||(r.era&&(r.era.description||r.era.name))||subOf(t),TPE2:'Juice WRLD',TYER:yr,TCOM:r.producers?String(r.producers).split('\n')[0]:''},pic);
+  const tag=id3({TIT2:titleOf(t),TPE1:artistOf(t),TALB:r.album||(r.era&&(r.era.description||r.era.name))||subOf(t),TPE2:r.uzi?'Lil Uzi Vert':'Juice WRLD',TYER:yr,TCOM:r.producers?String(r.producers).split('\n')[0]:''},pic);
   const body=stripId3(audio),out=new Uint8Array(tag.length+body.length);out.set(tag);out.set(body,tag.length);return{bytes:out,name:fileBase(t)+'.mp3',ext:'mp3'}}
 /* 1) Download button */
 async function download(t){if(!t)return;toast('Getting '+titleOf(t)+' ready...');
@@ -3363,13 +3363,15 @@ addEventListener('keydown',e=>{if(d.open&&d.classList.contains('tapping')&&(e.co
 })();
 /* ================= v103: Unleaked songs never leave Abyss ================= */
 (()=>{const ul=t=>!!(t&&t.raw&&t.raw.unleaked),no=()=>toast('Unleaked songs stay inside Abyss');
+/* Lil Uzi Vert songs are only marked like Unleaked so they play the same way: they can be downloaded */
+const noDl=t=>ul(t)&&!t.raw.uzi;
 /* no downloading, sharing, exporting or public cover sharing for them */
-if(window.abyssDownload){const d=window.abyssDownload;window.abyssDownload=t=>ul(t)?no():d(t)}
+if(window.abyssDownload){const d=window.abyssDownload;window.abyssDownload=t=>noDl(t)?no():d(t)}
 if(window.abyssShareUpload){const u=window.abyssShareUpload;window.abyssShareUpload=(t,c)=>ul(t)?undefined:u(t,c)}
 if(typeof shareCover==='function'){const sc=shareCover;shareCover=function(t){if(ul(t))return;return sc.apply(this,arguments)}}
-document.addEventListener('click',e=>{const b=e.target.closest('#mActs [data-m=share],#cDl,.fpDl button,[data-c=dl],[data-a=dl]');if(b&&ul(cur())&&!b.closest('.row')){e.stopImmediatePropagation();e.preventDefault();no()}},true);
-const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(ul(t))ctx.querySelectorAll('[data-c=dl],[data-c=radio],[data-c=copy]').forEach(x=>x.remove())};
-const _r=renderList;renderList=function(){_r.apply(this,arguments);try{$('#res').querySelectorAll('.row').forEach((row,i)=>{if(ul(list[i]))row.querySelector('[data-a=dl]')?.remove()})}catch(e){}};
+document.addEventListener('click',e=>{const b=e.target.closest('#mActs [data-m=share],#cDl,.fpDl button,[data-c=dl],[data-a=dl]');if(!b||b.closest('.row'))return;const isDl=!b.matches('#mActs [data-m=share]');if(isDl?noDl(cur()):ul(cur())){e.stopImmediatePropagation();e.preventDefault();no()}},true);
+const _oc=openCtx;openCtx=function(e,t,o){_oc(e,t,o);if(ul(t))ctx.querySelectorAll(noDl(t)?'[data-c=dl],[data-c=radio],[data-c=copy]':'[data-c=radio],[data-c=copy]').forEach(x=>x.remove())};
+const _r=renderList;renderList=function(){_r.apply(this,arguments);try{$('#res').querySelectorAll('.row').forEach((row,i)=>{if(noDl(list[i]))row.querySelector('[data-a=dl]')?.remove()})}catch(e){}};
 /* lyrics lookups never send the name out to other websites */
 const _fl=fetchLyrics;fetchLyrics=async function(t){if(ul(t)){const m=store.get('myLyrics',{})[t.id];if(m&&m.txt){const L=/\[\d+:\d+/.test(m.txt);return{synced:L?parseLRC(m.txt):null,plain:L?'':m.txt,mine:true}}return{none:true}}return _fl.apply(this,arguments)};
 })();
