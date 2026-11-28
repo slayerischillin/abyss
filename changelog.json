@@ -1,6 +1,15 @@
 {
  "versions": [
   {
+   "version": 149,
+   "title": "Patch Note #13",
+   "date": "Nov 28, 2026",
+   "changes": [
+    "New in the cover picker: Cover art provided by Abyss, every cover made for the song you're changing, from the song server's Cover Arts collection",
+    "Point at a cover to see who made it"
+   ]
+  },
+  {
    "version": 148,
    "title": "Patch Note #12",
    "date": "Nov 28, 2026",

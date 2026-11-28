@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="abyss-version" content="148">
+<meta name="abyss-version" content="149">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07060a">
 <title>Abyss</title>
@@ -1943,17 +1943,30 @@ function openCov(){const t=cur();if(!t){$('#ms').textContent='Play a song first'
   $('#dTitle').textContent='Pick a cover: '+titleOf(t);$('#cq').value=titleOf(t)+' Juice WRLD cover';$('#cg').innerHTML='';dCov.showModal();findCovers()}
 $('#bCov').onclick=openCov;$('#cclose').onclick=()=>dCov.close();$('#cgo').onclick=findCovers;
 $('#cq').onkeydown=e=>{if(e.key==='Enter')findCovers()};
+/* the song server's own Cover Arts folder (named by song, one folder per artist): searched by the song's title */
+async function abyssCoverArts(t,song){if(!t||t.raw.uzi||t.raw.local)return[];
+  const norm=x=>String(x||'').toLowerCase().replace(/\.[a-z0-9]+$/,'').replace(/[\(\[][^\)\]]*[\)\]]/g,' ').replace(/[^a-z0-9']+/g,' ').replace(/\s+/g,' ').trim();
+  /* the same song's file may be marked No Text, Alt, Poster, V2...: those words don't count, anything else means a different song */
+  const core=x=>norm(x).replace(/\b(no text|textless|alt|alternate|poster|clean|explicit|parental advisory|cover|art|edit|version|v ?\d+|\d+)\b/g,' ').replace(/\s+/g,' ').trim();
+  const name=norm(song),want=core(song);if(!name||!want)return[];
+  try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),10000);
+    const r=await fetch(cfg.base+'/files/browse/?'+new URLSearchParams({path:'Cover Arts',search:name,page_size:300}),{headers:api.headers?api.headers():{},signal:ctl.signal});clearTimeout(tm);
+    if(!r.ok)return[];const j=await r.json();
+    return (j.items||[]).filter(x=>x.type==='file'&&/\.(png|jpe?g|webp|gif)$/i.test(x.name)&&core(x.name)===want)
+      .map(x=>({u:cfg.base+'/files/download/?path='+encodeURIComponent(x.path),by:(x.path.split('/')[1]||''),exact:norm(x.name)===name}))
+      .sort((a,b)=>(b.exact-a.exact)||a.by.localeCompare(b.by)).slice(0,60)}catch(e){return[]}}
 async function findCovers(){const t=cur(),term=$('#cq').value.trim();if(!t||!term)return;const g=$('#cg');g.innerHTML='<div class="cvMsg"><i class="cvSpin"></i>Searching...</div>';
   const jw=x=>/juice\s*wrld|juicethekidd/i.test((x.artistName||'')+' '+(x.collectionArtistName||'')),big=x=>x.artworkUrl100.replace('100x100bb','1000x1000bb');
   const song=term.replace(/juice\s*wrld|cover( art)?|album|fan\s*made/gi,' ').replace(/\s+/g,' ').trim()||titleOf(t);
   const it=async(q,ent)=>{try{const r=await fetch('https://itunes.apple.com/search?'+new URLSearchParams({term:q,entity:ent,limit:25}));return (await r.json()).results.filter(jw).map(big)}catch{return[]}};
   const disco=async()=>{try{const r=await fetch('https://itunes.apple.com/lookup?id=1368733420&entity=album&limit=80');return (await r.json()).results.filter(x=>x.artworkUrl100).map(big)}catch{return[]}};
-  const [comm,fan,songs,albums,all]=await Promise.all([communityCovers(t),cfg.skey?serper('"'+song+'" Juice WRLD cover art'):Promise.resolve([]),it('Juice WRLD '+song,'song'),it('Juice WRLD '+song,'album'),disco()]);
+  const [abyss,comm,fan,songs,albums,all]=await Promise.all([abyssCoverArts(t,song),communityCovers(t),cfg.skey?serper('"'+song+'" Juice WRLD cover art'):Promise.resolve([]),it('Juice WRLD '+song,'song'),it('Juice WRLD '+song,'album'),disco()]);
   const seen=new Set(),uniq=a=>a.filter(u=>{if(!u)return false;const k=imgKey(u);if(seen.has(k))return false;seen.add(k);return true});
-  const groups=[['For this song',uniq([covers[t.id],eraCover(t),t.art].filter(Boolean))],['Community picks',uniq(comm)],['Fan-made',uniq(fan)],['Official matches',uniq([...songs,...albums])],['All Juice WRLD albums',uniq(all)]];
+  const credit={};abyss.forEach(x=>credit[x.u]=x.by);
+  const groups=[['For this song',uniq([covers[t.id],eraCover(t),t.art].filter(Boolean))],['Cover art provided by Abyss',uniq(abyss.map(x=>x.u))],['Community picks',uniq(comm)],['Fan-made',uniq(fan)],['Official matches',uniq([...songs,...albums])],['All Juice WRLD albums',uniq(all)]];
   g.innerHTML='';let n=0;
   groups.forEach(([lab,us])=>{if(!us.length)return;const h=document.createElement('div');h.className='cvH';h.textContent=lab;g.appendChild(h);
-    us.forEach(u=>{const i=document.createElement('img');i.src=u;i.alt='Cover option';i.loading='lazy';i.referrerPolicy='no-referrer';i.style.animationDelay=Math.min(n++,30)*25+'ms';
+    us.forEach(u=>{const i=document.createElement('img');i.src=u;i.alt='Cover option';if(credit[u])i.title='Cover by '+credit[u];i.loading='lazy';i.referrerPolicy='no-referrer';i.style.animationDelay=Math.min(n++,30)*25+'ms';
       i.onerror=()=>i.remove();i.onclick=()=>{saveCover(t,u);shareCover(t,u);dCov.close();toast(supaOn()&&lab!=='For this song'&&lab!=='Official matches'&&lab!=='All Juice WRLD albums'?'Cover saved and shared':'Cover saved')};g.appendChild(i)})});
   if(!cfg.skey){const h=document.createElement('div');h.className='cvMsg';h.innerHTML='Want fan-made covers? Add a free Serper key in Settings, under Covers.';g.appendChild(h)}
   if(!n)g.innerHTML='<div class="cvMsg">No covers found. Paste a link or upload an image instead.</div>'}
